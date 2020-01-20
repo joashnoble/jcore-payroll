@@ -155,7 +155,7 @@
                                                     <th></th>
                                                     <th>13th Month No</th>
                                                     <th>E-CODE</th>
-                                                    <th style="width: 30%;">Fullname</th>
+                                                    <th>Fullname</th>
                                                     <th><center>13th Month Pay</center></th>
                                                     <th><center>Action</center></th>
                                                  </tr>
@@ -356,7 +356,7 @@ $(document).ready(function(){
 
             $('#modal_show_13thmonth').modal('toggle');
 
-    });
+        } );
 
     $("#branch_filter_list").change(function(){
         dt.ajax.reload( null, false );        

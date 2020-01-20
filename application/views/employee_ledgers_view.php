@@ -110,10 +110,10 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label style="font-weight: bold;" for="inputEmail1">Loan Type :</label>
-                                            <select class="form-control" name="sss_loan_filter" id="sss_loan_filter" data-error-msg="SSS Loan is required" required>
+                                            <select class="form-control" name="sss_loan_filter" id="sss_loan_filter" data-error-msg="Loan is required" required>
                                               <?php
                                                   $deduction_loan = $this->db->query('SELECT deduction_id,deduction_desc FROM refdeduction WHERE deduction_id!=1
-                                                  AND deduction_id!=2 AND deduction_id!=3 AND deduction_id!=4 AND (deduction_type_id=1 OR deduction_type_id=2 OR deduction_type_id=4)');
+                                                  AND deduction_id!=2 AND deduction_id!=3 AND deduction_id!=4');
                                                   foreach($deduction_loan->result() as $loans){ ?>
                                                       <option value="<?php echo $loans->deduction_id; ?>">
                                                         <?php echo $loans->deduction_desc; ?>

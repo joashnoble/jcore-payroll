@@ -106,7 +106,6 @@
                                         <div class="col-md-3">
                                             <label style="font-weight: bold;" for="inputEmail1">Month Filter :</label>
                                             <select class="form-control" name="month_filter" id="month_filter" data-error-msg="Month Filter is required" required>
-                                                <option value="all">All</option>
                                                 <option value="1">January</option>
                                                 <option value="2">February</option>
                                                 <option value="3">March</option>

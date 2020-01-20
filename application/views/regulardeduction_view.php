@@ -69,23 +69,57 @@
         }
 
         .numeric{
-            text-align: left;
+            text-align: right;
             width:100% !important;
         }
 
         .odd{
             background-color:#eeeeee !important;
         }
+        .lblchck{
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .cursor{
+            cursor: pointer;
+            font-size: 11pt;
+        }
 
+        .cursor:hover{
+            background: #FFF59D;
+        }
 
+        #deduction_cycle_row{
+            height: 300px;
+            max-height: 300px;
+            min-height: 300px;
+            overflow-y: scroll;
+        }
+        .chckbx{
+            width:20px;
+            height:20px;
+        }
+        #tbl_deduction_regular_list td:nth-child(6),#tbl_deduction_regular_list td:nth-child(7),#tbl_deduction_regular_list td:nth-child(8){
+            text-align: right;
+        }    
+        #deduction_view_cycle_row{
+            font-size: 12pt;
+            max-height: 300px!important;
+            overflow: auto;
+        }    
+        hr.hr_row{
+            padding: 5px!important;
+            margin: 5px!important;
+            border-top: 1px solid lightgray;
+        }
     </style>
 
 <script type="text/javascript">
-    $(window).load(function(){
-        setTimeout(function() {
-            $('#loading').fadeOut( 400, "linear" );
-        }, 300);
-    });
+    // $(window).load(function(){
+    //     setTimeout(function() {
+    //         $('#loading').fadeOut( 400, "linear" );
+    //     }, 300);
+    // });
 </script>
 <?php echo $_switcher_settings; ?>
 <?php echo $_def_js_files; ?>
@@ -154,16 +188,20 @@
                                         <table id="tbl_deduction_regular_list" class="table table-striped table-bordered" cellspacing="0" width="100%">
                                             <thead>
                                                 <tr>
+                                                    <th>Period</th>
                                                     <th>ECode</th>
                                                     <th>Full Name</th>
                                                     <th>Description</th>
                                                     <th>Type</th>
-                                                    <th>Deduct Cycle</th>
-                                                    <th>Beg. Balance</th>
-                                                    <th>Deduct Per Pay</th>
-                                                    <th>Balance</th>
+                                                    <th style="text-align: right;">Beg. Balance</th>
+                                                    <th style="text-align: right;">Deduct Per Pay</th>
+                                                    <th style="text-align: right;">Balance</th>
+                                                    <th>Starting Date</th>
+                                                    <th>Ending Date</th>
                                                     <th>Remarks</th>
-                                                    <th><center>Action</center></th>
+                                                    <th>Status</th>
+                                                    <th style="width: 60px;"><center>Action</center></th>
+                                                    <th>ID</th>
                                                  </tr>
                                             </thead>
                                             <tbody>
@@ -186,7 +224,7 @@
 
             <div id="modal_confirmation" class="modal fade" tabindex="-1" role="dialog"><!--modal-->
                 <div class="modal-dialog modal-sm">
-                    <div class="modal-content"><!---content--->
+                    <div class="modal-content"><!---content-->
                         <div class="modal-header">
                             <button type="button" class="close"   data-dismiss="modal" aria-hidden="true">X</button>
                             <h4 class="modal-title"><span id="modal_mode"> </span>Confirm Deletion</h4>
@@ -200,7 +238,7 @@
                             <button id="btn_yes" type="button" class="btn btn-danger" data-dismiss="modal">Yes</button>
                             <button id="btn_close" type="button" class="btn btn-default" data-dismiss="modal">No</button>
                         </div>
-                    </div><!---content---->
+                    </div><!---content-->
                 </div>
                 </div>
             </div><!---modal-->
@@ -208,7 +246,7 @@
                 <div class="modal-dialog modal-md">
                     <div class="modal-content">
                         <div class="modal-header" style="background-color:#2ecc71;">
-                            <button type="button" class="close"   data-dismiss="modal" aria-hidden="true">X</button>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
                             <h4 class="modal-title" style="color:#ecf0f1;"><span id="modal_mode"> </span>Deduction Regular : <transactmode id="transactmode"></transactmode></h4>
                         </div>
 
@@ -216,7 +254,9 @@
                             <form id="frm_deduction_regular">
                                 <div class="container" style="width:100% !important;">
                                     <div class="form-group">
-                                        <label class="col-sm-4 inlinecustomlabel" for="inputEmail1">Employee :</label>
+                                        <label class="col-sm-4 inlinecustomlabel" for="inputEmail1">
+                                            <i class="red">*</i> Employee :
+                                        </label>
                                         <div class="col-sm-8">
                                             <select class="form-control" name="employee_id" id="employee_id" data-error-msg="Please Select Employee" required>
                                             <option value="">[ Select Employee ]</option>
@@ -230,10 +270,10 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Deduction Desc :</label>
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1"><i class="red">*</i> Deduction Desc :</label>
                                         <div class="col-sm-8">
                                             <select class="form-control" id="deduction_id" name="deduction_id" data-error-msg="Deduction Type is Required!" required>
-                                            <option value="0">[ Select Deduction Type ]</option>
+                                            <option value="">[ Select Deduction Type ]</option>
                                             <?php
                                                 foreach($refdeduction as $row)
                                                 {
@@ -243,33 +283,38 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="form-group">
+<!--                                     <div class="form-group">
                                       <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Deduction Cycle :</label>
                                         <div class="col-sm-8">
-                                            <select class="form-control" id="deduction_cycle" name="deduction_cycle" data-error-msg="Pay Period is Required!" required>
-                                        <option value="0">[ Select Deduction Cycle ]</option>
+                                        <button type="button" class="btn btn-default" id="btn_deduction_cycle">
+                                            <i class="fa fa-cog"></i>
+                                        </button>
+                                        </div>
+                                    </div> -->
 
-                                        <option value="1">1st Week</option>
-                                        <option value="2">2nd Week</option>
-                                        <option value="3">3rd Week</option>
-                                        <option value="4">4th Week</option>
-                                        <option value="5">5th Week</option>
-                                        <option value="6">1st Period</option>
-                                        <option value="7">2nd Period</option>
-                                        <option value="8">Whole Month</option>
-                                        <option value="9">1st and 2nd Period</option>
 
-                                    </select>
+                                    <div class="form-group">
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1"><i class="red">*</i> Starting Date :</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control date-picker" id="starting_date" name="starting_date" placeholder="Starting Date" data-error-msg="Starting Date is Required!" required>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Beginning Balance :</label>
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1"><i class="red">*</i> Ending Date :</label>
+                                        <div class="col-sm-8">
+                                            <input class="form-control date-picker" id="ending_date" name="ending_date" placeholder="Ending Date" data-error-msg="Ending Date is Required!" required>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="form-group">
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1"><i class="red">*</i> Beginning Balance :</label>
                                         <div class="col-sm-8">
                                             <input class="form-control numeric" id="deduction_total_amount" name="deduction_total_amount" placeholder="Beginning Balance" data-error-msg="Beginning Balance is Required!" required>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Deducted Per Pay :</label>
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1"><i class="red">*</i> Deduction Per Pay :</label>
                                         <div class="col-sm-8">
                                            <input class="form-control numeric" id="deduction_per_pay_amount" name="deduction_per_pay_amount" placeholder="Deduction Per Pay" data-error-msg="Deduction Description is Required!" required>
                                         </div>
@@ -283,7 +328,19 @@
                                     <div class="form-group">
                                       <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Remarks :</label>
                                         <div class="col-sm-8">
-                                           <textarea class="form-control" id="remarks" name="deduction_regular_remarks" rows="3" data-error-msg="Remarks is Required!" required></textarea>
+                                           <textarea class="form-control" id="remarks" name="deduction_regular_remarks" rows="3" data-error-msg="Remarks is Required!"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Status :</label>
+                                        <div class="col-sm-8">
+                                           <select class="form-control" id="deduction_status_id" name="deduction_status_id" required data-error-msg="Status is Required!">
+                                                <?php foreach($status as $status){?>
+                                                    <option value="<?php echo $status->status_id; ?>">
+                                                        <?php echo $status->status; ?>
+                                                    </option>
+                                                <?php } ?>
+                                           </select>    
                                         </div>
                                     </div>
                                   </form>
@@ -291,86 +348,142 @@
                                 </div>
                             </form>
                         </div>
-
                         <div class="modal-footer">
                             <button id="btn_create" type="button" class="btn" style="background-color:#2ecc71;color:white;">Save</button>
                             <button id="btn_cancel" type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                         </div>
-                    </div><!---content---->
+                    </div><!---content-->
                 </div>
             </div><!---modal-->
+
+            <div id="modal_deduction_cycle" class="modal fade" tabindex="-1" role="dialog"><!--modal-->
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content"><!---content-->
+                        <div class="modal-header" style="border-bottom: 5px solid lightgray;">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                            <h4 class="modal-title" style="font-size: 12pt;">
+                                Deduction Cycle <employeename id="employeename"></employeename>
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                            <form id="frm_deduction_cycle">
+                                <div id="deduction_cycle_row">
+                                    <?php foreach($refpayperiod AS $row){?>
+                                    <div style="">
+                                        <input type="checkbox" name="refpayperiod[]" class="cursor chckbx" id="<?php echo $row->pay_period_id; ?>" value="<?php echo $row->pay_period_id; ?>">
+                                        <label for="<?php echo $row->pay_period_id; ?>" class="cursor" style="margin-top: -5px!important;border: 1px solid lightgray;padding: 5px;">
+                                            <?php echo $row->payperiod_desc; ?>
+                                        </label>
+                                    </div>
+                                    <?php }?>
+                                </div>
+                            </form>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                                 <div class="col-md-12">
+                                     <button id="btn_close" style="width: 100%!important;" type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                                 </div>
+                        </div>
+                    </div><!---content-->
+                </div>
+                </div>
+            </div><!---modal-->
+
+            <div id="modal_view_deduction_cycle" class="modal fade" tabindex="-1" role="dialog"><!--modal-->
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content"><!---content-->
+                        <div class="modal-header" style="border-bottom: 5px solid lightgray;">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">X</button>
+                            <h4 class="modal-title" style="font-size: 12pt;">
+                                Deduction Cycle <br /><viewemployeename id="viewemployeename"></viewemployeename>
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <center>
+                                <form id="frm_deduction_cycle">
+                                    <div id="deduction_view_cycle_row"></div>
+                                </form>
+                            </center>
+                        </div>
+                        <div class="modal-footer">
+                             <div class="col-md-12">
+                                 <button id="btn_close" style="width: 100%!important;" type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+                             </div>
+                        </div>
+                    </div><!---content-->
+                </div>
+            </div><!---modal-->
+
 <?php echo $_rights; ?>
 <script>
 
 $(document).ready(function(){
-    var dt; var _txnMode; var _selectedID; var _selectRowObj;
+    var dt; var _txnMode; var _selectedID; var _selectRowObj; var _selectedEmployee;
+    var _selectedEID=0; var _selectedDID=0;
 
     var initializeControls=function(){
         dt=$('#tbl_deduction_regular_list').DataTable({
             "aLengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            "bStateSave": true,
-            "orderFixed": [ 1, 'asc' ],
-            "fnStateSave": function (oSettings, oData) {
-                localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
-            },
-            "fnStateLoad": function (oSettings) {
-                var data = localStorage.getItem('DataTables_' + window.location.pathname);
-                return JSON.parse(data);
-            },
+            // "bStateSave": true,
+            // "fnStateSave": function (oSettings, oData) {
+            //     localStorage.setItem('DataTables_' + window.location.pathname, JSON.stringify(oData));
+            // },
+            // "fnStateLoad": function (oSettings) {
+            //     var data = localStorage.getItem('DataTables_' + window.location.pathname);
+            //     return JSON.parse(data);
+            // },
+            "order": [[ 13, "desc" ]],
             "ajax" : "RegularDeduction/transaction/list",
             "columns": [
-
+                { targets:[0],data: "deduction_cycle",
+                    render: function (data, type, full, meta){
+                        return '<center><button class="btn btn-default" id="btn_view" name="view_info" data-toggle="tooltip" title="View Deduction Cycle"><i class="fa fa-ellipsis-h"></i></button></center>';
+                    }
+                },
                 { targets:[1],data: "ecode" },
                 { targets:[2],data: "full_name" },
                 { targets:[3],data: "deduction_desc" },
                 { targets:[4],data: "deduction_type_desc" },
-                { targets:[5],data: "deduction_cycle",
-                    render: function (data, type, full, meta){
-                        //alert(data);
-
-                        if(data == 1){
-                            return "<center>1st Week</span></center>";
-                        }
-                        if(data == 2){
-                            return "<center>2nd Week</span></center>";
-                        }
-                        if(data == 3){
-                            return "<center>3rd Week</span></center>";
-                        }
-                        if(data == 4){
-                            return "<center>4th Week</center>";
-                        }
-                        if(data == 5){
-                            return "<center>5th Week</center>";
-                        }
-                        if(data == 6){
-                            return "<center>1st Period</center>";
-                        }
-                        if(data == 7){
-                            return "<center>2nd Period</center>";
-                        }
-                        if(data == 8){
-                            return "<center>Whole Month</center>";
-                        }
-                        if(data == 9){
-                            return "<center>1st and 2nd Period</center>";
-                        }
-                        else{
-                            return "Not Set";
-                        }
+                { targets:[5],data: "loan_total_amount",
+                    render: function(data, type, full, meta){
+                        return accounting.formatNumber(data,2);
                     }
                 },
-                { targets:[6],data: "loan_total_amount" },
-                { targets:[7],data: "deduction_per_pay_amount" },
-                { targets:[8],data: "deduction_total_amount" },
-                { targets:[9],data: "deduction_regular_remarks" },
+                { targets:[6],data: "deduction_per_pay_amount",
+                    render: function(data, type, full, meta){
+                        return accounting.formatNumber(data,2);
+                    }
+                },
+                { targets:[7],data: "deduction_total_amount",
+                    render: function(data, type, full, meta){
+                        return accounting.formatNumber(data,2);
+                    }
+                },
+                { targets:[8],data: "starting_date" },
+                { targets:[9],data: "ending_date" },
+                { targets:[10],data: "deduction_regular_remarks" },
                 {
-                    targets:[10],
+                    targets:[11], data:null,
+                    render: function (data, type, full, meta){
+
+                        if (data.deduction_status_id == 1){
+                            return '<center><i class="fa fa-check-circle" style="color: green;"></i></center>';
+                        }else{
+                            return '<center><i class="fa fa-times-circle" style="color: red;"></i></center>';
+                        }
+
+                    }
+                },
+                {
+                    targets:[12],
                     render: function (data, type, full, meta){
 
                         return '<center>'+right_regdeduction_edit+right_regdeduction_delete+'</center>';
                     }
-                }
+                },
+                { targets:[13],data: "deduction_regular_id",visible:false }
             ],
             language: {
                          searchPlaceholder: "Search Deduction Regular"
@@ -378,6 +491,23 @@ $(document).ready(function(){
         });
 
         $('.numeric').autoNumeric('init');
+        
+        _employees=$("#employee_id").select2({
+            dropdownParent: $("#modal_create_Deduction_Regular"),
+            placeholder: "Select Employee",
+            allowClear: false
+        });
+
+        _employees.select2('val', null);
+
+        _deduction=$("#deduction_id").select2({
+            dropdownParent: $("#modal_create_Deduction_Regular"),
+            placeholder: "Select Deduction",
+            allowClear: false
+        });
+
+        _deduction.select2('val', null);
+
     }();
 
 
@@ -414,13 +544,10 @@ $(document).ready(function(){
             _selectRowObj=$(this).closest('tr');
             var data=dt.row(_selectRowObj).data();
             _selectedID=data.deduction_regular_id;
-            $('#deduction_regular_id').val(data.deduction_regular_id);
-            $('#employee_id').val(data.employee_id).trigger("change");
-            /*$('#employee_id').val(data.employee_id);*/
-            $('#deduction_id').val(data.deduction_id);
-            $('#deduction_cycle').val(data.deduction_cycle);
-            $('#deduction_total_amount').val(data.deduction_total_amount);
-            $('#deduction_per_pay_amount').val(data.deduction_per_pay_amount);
+            _selectedEmployee=data.full_name;
+
+            _selectedEID = data.employee_id;
+            _selectedDID = data.deduction_id;
 
             $('input,textarea').each(function(){
                 var _elem=$(this);
@@ -431,12 +558,62 @@ $(document).ready(function(){
                 });
             });
 
-            $("#balance").val($("#deduction_total_amount").val()).change();
+            $('#employee_id').prop({ disabled : true });
+            $('#deduction_id').prop({ disabled : true });
 
-            hideRatesduties();
-            hideemployeeList();
-            showemployeeFields();
+            $('#deduction_regular_id').val(data.deduction_regular_id);
+            $('#employee_id').val(data.employee_id).trigger("change");
 
+            $('#deduction_id').val(data.deduction_id).trigger("change");
+            $('#deduction_cycle').val(data.deduction_cycle);
+
+            $('#deduction_status_id').val(data.deduction_status_id);
+
+            $('#deduction_total_amount').val(Math.round(data.loan_total_amount).toFixed(2)); // Beginning Balance
+            $('#balance').val(Math.round(data.deduction_total_amount).toFixed(2)); // Balance
+            $('#deduction_per_pay_amount').val(Math.round(data.deduction_per_pay_amount).toFixed(2));
+
+            getDeductionCycle().done(function(response){
+                var cycle_row = response.data;
+                $.each(cycle_row,function(i,value){
+
+                    $('#'+value.pay_period_id).prop('checked', true);
+
+                });
+            });
+
+            // $("#balance").val($("#deduction_total_amount").val()).change();
+
+        });
+
+        $('#tbl_deduction_regular_list tbody').on('click','button[name="view_info"]',function(){
+
+            _selectRowObj=$(this).closest('tr');
+            var data=dt.row(_selectRowObj).data();
+            _selectedID=data.deduction_regular_id;
+            _selectedEmployee=data.full_name;
+
+            getDeductionCycle().done(function(response){
+                var rows=response.data;                
+                $('#modal_view_deduction_cycle').modal('show');
+                $('#viewemployeename').text(_selectedEmployee);
+                $('#deduction_view_cycle_row').text('');
+
+                if (rows.length > 0){
+                     $.each(rows,function(i,value){
+
+                            if (value.status == 1){
+                                $('#deduction_view_cycle_row').append('<i class="fa fa-check-circle green" style=""></i> '+value.payperiod+'<hr class="hr_row" />');
+                            }else{
+                                $('#deduction_view_cycle_row').append('<i class="fa fa-check-circle" style="color: lightgray;"></i> '+value.payperiod+'<hr class="hr_row" />');
+                            }
+
+                    });
+                }else{
+                    $('#deduction_view_cycle_row').text('No deduction cycle set.');
+                }
+                
+            });
         });
 
         $('#tbl_deduction_regular_list tbody').on('click','button[name="remove_info"]',function(){
@@ -458,6 +635,51 @@ $(document).ready(function(){
                 $.unblockUI();
             });
         });
+
+        $('#btn_deduction_cycle').click(function(){
+            
+            $('#modal_deduction_cycle').modal('show');
+            $('#deduction_view_cycle_row').text('');
+            $('#employeename').text('');
+
+            if (_txnMode == "edit"){
+                $('#employeename').text('for '+_selectedEmployee);
+                $('input[type="checkbox"]').prop('checked', false);
+
+                getDeductionCycle().done(function(response){
+                    var cycle_row = response.data;
+                    $.each(cycle_row,function(i,value){
+
+                        $('#'+value.pay_period_id).prop('checked', true);
+
+                    });
+                });
+            }else{
+                getPayPeriod().done(function(response){
+                    var rows=response.data;                
+                    if (rows.length > 0){
+
+                         $.each(rows,function(i,value){
+                               $('#deduction_view_cycle_row').append(newRowItem({
+                                        pay_period_id : value.pay_period_id,
+                                        payperiod_desc : value.payperiod_desc
+                               }));
+                         });    
+
+                    }else{
+                        $('#deduction_view_cycle_row').text('No deduction cycle set.');
+                    }
+                });
+            }
+        });
+
+        var newRowItem = function(d){
+            return '<div class="">'+
+                            '<input type="checkbox" name="refpayperiod[]" class="cursor chckbx" id="'+d.pay_period_id+'" value="'+d.pay_period_id+'">'+
+                            '<?php echo $row->payperiod_desc; ?>'+
+                            '<label for="'+d.pay_period_id+'" class="cursor" style="margin-top: -5px!important;border: 1px solid lightgray;padding: 5px;">'+d.payperiod_desc+'</label>'
+                    '</div>';
+        };
 
         $('input[name="file_upload[]"]').change(function(event){
             var _files=event.target.files;
@@ -487,12 +709,46 @@ $(document).ready(function(){
             });
         });
 
+        $("#starting_date").on("change", function(){
+
+            var starting_date = $("#starting_date").val();
+            var ending_date = $('#ending_date').val();
+
+            if (Date.parse(starting_date) > Date.parse(ending_date)){
+                showNotification({title:"Error!",stat:"error",msg:"Starting date must be before ending date."});
+                $('#starting_date').val('');
+            }
+
+        });
+
+        $("#ending_date").on("change", function(){
+
+            var starting_date = $("#starting_date").val();
+            var ending_date = $('#ending_date').val();
+
+            if (Date.parse(starting_date) > Date.parse(ending_date)){
+                showNotification({title:"Error!",stat:"error",msg:"Starting date must be before ending date."});
+                $('#starting_date').val('');
+                $('#ending_date').val('');
+            }
+
+        });     
+
         $('#btn_new').click(function(){
             _txnMode="new";
-            $('#transactmode').text('New');
-            $('#modal_create_Deduction_Regular').modal('show');
+            $('#transactmode').text('New');            
             clearFields($('#frm_deduction_regular'));
-            $('#deduction_regular_id').val(0);
+
+            $('#employee_id').prop({ disabled : false });
+            $('#deduction_id').prop({ disabled : false });
+
+            $('#employee_id').select2('val',0);
+            $('#deduction_id').select2('val',0);
+
+            $('#starting_date').val('<?php echo date('m/d/Y');?>');
+            $('#ending_date').val('<?php echo date('m/d/Y');?>');
+            $('#modal_create_Deduction_Regular').modal('show');
+
         });
 
 
@@ -506,12 +762,13 @@ $(document).ready(function(){
                         if(response.stat=='error'){
                              $.unblockUI();
                             return;
+                        }else{
+                            dt.row.add(response.row_added[0]).draw();
+                            clearFields($('#frm_deduction_regular'));
+                            $('#modal_create_Deduction_Regular').modal('toggle');
                         }
-                        dt.row.add(response.row_added[0]).draw();
-                        clearFields($('#frm_deduction_regular'));
                     }).always(function(){
                         $.unblockUI();
-                        $('#modal_create_Deduction_Regular').modal('toggle');
                     });
                     return;
 
@@ -524,12 +781,13 @@ $(document).ready(function(){
                         if(response.stat=='error'){
                              $.unblockUI();
                             return;
+                        }else{
+                            dt.row(_selectRowObj).data(response.row_updated[0]).draw();
+                            $('#modal_create_Deduction_Regular').modal('toggle');
                         }
-                        dt.row(_selectRowObj).data(response.row_updated[0]).draw();
                        //clearFields($('#frm_deduction_regular'))
                     }).always(function(){
                         $.unblockUI();
-                        $('#modal_create_Deduction_Regular').modal('toggle');
                     });
                     return;
                 }
@@ -538,14 +796,6 @@ $(document).ready(function(){
         });
 
     })();
-
-    _employees=$("#employee_id").select2({
-        dropdownParent: $("#modal_create_Deduction_Regular"),
-            placeholder: "Select Employee",
-            allowClear: true
-        });
-
-    _employees.select2('val', null);
 
     var validateRequiredFields=function(f){
         var stat=true;
@@ -581,7 +831,7 @@ $(document).ready(function(){
     };
 
     var create_Deduction_Regular=function(){
-        var _data = $('#frm_deduction_regular').serializeArray();
+        var _data = $('#frm_deduction_regular, #frm_deduction_cycle').serializeArray();
 
         return $.ajax({
             "dataType":"json",
@@ -594,7 +844,7 @@ $(document).ready(function(){
 
 
     var update_Deduction_Regular=function(){
-        var _data=$('#frm_deduction_regular').serializeArray();
+        var _data=$('#frm_deduction_regular, #frm_deduction_cycle').serializeArray();
 
         console.log(_data);
         _data.push({name : "deduction_regular_id" ,value : _selectedID});
@@ -620,6 +870,24 @@ $(document).ready(function(){
         });
     };
 
+    var getDeductionCycle=function(){
+        return $.ajax({
+            "dataType":"json",
+            "type":"POST",
+            "url":"RegularDeduction/transaction/getDeductionCycle",
+            "data":{deduction_regular_id : _selectedID}
+        });
+    };
+
+    var getPayPeriod=function(){
+
+        return $.ajax({
+            "dataType":"json",
+            "type":"POST",
+            "url":"RegularDeduction/transaction/getpayperiod"
+        });
+    };
+
     var showNotification=function(obj){
         PNotify.removeAll();
         new PNotify({
@@ -629,14 +897,14 @@ $(document).ready(function(){
         });
     };
 
-        $('.date-picker').datepicker({
-            todayBtn: "linked",
-            keyboardNavigation: false,
-            forceParse: false,
-            calendarWeeks: true,
-            autoclose: true
+    $('.date-picker').datepicker({
+        todayBtn: "linked",
+        keyboardNavigation: false,
+        forceParse: false,
+        calendarWeeks: true,
+        autoclose: true
 
-        });
+    });
 
     var showSpinningProgress=function(e){
         $.blockUI({ message: '<img src="assets/img/gears.svg"/><br><h4 style="color:#ecf0f1;">Saving Changes...</h4>',
@@ -652,39 +920,7 @@ $(document).ready(function(){
 
     var clearFields=function(f){
         $('input,textarea',f).val('');
-        $('select',f).val(0);
-        $(f).find('input:first').focus();
     };
-/*
-    function getFullName(data, type, dataToSet) {
-        return data.emp_fname + "&nbsp;" + data.emp_mname + "&nbsp;" + data.emp_lname;
-    }
-    */
-/*
-    function getDeductionType(data, type, dataToSet) {
-        if(data.deduction_type_id == 1) {
-            return "Premium";
-        } else if(data.deduction_type_id == 2) {
-            return "Loans";
-        } else if(data.deduction_type_id == 3) {
-            return "Dues/Other Deduction";
-        } else if(data.deduction_type_id == 4) {
-            return "Advances";
-        } else {
-            return "Select Deduction Type";
-        }
-    }
-    */
-/*
-    function getPayPeriod(data, type, dataToSet) {
-        if(data.pay_period_id == 1) {
-            return "Middle of the month";
-        } else if(data.pay_period_id == 2) {
-            return "End of the month";
-        } else {
-            return "Select Pay Period";
-        }
-    } */
 
     $(document).ready(function(){
         $('#deduction_total_amount').keyup(function(){

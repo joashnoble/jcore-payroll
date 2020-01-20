@@ -5,7 +5,7 @@
                 <div class="widget-body">
                     <div class="userinfo">
                         <div class="avatar">
-                            <img src="<?php echo $this->session->main_directory.'/'.$this->session->user_photo; ?>" class="img-responsive img-circle" style="height:100%;">
+                            <img src="<?php echo $this->session->user_photo; ?>" class="img-responsive img-circle" style="height:100%;">
                         </div>
                         <div class="info">
                             <span class="username"><?php echo $this->session->user_fullname; ?></span>
@@ -100,6 +100,24 @@
                                 </li>
                             </ul>
                         </li>  
+                        <li class="right_deductionsparent_view"><a href="javascript:void();"><i class="fa fa-minus-square" aria-hidden="true"></i><span>Deduction</span></a>
+                            <ul class="acc-menu">
+                                <li class="right_regdeduction_view"><a href="RegularDeduction" class="departmentjs" id="departmentjs">Regular Deduction</a>
+                                </li>
+                                <li class="right_tempdeduction_view"><a href="TemporaryDeduction" class="departmentjs" id="departmentjs">Temporary Deduction</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="right_otherearningsparent_view"><a href="javascript:void();"><i class="fa fa-university" aria-hidden="true"></i><span>Other Earnings</span></a>
+                            <ul class="acc-menu">
+                                <li class="right_otherregearnings_view"><a href="RefOtherEarningRegular" class="departmentjs" id="departmentjs">Other Earnings Regular</a>
+                                </li>
+                                <li class="right_othertempearnings_view"><a href="TemporaryOtherEarnings" class="departmentjs" id="departmentjs">Other Earnings Temporary</a>
+                                </li>
+                                <li class="right_overtimeentry_view"><a href="OvertimeEntry" class="" id="OvertimeEntry">Overtime Entry</a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="right_employeeclearance_view"><a href="EmployeeClearance"><i class="fa fa-user"></i><span>Employee Clearance / Exit</span></a></li>
                         <li class="right_adminparent_view"><a href="javascript:void();"><i class="fa fa-cog" aria-hidden="true"></i><span>Settings</span></a>
                             <ul class="acc-menu">

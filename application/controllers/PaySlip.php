@@ -33,7 +33,6 @@ class Payslip extends CORE_Controller
         $this->load->model('PaySlip_earning_model');
         $this->load->model('PaySlip_deduction_model');
         $this->load->model('Payslip_OtherEarning_model');
-
         $this->load->library('M_pdf');
 
 
@@ -105,12 +104,19 @@ class Payslip extends CORE_Controller
             case 'pay-slip': //
                         $getpayslip=$this->Payslip_model->get_list(
                         array('pay_slip.pay_slip_id'=>$filter_value),
-                        'pay_slip.*,daily_time_record.*,refpayperiod.pay_period_start,refpayperiod.pay_period_end,
-                        employee_list.*,CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
-                        ref_payment_type.payment_type,ref_department.department,refgroup.group_desc,ref_branch.branch,ref_branch.description',
+                            'pay_slip.*,
+                            daily_time_record.*,
+                            employee_list.*,
+                            refpayperiod.pay_period_start,
+                            refpayperiod.pay_period_end,
+                            CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
+                            ref_payment_type.payment_type,
+                            ref_department.department,
+                            refgroup.group_desc,
+                            ref_branch.branch,
+                            ref_branch.description',
                         array(
                              array('daily_time_record','daily_time_record.dtr_id=pay_slip.dtr_id','left'),
-                             array('pay_slip_other_earnings','pay_slip_other_earnings.pay_slip_id=pay_slip.pay_slip_id','left'),
                              array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
                              array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
                              array('ref_payment_type','ref_payment_type.ref_payment_type_id=emp_rates_duties.ref_payment_type_id','left'),
@@ -120,137 +126,54 @@ class Payslip extends CORE_Controller
                              array('refpayperiod','refpayperiod.pay_period_id=daily_time_record.pay_period_id','left'),
                              )
                         );
-                        /*echo json_encode($getpayslip);*/
-                        //TOTAL ALLOWANCE
-                        $gettotal_allowance=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id=1',
-                        'SUM(earnings_amount) as total_allowance'
-                        );
-                        //TOTAL SALARY ADJUSTMENTS
-                        $getearningsalaryadjustments=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id=2',
-                        'SUM(earnings_amount) as total_earnings_salary_adjustments'
-                        );
-                        //echo json_encode($getearningsalaryadjustments);
-                        //TOTAL OTHER EARNINGs
-                        $getotherearnings=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id!=1 AND earnings_id!=2',
-                        'SUM(earnings_amount) as total_other_earnings'
-                        );
-                        //SSS DEDUCTION GET
-                        $getsssdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=1 AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_sss_deduct'
-                        );
-                        //PHILHEALTH DEDUCTION GET
-                        $getphilhealthdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=2 AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_philhealth_deduct'
-                        );
-                        //PAGIBIG DEDUCTION GET
-                        $getpagibigdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=3  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_pagibig_deduct'
-                        );
-                        //WITH HOLDING DEDUCTION GET
-                        $getwithholdingdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=4  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_withholdingtax_deduct'
-                        );
-                        //SSS LOAN DEDUCTION GET
-                        $getsssloandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=5  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_sss_loan'
-                        );
-                        //PAG IBIG LOAN DEDUCTION GET
-                        $getpagibigloandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=6  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_pagibig_loan'
-                        );
-                        //CASH ADVANCE DEDUCTION GET
-                        $getcashadvancededuction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=7  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_cash_advance'
-                        );
-                        //COOP LOAN DEDUCTION GET
-                        $getcooploandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=8  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_coop_loan'
-                        );
-                        //COOP CONTRIBUTION DEDUCTION GET
-                        $getcoopcontributiondeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=9  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_coop_contribution'
-                        );
 
-                        //PAG IBIG CALAMITY La+OAN DEDUCTION GET
-                        $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=12  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_calamity_loan'
-                        );
+                        // DEDUCTIONS & EARNINGS
+                        $deductions=$this->PaySlip_deduction_model->get_payslip_deductions($filter_value);
+                        $earnings=$this->PaySlip_earning_model->get_payslip_earnings($filter_value);
 
-                        //OTHER DEDUCTION GET
-                        $getotherdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND refdeduction.deduction_type_id!=1 AND refdeduction.deduction_type_id!=2 AND refdeduction.deduction_type_id!=4 AND active_deduct=TRUE',
-                        'SUM(pay_slip_deductions.deduction_amount) as total_other_deduction',
-                        array(
-                             array('refdeduction','refdeduction.deduction_id=pay_slip_deductions.deduction_id','left'),
-                             )
-                        );
-                        //echo json_encode($getsssdeduction);
-
-                        //echo json_encode($getotherearnings);
                         //COMPANY INFO GET
                         $getcompany=$this->GeneralSettings_model->get_list(
                         null,
                         'company_setup.*'
                         );
+
                         $data['payslip']=$getpayslip[0];
-                        $data['earning_total_allowance']=$gettotal_allowance[0];
-                        $data['earning_salary_adjustment']=$getearningsalaryadjustments[0];
-                        $data['other_earnings']=$getotherearnings[0];
-                        $data['total_sss_deduct']=$getsssdeduction[0];
-                        $data['total_philhealth_deduct']=$getphilhealthdeduction[0];
-                        $data['total_pagibig_deduct']=$getpagibigdeduction[0];
-                        $data['total_withholdingtax_deduct']=$getwithholdingdeduction[0];
-                        $data['total_sss_loan']=$getsssloandeduction[0];
-                        $data['total_pagibig_loan']=$getpagibigloandeduction[0];
-                        $data['total_cash_advance']=$getcashadvancededuction[0];
-                        $data['total_coop_loan']=$getcooploandeduction[0];
-                        $data['total_coop_contribution']=$getcoopcontributiondeduction[0];
-                        $data['total_calamity_loan']=$getpagibigcalamityloan[0];
-                        $data['total_other_deduction']=$getotherdeduction[0];
+                        $data['deductions']=$deductions;
+                        $data['earnings']=$earnings;
+                        $data['reg_ot_hrs']=$getpayslip[0]->ot_reg+$getpayslip[0]->ot_reg_reg_hol+$getpayslip[0]->ot_reg_spe_hol;
+                        $data['sun_ot_hrs']=$getpayslip[0]->ot_sun+$getpayslip[0]->ot_sun_reg_hol+$getpayslip[0]->ot_sun_spe_hol;
+                        $data['spe_hol_hrs']=$getpayslip[0]->spe_hol+$getpayslip[0]->sun_spe_hol;
+                        $data['reg_hol_hrs']=$getpayslip[0]->reg_hol+$getpayslip[0]->sun_reg_hol;
+                        $data['nsd_reg_hrs']=$getpayslip[0]->nsd_reg+$getpayslip[0]->nsd_reg_reg_hol+$getpayslip[0]->nsd_reg_spe_hol;
+                        $data['nsd_sun_hrs']=$getpayslip[0]->nsd_sun+$getpayslip[0]->nsd_sun_reg_hol+$getpayslip[0]->nsd_sun_spe_hol;
                         $data['company']=$getcompany[0];
                         
                         //show only inside grid with menu button
                         if($type=='fullview'||$type==null){
                             echo $this->load->view('template/pay_slip_content_html',$data,TRUE);
-                            //echo $this->load->view('template/dr_content_menus',$data,TRUE);
                         }
 
                         //show only inside grid without menu button
                         if($type=='contentview'){
-                            echo $this->load->view('template/pay_slip_content',$data,TRUE);
+                            echo $this->load->view('template/pay_slip_content_html',$data,TRUE);
                         }
-
 
                         //download pdf
                         if($type=='pdf'){
                             $pdfFilePath = $getpayslip[0]->full_name."-".$getpayslip[0]->pay_period_start."-".$getpayslip[0]->pay_period_end.".pdf"; //generate filename base on id
                             $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
-                            $content=$this->load->view('template/pay_slip_content',$data,TRUE); //load the template
+                            $content=$this->load->view('template/pay_slip_content_html',$data,TRUE); //load the template
                             $pdf->setFooter('{PAGENO}');
                             $pdf->WriteHTML($content);
                             //download it.
                             $pdf->Output($pdfFilePath,"D");
-
                         }
 
                         //preview on browser
                         if($type=='preview'){
                             $pdfFilePath = $getpayslip[0]->full_name.".pdf"; //generate filename base on id
                             $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
-                            $content=$this->load->view('template/pay_slip_content',$data,TRUE); //load the template
+                            $content=$this->load->view('template/pay_slip_content_html',$data,TRUE); //load the template
                             $pdf->setFooter('{PAGENO}');
                             $pdf->WriteHTML($content);
                             //download it.
@@ -260,253 +183,39 @@ class Payslip extends CORE_Controller
 
                         break;
 
+
+            case 'pay-slip-printall':
+
+                    $pay_period_id = $filter_value;
+                    $department_id = $filter_value2;
+                    $branch_id = $type;
+
+                    $data["payslips"]=$this->Payslip_model->get_payslip_all($pay_period_id,$department_id,$branch_id);
+                    $data["earnings"]=$this->PaySlip_earning_model->get_payslip_earnings(null,$pay_period_id);
+                    $data["deductions"]=$this->PaySlip_deduction_model->get_payslip_deductions(null,$pay_period_id);
+
+                    echo $this->load->view('template/pay_slip_content_printall_html',$data,TRUE);
+                   break;
+
             case 'emailPayslip':
 
                 $m_employee = $this->Employee_model;
                 $m_general = $this->GeneralSettings_model;
 
                 $getpayslip=$this->Payslip_model->get_list(
-                    array('pay_slip.pay_slip_id'=>$filter_value),
-                    'pay_slip.*,daily_time_record.*,refpayperiod.pay_period_start,refpayperiod.pay_period_end,
-                    employee_list.*,CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
-                    ref_payment_type.payment_type,ref_department.department,refgroup.group_desc,ref_branch.branch,ref_branch.description',
-                    array(
-                         array('daily_time_record','daily_time_record.dtr_id=pay_slip.dtr_id','left'),
-                         array('pay_slip_other_earnings','pay_slip_other_earnings.pay_slip_id=pay_slip.pay_slip_id','left'),
-                         array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
-                         array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
-                         array('ref_payment_type','ref_payment_type.ref_payment_type_id=emp_rates_duties.ref_payment_type_id','left'),
-                         array('ref_department','ref_department.ref_department_id=emp_rates_duties.ref_department_id','left'),
-                         array('ref_branch','ref_branch.ref_branch_id=emp_rates_duties.ref_branch_id','left'),
-                         array('refgroup','refgroup.group_id=emp_rates_duties.group_id','left'),
-                         array('refpayperiod','refpayperiod.pay_period_id=daily_time_record.pay_period_id','left'),
-                         )
-                    );
-
-                /*echo json_encode($getpayslip);*/
-                    //TOTAL ALLOWANCE
-                    $gettotal_allowance=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND earnings_id=1',
-                    'SUM(earnings_amount) as total_allowance'
-                    );
-                    //TOTAL SALARY ADJUSTMENTS
-                    $getearningsalaryadjustments=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND earnings_id=2',
-                    'SUM(earnings_amount) as total_earnings_salary_adjustments'
-                    );
-                    //echo json_encode($getearningsalaryadjustments);
-                    //TOTAL OTHER EARNINGs
-                    $getotherearnings=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND earnings_id!=1 AND earnings_id!=2',
-                    'SUM(earnings_amount) as total_other_earnings'
-                    );
-                    //SSS DEDUCTION GET
-                    $getsssdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=1 AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_sss_deduct'
-                    );
-                    //PHILHEALTH DEDUCTION GET
-                    $getphilhealthdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=2 AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_philhealth_deduct'
-                    );
-                    //PAGIBIG DEDUCTION GET
-                    $getpagibigdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=3  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_pagibig_deduct'
-                    );
-                    //WITH HOLDING DEDUCTION GET
-                    $getwithholdingdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=4  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_withholdingtax_deduct'
-                    );
-                    //SSS LOAN DEDUCTION GET
-                    $getsssloandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=5  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_sss_loan'
-                    );
-                    //PAG IBIG LOAN DEDUCTION GET
-                    $getpagibigloandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=6  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_pagibig_loan'
-                    );
-                    //CASH ADVANCE DEDUCTION GET
-                    $getcashadvancededuction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=7  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_cash_advance'
-                    );
-                    //COOP LOAN DEDUCTION GET
-                    $getcooploandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=8  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_coop_loan'
-                    );
-                    //COOP CONTRIBUTION DEDUCTION GET
-                    $getcoopcontributiondeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=9  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_coop_contribution'
-                    );
-
-                    //PAG IBIG CALAMITY La+OAN DEDUCTION GET
-                    $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=12  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_calamity_loan'
-                    );
-
-                    //OTHER DEDUCTION GET
-                    $getotherdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND refdeduction.deduction_type_id!=1 AND refdeduction.deduction_type_id!=2 AND refdeduction.deduction_type_id!=4 AND active_deduct=TRUE',
-                    'SUM(pay_slip_deductions.deduction_amount) as total_other_deduction',
-                    array(
-                         array('refdeduction','refdeduction.deduction_id=pay_slip_deductions.deduction_id','left'),
-                         )
-                    );
-                    //echo json_encode($getsssdeduction);
-
-                    //echo json_encode($getotherearnings);
-                    //COMPANY INFO GET
-                    $getcompany=$this->GeneralSettings_model->get_list(
-                    null,
-                    'company_setup.*'
-                    );
-                    $data['payslip']=$getpayslip[0];
-                    $data['earning_total_allowance']=$gettotal_allowance[0];
-                    $data['earning_salary_adjustment']=$getearningsalaryadjustments[0];
-                    $data['other_earnings']=$getotherearnings[0];
-                    $data['total_sss_deduct']=$getsssdeduction[0];
-                    $data['total_philhealth_deduct']=$getphilhealthdeduction[0];
-                    $data['total_pagibig_deduct']=$getpagibigdeduction[0];
-                    $data['total_withholdingtax_deduct']=$getwithholdingdeduction[0];
-                    $data['total_sss_loan']=$getsssloandeduction[0];
-                    $data['total_pagibig_loan']=$getpagibigloandeduction[0];
-                    $data['total_cash_advance']=$getcashadvancededuction[0];
-                    $data['total_coop_loan']=$getcooploandeduction[0];
-                    $data['total_coop_contribution']=$getcoopcontributiondeduction[0];
-                    $data['total_calamity_loan']=$getpagibigcalamityloan[0];
-                    $data['total_other_deduction']=$getotherdeduction[0];
-                    $data['company']=$getcompany[0];
-
-                ## Get Employee Info
-                $email = $getpayslip[0]->email_address;
-                $full_name = $getpayslip[0]->full_name;
-
-                $pay_period = $getpayslip[0]->pay_period_start.' to '.$getpayslip[0]->pay_period_end;
-
-                $totaldeduction = $getsssdeduction[0]->total_sss_deduct+$getphilhealthdeduction[0]->total_philhealth_deduct+$getpagibigdeduction[0]->total_pagibig_deduct+$getwithholdingdeduction[0]->total_withholdingtax_deduct+$getsssloandeduction[0]->total_sss_loan+$getpagibigloandeduction[0]->total_pagibig_loan+$getcashadvancededuction[0]->total_cash_advance+$getcooploandeduction[0]->total_coop_loan+$getcoopcontributiondeduction[0]->total_coop_contribution+$getpagibigcalamityloan[0]->total_calamity_loan+$getotherdeduction[0]->total_other_deduction+$getpayslip[0]->days_wout_pay_amt+$getpayslip[0]->minutes_late_amt+$getpayslip[0]->minutes_undertime_amt+$getpayslip[0]->minutes_excess_break_amt;
-
-                $grosspay = $getpayslip[0]->gross_pay;
-                $netpay = $getpayslip[0]->net_pay;
-
-                $subject = 'Payslip of '.$full_name;
-
-                $email_settings = $m_general->get_list();
-                $company_email = $email_settings[0]->email_address;
-                $company_password = $email_settings[0]->email_password;
-                $company_name = $email_settings[0]->company_name;
-
-                $year = date('Y');
-                $date = date('m-d-Y');
-
-                $message = '<div style="width:85%;background:#F5F5F5;padding: 50px;font-family: arial;">
-                                <div style="border: 1px solid #CFD8DC;">
-                                    <div style="padding: 20px;background: #fff; font-weight: bold;font-size: 13pt;border-top: 5px solid #263238;">
-                                        '.$company_name.'
-                                    </div>
-                                    <div style="background: #263238; color: #fff;padding: 10px;">
-                                        '.$subject.'
-                                    </div>
-                                    <div style="background: #fff; padding: 15px;">
-                                        <p>Good day, '.$full_name.'! <span style="text-align: right;float:right;">'.$date.'</span> </p>
-                                        <p style="text-align: justify;">This email contains your payslip from '.$pay_period.' with a gross pay of '.number_format($grosspay,2).', total deduction of '.number_format($totaldeduction,2).' and a total net pay of '.number_format($netpay,2).'. Please see attachment as your reference of your payslip. <br>
-
-                                        If you have any concerns or questions, do not hesitate to contact us. Thank you.
-                                    </div>
-                                    <div style="background: #F5F5F5;">
-                                        <center>
-                                            <p style="font-size: 8pt;">Copyright &copy; '.$year.' '.$company_name.'</p>
-                                        </center>
-                                    </div>
-                                </div>
-                            </div>';
-
-                $file_name=$getpayslip[0]->full_name." (".$getpayslip[0]->pay_period_start." ~ ".$getpayslip[0]->pay_period_end.")";
-                $pdfFilePath = $file_name.".pdf"; //generate filename base on id
-                $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
-                $content=$this->load->view('template/pay_slip_content_email_html',$data,TRUE); //load the template
-                $pdf->setFooter('{PAGENO}');
-                $pdf->WriteHTML($content);
-                //download it.
-                            
-                $content = $pdf->Output('', 'S');
-
-                // Set SMTP Configuration
-                $emailConfig = array(
-                    'protocol' => 'smtp', 
-                    'smtp_host' => 'ssl://smtp.googlemail.com', 
-                    'smtp_port' => 465, 
-                    'smtp_user' => $company_email,
-                    'smtp_pass' => $company_password, 
-                    'mailtype' => 'html', 
-                    'charset' => 'iso-8859-1'
-                );
-
-                // Set your email information
-                
-                $from = array(
-                    'email' => $company_email,
-                    'name' => $company_name
-                );
-
-                // Load CodeIgniter Email library
-                $this->load->library('email', $emailConfig);
-                // Sometimes you have to set the new line character for better result
-                $this->email->set_newline("\r\n");
-                // Set email preferences
-                $this->email->from($company_email, $company_name);
-                $this->email->to($email);
-                $this->email->subject($subject);
-                $this->email->message($message);
-                $this->email->attach($content, 'attachment', $pdfFilePath , 'application/pdf');
-                $this->email->set_mailtype("html");
-
-                if (!$this->email->send()) {
-                $response['title']='Try Again!';
-                $response['stat']='error';
-                $response['msg']='Please check the Email Address of your Account or your Internet Connection.';
-
-                echo json_encode($response);
-                } else {
-                    // Show success notification or other things here
-                $response['title']='Success!';
-                $response['stat']='success';
-                $response['msg']='Email Sent successfully.';
-
-                echo json_encode($response);
-                }
-
-            break;          
-
-            case 'emailAllPayslip':
-
-                $m_employee = $this->Employee_model;
-                $m_general = $this->GeneralSettings_model;
-
-                $pay_period_id = $filter_value;
-
-
-                $info = $this->Payslip_model->get_employee_payslip($pay_period_id);
-    
-                if (count($info) > 0){
-
-                for ($i=0; $i < count($info); $i++) { 
-                    
-                    $getpayslip=$this->Payslip_model->get_list(
-                        array('pay_slip.pay_slip_id'=>$info[$i]->pay_slip_id),
-                        'pay_slip.*,daily_time_record.*,refpayperiod.pay_period_start,refpayperiod.pay_period_end,
-                        employee_list.*,CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
-                        ref_payment_type.payment_type,ref_department.department,refgroup.group_desc,ref_branch.branch,ref_branch.description',
+                        array('pay_slip.pay_slip_id'=>$filter_value),
+                            'pay_slip.*,
+                            daily_time_record.*,
+                            employee_list.*,
+                            CONCAT(DATE_FORMAT(refpayperiod.pay_period_start, "%m/%d/%Y")," ~ ",DATE_FORMAT(refpayperiod.pay_period_end, "%m/%d/%Y")) as payperiod,
+                            CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
+                            ref_payment_type.payment_type,
+                            ref_department.department,
+                            refgroup.group_desc,
+                            ref_branch.branch,
+                            ref_branch.description',
                         array(
                              array('daily_time_record','daily_time_record.dtr_id=pay_slip.dtr_id','left'),
-                             array('pay_slip_other_earnings','pay_slip_other_earnings.pay_slip_id=pay_slip.pay_slip_id','left'),
                              array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
                              array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
                              array('ref_payment_type','ref_payment_type.ref_payment_type_id=emp_rates_duties.ref_payment_type_id','left'),
@@ -517,165 +226,243 @@ class Payslip extends CORE_Controller
                              )
                         );
 
-                    $gettotal_allowance=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND earnings_id=1',
-                    'SUM(earnings_amount) as total_allowance'
-                    );
-                    //TOTAL SALARY ADJUSTMENTS
-                    $getearningsalaryadjustments=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND earnings_id=2',
-                    'SUM(earnings_amount) as total_earnings_salary_adjustments'
-                    );
-                    //echo json_encode($getearningsalaryadjustments);
-                    //TOTAL OTHER EARNINGs
-                    $getotherearnings=$this->PaySlip_earning_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND earnings_id!=1 AND earnings_id!=2',
-                    'SUM(earnings_amount) as total_other_earnings'
-                    );
-                    //SSS DEDUCTION GET
-                    $getsssdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=1 AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_sss_deduct'
-                    );
-                    //PHILHEALTH DEDUCTION GET
-                    $getphilhealthdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=2 AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_philhealth_deduct'
-                    );
-                    //PAGIBIG DEDUCTION GET
-                    $getpagibigdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=3  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_pagibig_deduct'
-                    );
-                    //WITH HOLDING DEDUCTION GET
-                    $getwithholdingdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=4  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_withholdingtax_deduct'
-                    );
-                    //SSS LOAN DEDUCTION GET
-                    $getsssloandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=5  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_sss_loan'
-                    );
-                    //PAG IBIG LOAN DEDUCTION GET
-                    $getpagibigloandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=6  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_pagibig_loan'
-                    );
-                    //CASH ADVANCE DEDUCTION GET
-                    $getcashadvancededuction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=7  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_cash_advance'
-                    );
-                    //COOP LOAN DEDUCTION GET
-                    $getcooploandeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=8  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_coop_loan'
-                    );
-                    //COOP CONTRIBUTION DEDUCTION GET
-                    $getcoopcontributiondeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=9  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_coop_contribution'
-                    );
+                    // DEDUCTIONS & EARNINGS
+                    $deductions=$this->PaySlip_deduction_model->get_payslip_deductions($filter_value);
+                    $earnings=$this->PaySlip_earning_model->get_payslip_earnings($filter_value);
 
-                    //PAG IBIG CALAMITY La+OAN DEDUCTION GET
-                    $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=12  AND active_deduct=TRUE',
-                    'SUM(deduction_amount) as total_calamity_loan'
-                    );
-
-                    //OTHER DEDUCTION GET
-                    $getotherdeduction=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND refdeduction.deduction_type_id!=1 AND refdeduction.deduction_type_id!=2 AND refdeduction.deduction_type_id!=4 AND active_deduct=TRUE',
-                    'SUM(pay_slip_deductions.deduction_amount) as total_other_deduction',
-                    array(
-                         array('refdeduction','refdeduction.deduction_id=pay_slip_deductions.deduction_id','left'),
-                         )
-                    );
-                    //echo json_encode($getsssdeduction);
-
-                    //echo json_encode($getotherearnings);
                     //COMPANY INFO GET
                     $getcompany=$this->GeneralSettings_model->get_list(
                     null,
                     'company_setup.*'
                     );
+
                     $data['payslip']=$getpayslip[0];
-                    $data['earning_total_allowance']=$gettotal_allowance[0];
-                    $data['earning_salary_adjustment']=$getearningsalaryadjustments[0];
-                    $data['other_earnings']=$getotherearnings[0];
-                    $data['total_sss_deduct']=$getsssdeduction[0];
-                    $data['total_philhealth_deduct']=$getphilhealthdeduction[0];
-                    $data['total_pagibig_deduct']=$getpagibigdeduction[0];
-                    $data['total_withholdingtax_deduct']=$getwithholdingdeduction[0];
-                    $data['total_sss_loan']=$getsssloandeduction[0];
-                    $data['total_pagibig_loan']=$getpagibigloandeduction[0];
-                    $data['total_cash_advance']=$getcashadvancededuction[0];
-                    $data['total_coop_loan']=$getcooploandeduction[0];
-                    $data['total_coop_contribution']=$getcoopcontributiondeduction[0];
-                    $data['total_calamity_loan']=$getpagibigcalamityloan[0];
-                    $data['total_other_deduction']=$getotherdeduction[0];
+                    $data['deductions']=$deductions;
+                    $data['earnings']=$earnings;
+                    $data['reg_ot_hrs']=$getpayslip[0]->ot_reg+$getpayslip[0]->ot_reg_reg_hol+$getpayslip[0]->ot_reg_spe_hol;
+                    $data['sun_ot_hrs']=$getpayslip[0]->ot_sun+$getpayslip[0]->ot_sun_reg_hol+$getpayslip[0]->ot_sun_spe_hol;
+                    $data['spe_hol_hrs']=$getpayslip[0]->spe_hol+$getpayslip[0]->sun_spe_hol;
+                    $data['reg_hol_hrs']=$getpayslip[0]->reg_hol+$getpayslip[0]->sun_reg_hol;
+                    $data['nsd_reg_hrs']=$getpayslip[0]->nsd_reg+$getpayslip[0]->nsd_reg_reg_hol+$getpayslip[0]->nsd_reg_spe_hol;
+                    $data['nsd_sun_hrs']=$getpayslip[0]->nsd_sun+$getpayslip[0]->nsd_sun_reg_hol+$getpayslip[0]->nsd_sun_spe_hol;
                     $data['company']=$getcompany[0];
 
-                ## Get Employee Info
-                $email = $getpayslip[0]->email_address;
-                $full_name = $getpayslip[0]->full_name;
+                    ## Get Employee Info
+                    $email = $getpayslip[0]->email_address;
+                    $full_name = $getpayslip[0]->full_name;
+                    $pay_period = $getpayslip[0]->payperiod;
+                    $grosspay = $getpayslip[0]->gross_pay;
+                    $totaldeduction = $getpayslip[0]->total_deductions;
+                    $netpay = $getpayslip[0]->net_pay;
 
-                $pay_period = $getpayslip[0]->pay_period_start.' to '.$getpayslip[0]->pay_period_end;
+                    $subject = 'Payslip of '.$full_name;
 
-                $totaldeduction = $getsssdeduction[0]->total_sss_deduct+$getphilhealthdeduction[0]->total_philhealth_deduct+$getpagibigdeduction[0]->total_pagibig_deduct+$getwithholdingdeduction[0]->total_withholdingtax_deduct+$getsssloandeduction[0]->total_sss_loan+$getpagibigloandeduction[0]->total_pagibig_loan+$getcashadvancededuction[0]->total_cash_advance+$getcooploandeduction[0]->total_coop_loan+$getcoopcontributiondeduction[0]->total_coop_contribution+$getpagibigcalamityloan[0]->total_calamity_loan+$getotherdeduction[0]->total_other_deduction+$getpayslip[0]->days_wout_pay_amt+$getpayslip[0]->minutes_late_amt+$getpayslip[0]->minutes_undertime_amt+$getpayslip[0]->minutes_excess_break_amt;
+                    $email_settings = $m_general->get_list();
+                    $company_email = $email_settings[0]->email_address;
+                    $company_password = $email_settings[0]->email_password;
+                    $company_name = $email_settings[0]->company_name;
 
-                $grosspay = $getpayslip[0]->gross_pay;
-                $netpay = $getpayslip[0]->net_pay;
+                    $year = date('Y');
+                    $date = date('m-d-Y');
 
-                $subject = 'Payslip of '.$full_name;
+                    $message = '<div style="width:85%;background:#F5F5F5;padding: 50px;font-family: arial;">
+                                    <div style="border: 1px solid #CFD8DC;">
+                                        <div style="padding: 20px;background: #fff; font-weight: bold;font-size: 13pt;border-top: 5px solid #263238;">
+                                            '.$company_name.'
+                                        </div>
+                                        <div style="background: #263238; color: #fff;padding: 10px;">
+                                            '.$subject.'
+                                        </div>
+                                        <div style="background: #fff; padding: 15px;">
+                                            <p>Good day, '.$full_name.'! <span style="text-align: right;float:right;">'.$date.'</span> </p>
+                                            <p style="text-align: justify;">This email contains your payslip from '.$pay_period.' with a gross pay of '.number_format($grosspay,2).', total deduction of '.number_format($totaldeduction,2).' and a total net pay of '.number_format($netpay,2).'. Please see attachment as your reference of your payslip.<br /><br />
 
-                $email_settings = $m_general->get_list();
-                $company_email = $email_settings[0]->email_address;
-                $company_password = $email_settings[0]->email_password;
-                $company_name = $email_settings[0]->company_name;
 
-                // Set SMTP Configuration
-                $emailConfig = array(
-                    'protocol' => 'smtp', 
-                    'smtp_host' => 'ssl://smtp.googlemail.com', 
-                    'smtp_port' => 465, 
-                    'smtp_user' => $company_email,
-                    'smtp_pass' => $company_password, 
-                    'mailtype' => 'html', 
-                    'charset' => 'iso-8859-1'
-                );
-
-                $year = date('Y');
-                $date = date('m-d-Y');
-
-                $message = '<div style="width:85%;background:#F5F5F5;padding: 50px;font-family: arial;">
-                                <div style="border: 1px solid #CFD8DC;">
-                                    <div style="padding: 20px;background: #fff; font-weight: bold;font-size: 13pt;border-top: 5px solid #263238;">
-                                        '.$company_name.'
+                                            If you have any concerns or questions, do not hesitate to contact us. Thank you.
+                                        </div>
+                                        <div style="background: #F5F5F5;">
+                                            <center>
+                                                <p style="font-size: 8pt;">Copyright &copy; '.$year.' '.$company_name.'</p>
+                                            </center>
+                                        </div>
                                     </div>
-                                    <div style="background: #263238; color: #fff;padding: 10px;">
-                                        '.$subject.'
-                                    </div>
-                                    <div style="background: #fff; padding: 15px;">
-                                        <p>Good day, '.$full_name.'! <span style="text-align: right;float:right;">'.$date.'</span> </p>
-                                        <p style="text-align: justify;">This email contains your payslip from '.$pay_period.' with a gross pay of '.number_format($grosspay,2).', total deduction of '.number_format($totaldeduction,2).' and a total net pay of '.number_format($netpay,2).'. Please see attachment as your reference of your payslip. <br>
+                                </div>';
 
-                                        If you have any concerns or questions, do not hesitate to contact us. Thank you.
-                                    </div>
-                                    <div style="background: #F5F5F5;">
-                                        <center>
-                                            <p style="font-size: 8pt;">Copyright &copy; '.$year.' '.$company_name.'</p>
-                                        </center>
-                                    </div>
-                                </div>
-                            </div>';
+                    $file_name=$getpayslip[0]->full_name." (".$getpayslip[0]->payperiod.")";
+                    $pdfFilePath = $file_name.".pdf"; //generate filename base on id
+                    $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
+                    $content=$this->load->view('template/pay_slip_content_email_html',$data,TRUE); //load the template
+                    $pdf->WriteHTML($content);
+                    //download it.
+                            
+                    $content = $pdf->Output('', 'S');
 
-                $file_name=$getpayslip[0]->full_name." (".$getpayslip[0]->pay_period_start." ~ ".$getpayslip[0]->pay_period_end.")";
+                    // Set SMTP Configuration
+                    $emailConfig = array(
+                        'protocol' => 'smtp', 
+                        'smtp_host' => 'ssl://smtp.googlemail.com', 
+                        'smtp_port' => 465, 
+                        'smtp_user' => $company_email,
+                        'smtp_pass' => $company_password, 
+                        'mailtype' => 'html', 
+                        'charset' => 'iso-8859-1'
+                    );
+
+                    // Set your email information
+                    
+                    $from = array(
+                        'email' => $company_email,
+                        'name' => $company_name
+                    );
+
+                    // Load CodeIgniter Email library
+                    $this->load->library('email', $emailConfig);
+                    // Sometimes you have to set the new line character for better result
+                    $this->email->set_newline("\r\n");
+                    // Set email preferences
+                    $this->email->from($company_email, $company_name);
+                    $this->email->to($email);
+                    $this->email->subject($subject);
+                    $this->email->message($message);
+                    $this->email->attach($content, 'attachment', $pdfFilePath , 'application/pdf');
+                    $this->email->set_mailtype("html");
+
+                    if (!$this->email->send()) {
+                    $response['title']='Try Again!';
+                    $response['stat']='error';
+                    $response['msg']='Please check the Email Address of your Account or your Internet Connection.';
+
+                    echo json_encode($response);
+                    } else {
+                        // Show success notification or other things here
+                    $response['title']='Success!';
+                    $response['stat']='success';
+                    $response['msg']='Email Sent successfully.';
+
+                    echo json_encode($response);
+                    }
+
+            break;          
+
+            case 'emailAllPayslip':
+
+                $m_employee = $this->Employee_model;
+                $m_general = $this->GeneralSettings_model;
+
+                $pay_period_id = $filter_value;
+                $department_id = $filter_value2;
+                $branch_id = $type;
+
+                $info = $this->Payslip_model->get_employee_payslip($pay_period_id);
+    
+                if (count($info) > 0){
+
+                for ($i=0; $i < count($info); $i++) { 
+                    
+                    $getpayslip=$this->Payslip_model->get_list(
+                        array('pay_slip.pay_slip_id'=>$info[$i]->pay_slip_id),
+                            'pay_slip.*,
+                            daily_time_record.*,
+                            employee_list.*,
+                            refpayperiod.pay_period_start,
+                            refpayperiod.pay_period_end,
+                            CONCAT(DATE_FORMAT(refpayperiod.pay_period_start, "%m/%d/%Y")," ~ ",DATE_FORMAT(refpayperiod.pay_period_end, "%m/%d/%Y")) as payperiod,
+                            CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
+                            ref_payment_type.payment_type,
+                            ref_department.department,
+                            refgroup.group_desc,
+                            ref_branch.branch,
+                            ref_branch.description',
+                        array(
+                             array('daily_time_record','daily_time_record.dtr_id=pay_slip.dtr_id','left'),
+                             array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
+                             array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
+                             array('ref_payment_type','ref_payment_type.ref_payment_type_id=emp_rates_duties.ref_payment_type_id','left'),
+                             array('ref_department','ref_department.ref_department_id=emp_rates_duties.ref_department_id','left'),
+                             array('ref_branch','ref_branch.ref_branch_id=emp_rates_duties.ref_branch_id','left'),
+                             array('refgroup','refgroup.group_id=emp_rates_duties.group_id','left'),
+                             array('refpayperiod','refpayperiod.pay_period_id=daily_time_record.pay_period_id','left'),
+                             )
+                        );
+
+                    // DEDUCTIONS & EARNINGS
+                    $deductions=$this->PaySlip_deduction_model->get_payslip_deductions($info[$i]->pay_slip_id);
+                    $earnings=$this->PaySlip_earning_model->get_payslip_earnings($info[$i]->pay_slip_id);
+
+                    //COMPANY INFO GET
+                    $getcompany=$this->GeneralSettings_model->get_list(
+                    null,
+                    'company_setup.*'
+                    );
+
+                    $data['payslip']=$getpayslip[0];
+                    $data['deductions']=$deductions;
+                    $data['earnings']=$earnings;
+                    $data['reg_ot_hrs']=$getpayslip[0]->ot_reg+$getpayslip[0]->ot_reg_reg_hol+$getpayslip[0]->ot_reg_spe_hol;
+                    $data['sun_ot_hrs']=$getpayslip[0]->ot_sun+$getpayslip[0]->ot_sun_reg_hol+$getpayslip[0]->ot_sun_spe_hol;
+                    $data['spe_hol_hrs']=$getpayslip[0]->spe_hol+$getpayslip[0]->sun_spe_hol;
+                    $data['reg_hol_hrs']=$getpayslip[0]->reg_hol+$getpayslip[0]->sun_reg_hol;
+                    $data['nsd_reg_hrs']=$getpayslip[0]->nsd_reg+$getpayslip[0]->nsd_reg_reg_hol+$getpayslip[0]->nsd_reg_spe_hol;
+                    $data['nsd_sun_hrs']=$getpayslip[0]->nsd_sun+$getpayslip[0]->nsd_sun_reg_hol+$getpayslip[0]->nsd_sun_spe_hol;
+                    $data['company']=$getcompany[0];
+
+                    ## Get Employee Info
+                    $email = $getpayslip[0]->email_address;
+                    $full_name = $getpayslip[0]->full_name;
+
+                    $pay_period = $getpayslip[0]->payperiod;
+
+                    $grosspay = $getpayslip[0]->gross_pay;
+                    $totaldeduction = $getpayslip[0]->total_deductions;
+                    $netpay = $getpayslip[0]->net_pay;
+
+                    $subject = 'Payslip of '.$full_name;
+
+                    $email_settings = $m_general->get_list();
+                    $company_email = $email_settings[0]->email_address;
+                    $company_password = $email_settings[0]->email_password;
+                    $company_name = $email_settings[0]->company_name;
+
+                    // Set SMTP Configuration
+                    $emailConfig = array(
+                        'protocol' => 'smtp', 
+                        'smtp_host' => 'ssl://smtp.googlemail.com', 
+                        'smtp_port' => 465, 
+                        'smtp_user' => $company_email,
+                        'smtp_pass' => $company_password, 
+                        'mailtype' => 'html', 
+                        'charset' => 'iso-8859-1'
+                    );
+
+                    $year = date('Y');
+                    $date = date('m-d-Y');
+
+                    $message = '<div style="width:85%;background:#F5F5F5;padding: 50px;font-family: arial;">
+                                    <div style="border: 1px solid #CFD8DC;">
+                                        <div style="padding: 20px;background: #fff; font-weight: bold;font-size: 13pt;border-top: 5px solid #263238;">
+                                            '.$company_name.'
+                                        </div>
+                                        <div style="background: #263238; color: #fff;padding: 10px;">
+                                            '.$subject.'
+                                        </div>
+                                        <div style="background: #fff; padding: 15px;">
+                                            <p>Good day, '.$full_name.'! <span style="text-align: right;float:right;">'.$date.'</span> </p>
+                                            <p style="text-align: justify;">This email contains your payslip from '.$pay_period.' with a gross pay of '.number_format($grosspay,2).', total deduction of '.number_format($totaldeduction,2).' and a total net pay of '.number_format($netpay,2).'. Please see attachment as your reference of your payslip. <br/><br />
+
+                                            If you have any concerns or questions, do not hesitate to contact us. Thank you.
+                                        </div>
+                                        <div style="background: #F5F5F5;">
+                                            <center>
+                                                <p style="font-size: 8pt;">Copyright &copy; '.$year.' '.$company_name.'</p>
+                                            </center>
+                                        </div>
+                                    </div>
+                                </div>';
+
+                $file_name=$getpayslip[0]->full_name." (".$getpayslip[0]->payperiod.")";
                 $pdfFilePath = $file_name.".pdf"; //generate filename base on id
                 $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
                 $content=$this->load->view('template/pay_slip_content_email_html',$data,TRUE); //load the template
-                $pdf->setFooter('{PAGENO}');
                 $pdf->WriteHTML($content);
                 //download it.
                             
@@ -712,162 +499,6 @@ class Payslip extends CORE_Controller
             
 
             break;                        
-
-            case 'pay-slip-printall': //
-                        /*$getpayslip=$this->Payslip_model->get_list(
-                        array('pay_slip.pay_slip_id'=>$filter_value),
-                        'pay_slip.*,daily_time_record.*,refpayperiod.pay_period_start,refpayperiod.pay_period_end,
-                        employee_list.*,CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,
-                        ref_payment_type.payment_type,ref_department.department,refgroup.group_desc',
-                        array(
-                             array('daily_time_record','daily_time_record.dtr_id=pay_slip.dtr_id','left'),
-                             array('pay_slip_other_earnings','pay_slip_other_earnings.pay_slip_id=pay_slip.pay_slip_id','left'),
-                             array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
-                             array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
-                             array('ref_payment_type','ref_payment_type.ref_payment_type_id=emp_rates_duties.ref_payment_type_id','left'),
-                             array('ref_department','ref_department.ref_department_id=emp_rates_duties.ref_department_id','left'),
-                             array('refgroup','refgroup.group_id=emp_rates_duties.group_id','left'),
-                             array('refpayperiod','refpayperiod.pay_period_id=daily_time_record.pay_period_id','left'),
-                             )
-                        );*/
-                        /*echo json_encode($getpayslip);*/
-                        //TOTAL ALLOWANCE
-                        /*$gettotal_allowance=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id=1',
-                        'SUM(earnings_amount) as total_allowance'
-                        );*/
-                        //TOTAL SALARY ADJUSTMENTS
-                        /*$getearningsalaryadjustments=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id=2',
-                        'SUM(earnings_amount) as total_earnings_salary_adjustments'
-                        );*/
-                        //echo json_encode($getearningsalaryadjustments);
-                        //TOTAL OTHER EARNINGs
-                        /*$getotherearnings=$this->PaySlip_earning_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND earnings_id!=1 AND earnings_id!=2',
-                        'SUM(earnings_amount) as total_other_earnings'
-                        );*/
-                        //SSS DEDUCTION GET
-                        /*$getsssdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=1 AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_sss_deduct'
-                        );*/
-                        //PHILHEALTH DEDUCTION GET
-                        /*$getphilhealthdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=2 AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_philhealth_deduct'
-                        );*/
-                        //PAGIBIG DEDUCTION GET
-                        /*$getpagibigdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=3  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_pagibig_deduct'
-                        );*/
-                        //WITH HOLDING DEDUCTION GET
-                       /* $getwithholdingdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=4  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_withholdingtax_deduct'
-                        );*/
-                        //SSS LOAN DEDUCTION GET
-                        /*$getsssloandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=5  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_sss_loan'
-                        );*/
-                        //PAG IBIG LOAN DEDUCTION GET
-                        /*$getpagibigloandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=6  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_pagibig_loan'
-                        );*/
-                        //CASH ADVANCE DEDUCTION GET
-                        /*$getcashadvancededuction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=7  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_cash_advance'
-                        );*/
-                        //COOP LOAN DEDUCTION GET
-                        /*$getcooploandeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=8  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_coop_loan'
-                        );*/
-                        //COOP CONTRIBUTION DEDUCTION GET
-                        /*$getcoopcontributiondeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=9  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_coop_contribution'
-                        );*/
-
-                        //PAG IBIG CALAMITY La+OAN DEDUCTION GET
-                        /*$getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=12  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_calamity_loan'
-                        );*/
-
-                        //OTHER DEDUCTION GET
-                        /*$getotherdeduction=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id!=1  AND deduction_id!=2  AND deduction_id!=3  AND deduction_id!=4
-                         AND deduction_id!=5  AND deduction_id!=6  AND deduction_id!=7  AND deduction_id!=8  AND deduction_id!=9  AND deduction_id!=12  AND active_deduct=TRUE',
-                        'SUM(deduction_amount) as total_other_deduction'
-                        );*/
-                        //echo json_encode($getsssdeduction);
-
-                        //echo json_encode($getotherearnings);
-                        //COMPANY INFO GET
-                        /*$getcompany=$this->GeneralSettings_model->get_list(
-                        null,
-                        'company_setup.*'
-                        );
-                        $data['payslip']=$getpayslip[0];
-                        $data['earning_total_allowance']=$gettotal_allowance[0];
-                        $data['earning_salary_adjustment']=$getearningsalaryadjustments[0];
-                        $data['other_earnings']=$getotherearnings[0];
-                        $data['total_sss_deduct']=$getsssdeduction[0];
-                        $data['total_philhealth_deduct']=$getphilhealthdeduction[0];
-                        $data['total_pagibig_deduct']=$getpagibigdeduction[0];
-                        $data['total_withholdingtax_deduct']=$getwithholdingdeduction[0];
-                        $data['total_sss_loan']=$getsssloandeduction[0];
-                        $data['total_pagibig_loan']=$getpagibigloandeduction[0];
-                        $data['total_cash_advance']=$getcashadvancededuction[0];
-                        $data['total_coop_loan']=$getcooploandeduction[0];
-                        $data['total_coop_contribution']=$getcoopcontributiondeduction[0];
-                        $data['total_calamity_loan']=$getpagibigcalamityloan[0];
-                        $data['total_other_deduction']=$getotherdeduction[0];
-                        $data['company']=$getcompany[0];*/
-
-                        $data['pay_period_id']=$filter_value2;
-                        //show only inside grid with menu button
-                        if($type=='fullview'||$type==null){
-                            echo $this->load->view('template/pay_slip_content_printall_html',$data,TRUE);
-                            //echo $this->load->view('template/dr_content_menus',$data,TRUE);
-                        }
-
-                        //show only inside grid without menu button
-                        if($type=='contentview'){
-                            echo $this->load->view('template/pay_slip_content_printall_content',$data,TRUE);
-                        }
-
-
-                        //download pdf
-                        if($type=='pdf'){
-                            $pdfFilePath = $getpayslip[0]->full_name."-".$getpayslip[0]->pay_period_start."-".$getpayslip[0]->pay_period_end.".pdf"; //generate filename base on id
-                            $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
-                            $content=$this->load->view('template/pay_slip_content',$data,TRUE); //load the template
-                            $pdf->setFooter('{PAGENO}');
-                            $pdf->WriteHTML($content);
-                            //download it.
-                            $pdf->Output($pdfFilePath,"D");
-
-                        }
-
-                        //preview on browser
-                        if($type=='preview'){
-                            $pdfFilePath = $getpayslip[0]->full_name.".pdf"; //generate filename base on id
-                            $pdf = $this->m_pdf->load(); //pass the instance of the mpdf class
-                            $content=$this->load->view('template/pay_slip_content',$data,TRUE); //load the template
-                            $pdf->setFooter('{PAGENO}');
-                            $pdf->WriteHTML($content);
-                            //download it.
-                            $pdf->SetJS('this.print();');
-                            $pdf->Output();
-                        }
-
-                        break;
 
             case 'payroll-register-summary': //
                         //show only inside grid with menu button

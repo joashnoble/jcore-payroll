@@ -83,6 +83,7 @@ class RefDeductionSetup_model extends CORE_Model {
                             LEFT JOIN new_deductions_regular ndr ON ndr.deduction_regular_id = rdc.deduction_regular_id
                             WHERE
                                 ndr.deduction_id = refdeduction.deduction_id
+                                    AND ndr.deduction_status_id =1
                                     AND rdc.pay_period_id = $pay_period_id
                                     AND ndr.employee_id = $employee_id) AS rdc_count,
                         (SELECT 

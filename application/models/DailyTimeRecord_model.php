@@ -28,6 +28,51 @@ class DailyTimeRecord_model extends CORE_Model {
                           return $query->result();
     }
 
+    function get_dtr_leave($employee_id,$pay_period_year){
+        $query = $this->db->query("SELECT
+                main.*,
+                (CASE 
+                    WHEN main.received_payslip_leave >= main.received_balance THEN
+                        0.00
+                    ELSE
+                        (main.received_balance - main.received_payslip_leave)
+                END) as current_balance
+            FROM
+            (SELECT 
+                COALESCE(SUM(total*erd.hour_per_day),0) as received_balance,
+                (SELECT 
+                COALESCE(SUM(dtr.days_with_pay),0)
+            FROM
+                daily_time_record dtr
+                LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                WHERE dtr.employee_id = elf.employee_id
+                    AND rpp.pay_period_year = ely.year) as received_payslip_leave,
+                COALESCE(erd.hour_per_day,0) as hour_per_day
+            FROM
+                emp_leaves_filed elf
+                    LEFT JOIN
+                emp_leaves_entitlement ele ON ele.emp_leaves_entitlement_id = elf.emp_leaves_entitlement_id
+                    LEFT JOIN 
+                emp_leave_year ely ON ely.emp_leave_year_id = elf.emp_leave_year_id
+                    LEFT JOIN
+                employee_list el ON el.employee_id = elf.employee_id
+                    LEFT JOIN
+                emp_rates_duties erd ON erd.emp_rates_duties_id = el.emp_rates_duties_id
+            WHERE
+                elf.is_deleted = FALSE
+                    AND elf.employee_id = $employee_id
+                    AND ely.year = $pay_period_year) as main");
+        return $query->result();
+    }    
+
+    function getRatesDuties($dtr_id){
+        $query = $this->db->query("SELECT per_hour_pay FROM daily_time_record dtr
+                LEFT JOIN employee_list el ON el.employee_id = dtr.employee_id
+                LEFT JOIN emp_rates_duties erd ON erd.emp_rates_duties_id = el.emp_rates_duties_id
+                    WHERE dtr.dtr_id = $dtr_id");
+        return $query->result();
+    }    
+
     function getperiodid($dtr_id){
         $query = $this->db->query('SELECT pay_period_id FROM daily_time_record WHERE dtr_id='.$dtr_id);
                             $query->result();
@@ -112,7 +157,7 @@ class DailyTimeRecord_model extends CORE_Model {
         $sql = "UPDATE new_deductions_regular SET deduction_status_id=2 WHERE deduction_regular_id=".$deduction_regular_id;
         $this->db->query($sql);
 
-    }
+    }    
 
     function getalldeduct($employee_id,$pay_period_id,$pay_period_sequence,$deduction_id=null) {
         $query = $this->db->query("SELECT 
@@ -438,8 +483,8 @@ class DailyTimeRecord_model extends CORE_Model {
     }
 
                         // ".($month_id=='all'?"":" WHERE z.employee <= z.total_sss_deduction")."");
-    
-    function get_wtax_report($filter){
+
+    function get_wtax_report($filter,$month_id=null,$year=null){
         $query = $this->db->query("SELECT 
                 j.*,
                 (SELECT 
@@ -458,26 +503,36 @@ class DailyTimeRecord_model extends CORE_Model {
             FROM
                 (SELECT 
                     b.*,
-                        b.taxable_amount - (b.sss_employee + b.pagibig_employee + philhealth_employee) AS total_wdeduction
+                    b.taxable_amount - (b.sss_employee + b.philhealth_employee + b.pagibig_employee) AS total_wdeduction
                 FROM
                     (SELECT 
                     y.*,
-                        (SELECT 
-                                rsc.employee
-                            FROM
-                                ref_sss_contribution rsc
-                            WHERE
-                                y.taxable_amount BETWEEN rsc.salary_range_from AND rsc.salary_range_to) AS sss_employee,
-                        '100' AS pagibig_employee,
-                        (SELECT 
-                                (CASE
-                                        WHEN y.taxable_amount <= 10000 THEN rpc.employee
-                                        WHEN y.taxable_amount >= 40000 THEN rpc.employee
-                                        ELSE ((y.taxable_amount * percentage) / 2)
-                                    END) AS employee
-                            FROM
-                                ref_philhealth_contribution rpc
-                            LIMIT 1) AS philhealth_employee
+                        (SELECT COALESCE(SUM(psd.deduction_amount),0) AS total FROM pay_slip_deductions psd
+                            LEFT JOIN pay_slip ON pay_slip.pay_slip_id = psd.pay_slip_id
+                            LEFT JOIN daily_time_record dtr ON dtr.dtr_id = pay_slip.dtr_id
+                            LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                                WHERE psd.deduction_id = 1
+                                AND dtr.employee_id = y.employee_id
+                                AND rpp.month_id = $month_id
+                                AND rpp.pay_period_year = $year) as sss_employee,
+
+                        (SELECT COALESCE(SUM(psd.deduction_amount),0) AS total FROM pay_slip_deductions psd
+                            LEFT JOIN pay_slip ON pay_slip.pay_slip_id = psd.pay_slip_id
+                            LEFT JOIN daily_time_record dtr ON dtr.dtr_id = pay_slip.dtr_id
+                            LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                                WHERE psd.deduction_id = 2
+                                AND dtr.employee_id = y.employee_id
+                                AND rpp.month_id = $month_id
+                                AND rpp.pay_period_year = $year) as philhealth_employee,
+
+                        (SELECT COALESCE(SUM(psd.deduction_amount),0) AS total FROM pay_slip_deductions psd
+                            LEFT JOIN pay_slip ON pay_slip.pay_slip_id = psd.pay_slip_id
+                            LEFT JOIN daily_time_record dtr ON dtr.dtr_id = pay_slip.dtr_id
+                            LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                                WHERE psd.deduction_id = 3
+                                AND dtr.employee_id = y.employee_id
+                                AND rpp.month_id = $month_id
+                                AND rpp.pay_period_year = $year) as pagibig_employee
                 FROM
                     (SELECT 
                     x.taxable_amount,
@@ -488,15 +543,7 @@ class DailyTimeRecord_model extends CORE_Model {
                         x.periodmonth
                 FROM
                     (SELECT 
-                        (CASE 
-                            WHEN emp_rates_duties.ref_payment_type_id = 4
-                                THEN emp_rates_duties.monthly_based_salary
-                            WHEN emp_rates_duties.ref_payment_type_id = 1
-                                THEN emp_rates_duties.monthly_based_salary
-                            WHEN emp_rates_duties.ref_payment_type_id = 2
-                                THEN emp_rates_duties.salary_reg_rates
-                            ELSE emp_rates_duties.salary_reg_rates
-                        END) AS taxable_amount,
+                        SUM(pay_slip.taxable_pay) as taxable_amount,
                         daily_time_record.employee_id,
                         CONCAT(employee_list.last_name, ', ', employee_list.first_name, ' ', employee_list.middle_name) AS full_name,
                         employee_list.tin,
@@ -530,6 +577,98 @@ class DailyTimeRecord_model extends CORE_Model {
         $query->result();
         return $query->result();
     }
+    
+    // function get_wtax_report($filter){
+    //     $query = $this->db->query("SELECT 
+    //             j.*,
+    //             (SELECT 
+    //                     (CASE
+    //                             WHEN col1_cl > j.total_wdeduction THEN (((j.total_wdeduction - col1_cl) * (col1_percent)) + (col1_amount))
+    //                             WHEN j.total_wdeduction BETWEEN col2_cl AND col3_cl THEN (((j.total_wdeduction - col2_cl) * (col2_percent)) + (col2_amount))
+    //                             WHEN j.total_wdeduction BETWEEN col3_cl AND col4_cl THEN (((j.total_wdeduction - col3_cl) * (col3_percent)) + (col3_amount))
+    //                             WHEN j.total_wdeduction BETWEEN col4_cl AND col5_cl THEN (((j.total_wdeduction - col4_cl) * (col4_percent)) + (col4_amount))
+    //                             WHEN j.total_wdeduction BETWEEN col5_cl AND col6_cl THEN (((j.total_wdeduction - col5_cl) * (col5_percent)) + (col5_amount))
+    //                             ELSE (((j.total_wdeduction - col6_cl) * (col6_percent)) + (col6_amount))
+    //                         END) AS wtax_employee
+    //                 FROM
+    //                     ref_payment_type
+    //                 WHERE
+    //                     ref_payment_type_id = 2) AS wtax_employee
+    //         FROM
+    //             (SELECT 
+    //                 b.*,
+    //                     b.taxable_amount - (b.sss_employee + b.pagibig_employee + philhealth_employee) AS total_wdeduction
+    //             FROM
+    //                 (SELECT 
+    //                 y.*,
+    //                     (SELECT 
+    //                             rsc.employee
+    //                         FROM
+    //                             ref_sss_contribution rsc
+    //                         WHERE
+    //                             y.taxable_amount BETWEEN rsc.salary_range_from AND rsc.salary_range_to) AS sss_employee,
+    //                     '100' AS pagibig_employee,
+    //                     (SELECT 
+    //                             (CASE
+    //                                     WHEN y.taxable_amount <= 10000 THEN rpc.employee
+    //                                     WHEN y.taxable_amount >= 40000 THEN rpc.employee
+    //                                     ELSE ((y.taxable_amount * percentage) / 2)
+    //                                 END) AS employee
+    //                         FROM
+    //                             ref_philhealth_contribution rpc
+    //                         LIMIT 1) AS philhealth_employee
+    //             FROM
+    //                 (SELECT 
+    //                 x.taxable_amount,
+    //                     x.employee_id,
+    //                     x.full_name,
+    //                     x.tin,
+    //                     x.ecode,
+    //                     x.periodmonth
+    //             FROM
+    //                 (SELECT 
+    //                     (CASE 
+    //                         WHEN emp_rates_duties.ref_payment_type_id = 4
+    //                             THEN emp_rates_duties.monthly_based_salary
+    //                         WHEN emp_rates_duties.ref_payment_type_id = 1
+    //                             THEN emp_rates_duties.monthly_based_salary
+    //                         WHEN emp_rates_duties.ref_payment_type_id = 2
+    //                             THEN emp_rates_duties.salary_reg_rates
+    //                         ELSE emp_rates_duties.salary_reg_rates
+    //                     END) AS taxable_amount,
+    //                     daily_time_record.employee_id,
+    //                     CONCAT(employee_list.last_name, ', ', employee_list.first_name, ' ', employee_list.middle_name) AS full_name,
+    //                     employee_list.tin,
+    //                     employee_list.ecode,
+    //                     ref_branch.branch,
+    //                     (CASE
+    //                         WHEN refpayperiod.month_id = 1 THEN 'January'
+    //                         WHEN refpayperiod.month_id = 2 THEN 'February'
+    //                         WHEN refpayperiod.month_id = 3 THEN 'March'
+    //                         WHEN refpayperiod.month_id = 4 THEN 'April'
+    //                         WHEN refpayperiod.month_id = 5 THEN 'May'
+    //                         WHEN refpayperiod.month_id = 6 THEN 'June'
+    //                         WHEN refpayperiod.month_id = 7 THEN 'July'
+    //                         WHEN refpayperiod.month_id = 8 THEN 'August'
+    //                         WHEN refpayperiod.month_id = 9 THEN 'September'
+    //                         WHEN refpayperiod.month_id = 10 THEN 'October'
+    //                         WHEN refpayperiod.month_id = 11 THEN 'November'
+    //                         WHEN refpayperiod.month_id = 12 THEN 'December'
+    //                         ELSE 'All'
+    //                     END) AS periodmonth
+    //             FROM
+    //                 pay_slip
+    //             LEFT JOIN daily_time_record ON pay_slip.dtr_id = daily_time_record.dtr_id
+    //             LEFT JOIN employee_list ON employee_list.employee_id = daily_time_record.employee_id
+    //             LEFT JOIN refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
+    //             LEFT JOIN emp_rates_duties ON emp_rates_duties.emp_rates_duties_id = employee_list.emp_rates_duties_id
+    //             LEFT JOIN ref_branch ON ref_branch.ref_branch_id = emp_rates_duties.ref_branch_id
+    //             WHERE $filter
+    //             GROUP BY daily_time_record.employee_id , refpayperiod.month_id , refpayperiod.pay_period_year
+    //             ORDER BY refpayperiod.month_id , employee_list.last_name ASC) AS x) AS y) AS b) AS j");
+    //     $query->result();
+    //     return $query->result();
+    // }
 
      function getwithoutdtrBACKUP($pay_period_id) {
         $query = $this->db->query('SELECT employee_list.*,ref_department.ref_department_id,ref_department.department,
@@ -655,7 +794,8 @@ class DailyTimeRecord_model extends CORE_Model {
                                 ELSE (('.$salary_reg_rates.'*percentage)/2)
                             END) as employee
                         FROM
-                            ref_philhealth_contribution');
+                            ref_philhealth_contribution
+                            WHERE '.$salary_reg_rates.' BETWEEN salary_range_from AND salary_range_to');
                                         return $tempphilhealth->result();
     }
 
@@ -874,7 +1014,6 @@ class DailyTimeRecord_model extends CORE_Model {
                                 // Wtax Full Deduct
                                 $wtax_full_deduct=$deductsettings[3]->full_deduct; 
 
-
                                 //SSS DEDUCT
                                 if($sss_is_deduct==1){
 
@@ -967,6 +1106,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                     }
 
                                     $refphilhealth = $this->Philhealth_lookup_default($philhealth_amount);
+
                                     $philhealth_id=$refphilhealth[0]->ref_philhealth_contribution_id;
                                     $philhealth = $refphilhealth[0]->employee;
 
@@ -1043,14 +1183,20 @@ class DailyTimeRecord_model extends CORE_Model {
 
                             //GET REGULAR EARNINGS
                             $regular_earnings=0;
+                            $taxable_regular_earnings=0;
                             $re=0;
-                            $regearningstemp = $this->db->query('SELECT oe_regular_id,earnings_id,oe_regular_amount FROM new_otherearnings_regular WHERE employee_id='.$processtemp[0]->employee_id.' AND oe_cycle='.$processtemp[0]->pay_period_sequence.' AND is_temporary=0 AND is_deleted=0');
+                            $regearningstemp = $this->db->query('SELECT oe_regular_id,earnings_id,oe_regular_amount,is_taxable FROM new_otherearnings_regular WHERE employee_id='.$processtemp[0]->employee_id.' AND oe_cycle='.$processtemp[0]->pay_period_sequence.' AND is_temporary=0 AND is_deleted=0 AND earnings_status_id = 1');
                             
 
                             
                             foreach ($regearningstemp->result() as $row)
                             {
                                     $regular_earnings+=$row->oe_regular_amount;
+
+                                    if ($row->is_taxable == 1){
+                                        $taxable_regular_earnings+=$row->oe_regular_amount;
+                                    }
+
                                     $oe_regular_id[$re] = $row->oe_regular_id;
                                     $earnings_id[$re] = $row->earnings_id;
                                     $oe_regular_amount[$re] = $row->oe_regular_amount;
@@ -1059,11 +1205,17 @@ class DailyTimeRecord_model extends CORE_Model {
 
                                  //GET TEMPORARY EARNINGS
                                 $temporary_earnings=0;
+                                $taxable_temporary_earnings=0;
                                 $rt=0;
-                                $tempearnings = $this->db->query('SELECT oe_regular_id,earnings_id,oe_regular_amount FROM new_otherearnings_regular WHERE employee_id='.$processtemp[0]->employee_id.' AND pay_period_id='.$processtemp[0]->pay_period_id.' AND is_temporary=1 AND is_deleted=0');
+                                $tempearnings = $this->db->query('SELECT oe_regular_id,earnings_id,oe_regular_amount,is_taxable FROM new_otherearnings_regular WHERE employee_id='.$processtemp[0]->employee_id.' AND pay_period_id='.$processtemp[0]->pay_period_id.' AND is_temporary=1 AND is_deleted=0');
                                 foreach ($tempearnings->result() as $row)
                                 {
                                         $temporary_earnings+=$row->oe_regular_amount;
+
+                                        if ($row->is_taxable == 1){
+                                            $taxable_temporary_earnings+=$row->oe_regular_amount;
+                                        }
+
                                         $oe_regular_id_T[$rt] = $row->oe_regular_id;
                                         $earnings_id_T[$rt] = $row->earnings_id;
                                         $oe_regular_amount_T[$rt] = $row->oe_regular_amount;
@@ -1115,7 +1267,7 @@ class DailyTimeRecord_model extends CORE_Model {
 
                                             if (($get_balance[0]->grand_balance - $row->deduction_per_pay_amount) <= 0){
                                                 $this->change_status_deduct($row->deduction_regular_id);
-                                            }  
+                                            }   
 
                                             $regular_deductions+=$row->deduction_per_pay_amount;
                                             $deduction_regular_id[$rd] = $row->deduction_regular_id;
@@ -1175,7 +1327,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                 //echo $pagibigdeduct;
                                 //echo $taxshielddeduct;
                                 $gross_pay=$total_dtr_amount+$regular_earnings+$temporary_earnings+$processtemp[0]->days_with_pay_amt;
-
+                                $taxable_gross_pay = $total_dtr_amount+$taxable_regular_earnings+$taxable_temporary_earnings+$processtemp[0]->days_with_pay_amt;
                                 //SALARY REG RATES MINUS DEDUCTIONS SSS/PHIL/PAGIBIG
                                   $sss_phil_pagibig_deductions=$sss+$philhealth+$pagibig;
                                   $wtax_lookup_amount=0;
@@ -1188,16 +1340,20 @@ class DailyTimeRecord_model extends CORE_Model {
                                     $wtax_lookup_amount= 0;
 
                                     if($processtemp[0]->tax_shield == 0.00 || $processtemp[0]->tax_shield == null){
-                                        $wtax_lookup_amount = $gross_pay-$sss_phil_pagibig_deductions;
+                                        $wtax_lookup_amount = $taxable_gross_pay-$sss_phil_pagibig_deductions;
                                     }else{
                                         $wtax_lookup_amount = $processtemp[0]->tax_shield-$sss_phil_pagibig_deductions;
                                     }
 
-                                        if ($ref_payment_type_id == 4){ // Semi-Monthly
+                                        if ($ref_payment_type_id == 2){ // Semi-Monthly
                                             $withholding_lookup = ($this->Wtax_lookup($wtax_lookup_amount,2)) / $pcount;
                                         }else{
                                             $withholding_lookup = $this->Wtax_lookup($wtax_lookup_amount,$ref_payment_type_id);
                                         }
+
+                                            echo $ref_payment_type_id;
+
+
                                   }
                                   else{
                                         $withholding_lookup=0;

@@ -17,6 +17,7 @@ class Employee13thMonthPay extends CORE_Controller
         $this->load->model('RefPayPeriod_model');
         $this->load->model('SchedDTR_model');
         $this->load->model('RefBranch_model');
+
         $this->load->model('PayrollReports_model');
         $this->load->model('Emp_13thmonth_model');
         $this->load->model('RefYearSetup_model');

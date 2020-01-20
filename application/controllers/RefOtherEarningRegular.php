@@ -58,6 +58,7 @@ class RefOtherEarningRegular extends CORE_Controller
         $this->load->model('RefDeductionSetup_model');
         $this->load->model('RefFactorFile_model');
         $this->load->model('RefOtherEarningRegular_model');
+        $this->load->model('Status_model');
 
     }
 
@@ -75,23 +76,24 @@ class RefOtherEarningRegular extends CORE_Controller
         $data['refotherearnings']=$this->RefEarningSetup_model->get_list(array('refotherearnings.is_deleted'=>FALSE));
         $data['refotherearningstype']=$this->RefEarningType_model->get_list(array('refotherearningstype.is_deleted'=>FALSE));
         $data['new_otherearnings_regular']=$this->RefOtherEarningRegular_model->get_list(array('new_otherearnings_regular.is_deleted'=>FALSE));
+        $data['status']=$this->Status_model->get_list();
         $this->load->view('ref_otherearnings_regular_view', $data);
     }
 
     function transaction($txn = null) {
         switch ($txn) {
             case 'list':
-            	$response['data'] = $this->RefOtherEarningRegular_model->get_list(
-                   	array('new_otherearnings_regular.is_deleted'=>FALSE,'new_otherearnings_regular.is_temporary'=>FALSE),
-                   	'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*
+                $response['data'] = $this->RefOtherEarningRegular_model->get_list(
+                    array('new_otherearnings_regular.is_deleted'=>FALSE,'new_otherearnings_regular.is_temporary'=>FALSE),
+                    'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*
                         ',
-                   	array(
-                   			array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
-                   			array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
-                   			array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
-                   		));
+                    array(
+                            array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
+                            array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
+                            array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
+                        ));
 
-          		echo json_encode($response);
+                echo json_encode($response);
                 
                 break;
 
@@ -107,6 +109,7 @@ class RefOtherEarningRegular extends CORE_Controller
                 $m_otherearnings_regular->oe_cycle = $this->input->post('oe_cycle', TRUE);
                 $m_otherearnings_regular->is_taxable = $this->input->post('is_taxable', TRUE);
                 $m_otherearnings_regular->oe_regular_remarks = $this->input->post('oe_regular_remarks', TRUE);
+                $m_otherearnings_regular->earnings_status_id = $this->input->post('earnings_status_id', TRUE);
                 $m_otherearnings_regular->is_temporary = 0;
                 $m_otherearnings_regular->date_created = date("Y-m-d H:i:s");
                 $m_otherearnings_regular->created_by = $this->session->user_id;
@@ -120,14 +123,14 @@ class RefOtherEarningRegular extends CORE_Controller
                 $response['msg'] = 'Other Earnings Regular information successfully created.';
 
                 $response['row_added'] = $this->RefOtherEarningRegular_model->get_list($oe_regular_id,
-                   	'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*',
-                   	array(
-                   			array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
-                   			array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
-                   			array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
-                   		));
+                    'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*',
+                    array(
+                            array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
+                            array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
+                            array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
+                        ));
 
-          		echo json_encode($response);
+                echo json_encode($response);
 
                 break;
 
@@ -154,8 +157,6 @@ class RefOtherEarningRegular extends CORE_Controller
                 $oe_regular_amount=$this->input->post('oe_regular_amount', TRUE);
                 $oe_regular_id=$this->input->post('oe_regular_id',TRUE);
 
-                $m_otherearnings_regular->employee_id = $this->input->post('employee_id', TRUE);
-                $m_otherearnings_regular->earnings_id = $this->input->post('earnings_id', TRUE);
                 $m_otherearnings_regular->pay_period_id = $this->input->post('pay_period_id', TRUE);
                 //$m_otherearnings_regular->deduction_total_amount = $this->input->post('deduction_total_amount', TRUE);
                 $m_otherearnings_regular->oe_regular_amount = $this->get_numeric_value($oe_regular_amount);
@@ -163,6 +164,7 @@ class RefOtherEarningRegular extends CORE_Controller
                 $m_otherearnings_regular->is_taxable = $this->input->post('is_taxable', TRUE);
                 $m_otherearnings_regular->oe_regular_remarks = $this->input->post('oe_regular_remarks', TRUE);
                 $m_otherearnings_regular->is_temporary = 0;
+                $m_otherearnings_regular->earnings_status_id = $this->input->post('earnings_status_id', TRUE);
                 $m_otherearnings_regular->date_modified = date("Y-m-d H:i:s");
                 $m_otherearnings_regular->modified_by = $this->session->user_id;
                 $m_otherearnings_regular->modify($oe_regular_id);
@@ -172,22 +174,17 @@ class RefOtherEarningRegular extends CORE_Controller
                 $response['msg']='Other Earnings Regular information successfully updated.';
 
                 $response['row_updated'] = $this->RefOtherEarningRegular_model->get_list($oe_regular_id,
-                   	'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*',
-                   	array(
-                   			array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
-                   			array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
-                   			array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
-                   		));
+                    'new_otherearnings_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refotherearnings.*,refotherearningstype.*',
+                    array(
+                            array('employee_list','employee_list.employee_id=new_otherearnings_regular.employee_id','left'),
+                            array('refotherearnings','refotherearnings.earnings_id=new_otherearnings_regular.earnings_id','left'),
+                            array('refotherearningstype','refotherearningstype.earnings_type_id=refotherearnings.earnings_type_id','left')
+                        ));
 
-          		echo json_encode($response);
+                echo json_encode($response);
 
                 break;
 
         }
     }
-
-
-
-
-
 }

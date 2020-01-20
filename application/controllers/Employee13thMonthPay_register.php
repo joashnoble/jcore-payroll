@@ -89,8 +89,6 @@ class Employee13thMonthPay_register extends CORE_Controller
 
         }
 
-
     }
-
 
 }

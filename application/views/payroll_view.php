@@ -1135,6 +1135,19 @@ $(document).ready(function(){
             var wodtrval = tempwodtrval.split(/~/)
             _selectedID=wodtrval[0];
             _selectedIDdtremployee = _selectedID;
+
+            getAppliedLeave(_selectedIDdtremployee,_selectedYear).done(function(response){
+                var row = response.data[0];
+
+                if (row.current_balance > 0){
+                    $('#days_with_pay').val(accounting.formatNumber(row.current_balance,2));
+                }else{
+                    $('#days_with_pay').val(null);
+                }
+
+            }).always(function(){
+                $.unblockUI();
+            });            
             
             // chckstatus().done(function(response){
             //   var chck_id = response[0].ref_payment_type_id;
@@ -1240,6 +1253,20 @@ $(document).ready(function(){
                         // }).always(function(){
                         // });
                         _selectedEmpget=wodtr[0];
+
+                        getAppliedLeave(_selectedIDdtremployee,_selectedYear).done(function(response){
+                            var row = response.data[0];
+
+                            if (row.current_balance > 0){
+                                $('#days_with_pay').val(accounting.formatNumber(row.current_balance,2));
+                            }else{
+                                $('#days_with_pay').val(null);
+                            }
+
+                        }).always(function(){
+                            $.unblockUI();
+                        });
+
                         getDtrDeduction();
                         //$('#period_start').val(payperiod[0]);
                         //$('#period_end').val(payperiod[1]);
@@ -1662,6 +1689,20 @@ $(document).ready(function(){
             "dataType":"json",
             "type":"POST",
             "url":"RefPayPeriodSetup/transaction/getpayperiod",
+            "data":_data,
+            "beforeSend": showSpinningProgressLoading()
+        });
+    };
+
+    var getAppliedLeave=function(employee_id,pay_period_id){
+        var _data=$('#').serializeArray();
+        _data.push({name : "employee_id" ,value : employee_id});
+        _data.push({name : "pay_period_id" ,value : pay_period_id});
+
+        return $.ajax({
+            "dataType":"json",
+            "type":"POST",
+            "url":"DailyTimeRecord/transaction/getAppliedLeave",
             "data":_data,
             "beforeSend": showSpinningProgressLoading()
         });

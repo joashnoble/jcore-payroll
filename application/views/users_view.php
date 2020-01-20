@@ -317,7 +317,7 @@
                                     <div style="width:100%; height:300px;border:2px solid #34495e;border-radius:5px;">
                                         <center><label class="control-label boldlabel" style="text-align:center;margin-top:5px;">Employee Image</label></center>
                                                                 <hr style="margin-top:0px !important;height:2px;background-color:#34495e;">
-                                                        <center><img name="img_user" src="<?php echo $this->session->main_directory;?>/assets/img/anonymous-icon.png" height="150px;"width="150px;"></img></center>
+                                                        <center><img name="img_user" src="assets/img/anonymous-icon.png" height="150px;"width="150px;"></img></center>
                                                         <hr style="margin-top:0px !important;height:2px;background-color:#34495e;"></hr>
                                                         <center>
                                                              <button type="button" id="btn_browse" style="width:150px;margin-bottom:5px;" class="btn btn-primary">Browse Photo</button>
@@ -467,13 +467,13 @@ $(document).ready(function(){
             $('#user_confirm_pword').val('nochanges');
             $('.transaction_type').text('Edit');
             
-            var main_directory = $('#main_directory').val();
+            // var main_directory = $('#main_directory').val();
 
             if(data.image_name==""){
-                 $('img[name="img_user"]').attr('src',main_directory+'/assets/img/anonymous-icon.png');
+                 $('img[name="img_user"]').attr('src','assets/img/anonymous-icon.png');
             }
             else{
-                $('img[name="img_user"]').attr('src',main_directory+'/'+data.photo_path);
+                $('img[name="img_user"]').attr('src',data.photo_path);
             }
 
             $('input,textarea').each(function(){
@@ -512,8 +512,8 @@ $(document).ready(function(){
 
         $('#btn_remove_photo').click(function(event){
                 event.preventDefault();
-                var main_directory = $('#main_directory').val();
-                $('img[name="img_user"]').attr('src',main_directory+'/assets/img/anonymous-icon.png');
+                // var main_directory = $('#main_directory').val();
+                $('img[name="img_user"]').attr('src','assets/img/anonymous-icon.png');
             });
 
         $('input[name="file_upload[]"]').change(function(event){
@@ -716,7 +716,7 @@ $(document).ready(function(){
 
 
     function format ( d ) {
-        var main_directory = $('#main_directory').val();
+        // var main_directory = $('#main_directory').val();
         return '<div class="container-fluid" style="margin:10px;">'+
         '<div class="col-md-12">'+
         '<h3 class="boldlabel"><span class="glyphicon glyphicon-user fa-lg"></span> ' + d.full_name+ '</h3>'+
@@ -725,7 +725,7 @@ $(document).ready(function(){
         '</div>'+ //First Row//
         '<div class="row">'+
         '<div class="col-md-3">'+
-        '<center><img class="loadingimg" style="margin-top:4px;width:150px;height:150px;" src="'+main_directory+'/'+d.photo_path+'"></img></center>'+
+        '<center><img class="loadingimg" style="margin-top:4px;width:150px;height:150px;" src="'+d.photo_path+'"></img></center>'+
         '</div>'+
         '<div class="col-md-6"><p class="nomargin"><b>Email Address</b> : '+d.user_email+'</p>'+
         '<p class="nomargin"><b>Mobile #</b> : '+d.user_mobile+'</p>'+

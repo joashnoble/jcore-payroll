@@ -810,71 +810,100 @@ class PayrollReports_model extends CORE_Model {
             return $query->result();
     }
 
-        function get_payroll_summary($filter) {
-            //1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision edited na d na standard
-            $query = $this->db->query('SELECT ps.*,dtr.*,CONCAT(el.first_name," ",el.middle_name," ",el.last_name) as fullname,rpp.pay_period_start,rpp.pay_period_end,
-                                                    psdsss.sss_deduction,psdphil.philhealth_deduction,
-                                                    psdpagibig.pagibig_deduction,psdwtax.wtax_deduction,psdsssloan.sssloan_deduction,
-                                                    psdpagibigloan.pagibigloan_deduction,psdcooploan.cooploan_deduction,psdcoopcontrib.coopcontribution_deduction,
-                                                    psdcashadvance.cashadvance_deduction,COALESCE(ROUND(psoeall.allowance,2),0) as allowance,COALESCE(ROUND(psoea.adjustment,2),0) as adjustment
-                                                    ,COALESCE(ROUND(psoec.other_earnings,2),0) as other_earnings,psdcalamityloan.calamityloan_deduction,psod.other_deductions
-                                         FROM pay_slip as ps
-                                        LEFT JOIN daily_time_record as dtr
-                                            ON ps.dtr_id=dtr.dtr_id
-                                        LEFT JOIN employee_list as el
-                                        ON dtr.employee_id=el.employee_id
-                                        LEFT JOIN emp_rates_duties as erd
-                                        ON el.employee_id=erd.employee_id
-                                        LEFT JOIN refpayperiod as rpp
-                                            ON dtr.pay_period_id=rpp.pay_period_id
-                                        /*LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as allowance FROM pay_slip_other_earnings WHERE earnings_id=1) as psoe
-                                                ON ps.pay_slip_id=psoe.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as adjustment FROM pay_slip_other_earnings WHERE earnings_id=6
-                                            GROUP BY earnings_id) as psoea
-                                                ON ps.pay_slip_id=psoea.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as other_earnings FROM pay_slip_other_earnings WHERE earnings_id!=1 AND earnings_id!=6
-                                            GROUP BY earnings_id) as psoec
-                                                ON ps.pay_slip_id=psoec.pay_slip_id*/
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as allowance FROM pay_slip_other_earnings WHERE earnings_id=1
-                                            GROUP BY pay_slip_id) as psoeall
-                                                ON ps.pay_slip_id=psoeall.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as adjustment FROM pay_slip_other_earnings WHERE earnings_id=2
-                                            GROUP BY pay_slip_id) as psoea
-                                                ON ps.pay_slip_id=psoea.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(earnings_amount) as other_earnings FROM pay_slip_other_earnings WHERE earnings_id!=1 AND earnings_id!=2
-                                            GROUP BY pay_slip_id) as psoec
-                                                ON ps.pay_slip_id=psoec.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as sss_deduction FROM pay_slip_deductions WHERE deduction_id=1) as psdsss
-                                            ON ps.pay_slip_id=psdsss.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as philhealth_deduction FROM pay_slip_deductions WHERE deduction_id=2) as psdphil
-                                            ON ps.pay_slip_id=psdphil.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as pagibig_deduction FROM pay_slip_deductions WHERE deduction_id=3) as psdpagibig
-                                            ON ps.pay_slip_id=psdpagibig.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as wtax_deduction FROM pay_slip_deductions WHERE deduction_id=4) as psdwtax
-                                            ON ps.pay_slip_id=psdwtax.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as sssloan_deduction FROM pay_slip_deductions WHERE deduction_id=5) as psdsssloan
-                                            ON ps.pay_slip_id=psdsssloan.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as pagibigloan_deduction FROM pay_slip_deductions WHERE deduction_id=6) as psdpagibigloan
-                                            ON ps.pay_slip_id=psdpagibigloan.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as cashadvance_deduction FROM pay_slip_deductions WHERE deduction_id=7) as psdcashadvance
-                                            ON ps.pay_slip_id=psdcashadvance.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as cooploan_deduction FROM pay_slip_deductions WHERE deduction_id=8) as psdcooploan
-                                            ON ps.pay_slip_id=psdcooploan.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as calamityloan_deduction FROM pay_slip_deductions WHERE deduction_id=12) as psdcalamityloan
-                                            ON ps.pay_slip_id=psdcalamityloan.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,SUM(deduction_amount) as other_deductions FROM pay_slip_deductions
-                                            LEFT JOIN refdeduction
-                                            ON refdeduction.deduction_id=pay_slip_deductions.deduction_id
-                                            WHERE refdeduction.deduction_type_id!=1 AND refdeduction.deduction_type_id!=2 AND refdeduction.deduction_type_id!=4 AND active_deduct=TRUE
-                                            GROUP BY pay_slip_id) as psod
-                                                ON ps.pay_slip_id=psod.pay_slip_id
-                                        LEFT JOIN (SELECT pay_slip_id,(deduction_amount) as coopcontribution_deduction FROM pay_slip_deductions WHERE deduction_id=9) as psdcoopcontrib
-                                            ON ps.pay_slip_id=psdcoopcontrib.pay_slip_id 
-                                         '.$filter.'
-                                          ORDER BY el.last_name');
+        function get_payroll_summary($pay_period_id=null,$ref_department_id="all") {
+            $query = $this->db->query("SELECT 
+                                            ps.*,
+                                            dtr.*,
+                                            erd.ref_department_id,
+                                            el.bank_account_isprocess,
+                                            CONCAT(el.last_name,', ',el.first_name,' ',el.middle_name) AS fullname,
+                                            rpp.pay_period_start,
+                                            rpp.pay_period_end,
+                                            psdsss.sss_deduction,
+                                            psdphil.philhealth_deduction,
+                                            psdpagibig.pagibig_deduction,
+                                            psdwtax.wtax_deduction,
+                                            psdsssloan.sssloan_deduction,
+                                            psdpagibigloan.pagibigloan_deduction,
+                                            psdcooploan.cooploan_deduction,
+                                            psdcoopcontrib.coopcontribution_deduction,
+                                            psdcashadvance.cashadvance_deduction,
+                                            COALESCE(ROUND(psoeall.allowance, 2), 0) AS allowance,
+                                            COALESCE(ROUND(psoea.adjustment, 2), 0) AS adjustment,
+                                            COALESCE(ROUND(psoec.other_earnings, 2), 0) AS other_earnings,
+                                            psdcalamityloan.calamityloan_deduction,
+                                            psdhdmfloan.hdmfloan_deduction,
+                                            psod.other_deductions
+                                        FROM
+                                            pay_slip AS ps
+                                                LEFT JOIN
+                                            daily_time_record AS dtr ON ps.dtr_id = dtr.dtr_id
+                                                LEFT JOIN
+                                            employee_list AS el ON dtr.employee_id = el.employee_id
+                                                LEFT JOIN
+                                            emp_rates_duties AS erd ON el.employee_id = erd.employee_id
+                                                LEFT JOIN
+                                            refpayperiod AS rpp ON dtr.pay_period_id = rpp.pay_period_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, SUM(earnings_amount) AS allowance FROM pay_slip_other_earnings WHERE earnings_id = 1
+                                            GROUP BY pay_slip_id) AS psoeall ON ps.pay_slip_id = psoeall.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, SUM(earnings_amount) AS adjustment FROM pay_slip_other_earnings WHERE earnings_id = 2
+                                            GROUP BY pay_slip_id) AS psoea ON ps.pay_slip_id = psoea.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, SUM(earnings_amount) AS other_earnings FROM pay_slip_other_earnings WHERE earnings_id != 1 AND earnings_id != 2
+                                            GROUP BY pay_slip_id) AS psoec ON ps.pay_slip_id = psoec.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS sss_deduction FROM pay_slip_deductions WHERE deduction_id = 1) AS psdsss 
+                                            ON ps.pay_slip_id = psdsss.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS philhealth_deduction FROM pay_slip_deductions WHERE deduction_id = 2) AS psdphil 
+                                            ON ps.pay_slip_id = psdphil.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS pagibig_deduction FROM pay_slip_deductions WHERE deduction_id = 3) AS psdpagibig 
+                                            ON ps.pay_slip_id = psdpagibig.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS wtax_deduction FROM pay_slip_deductions WHERE deduction_id = 4) AS psdwtax 
+                                            ON ps.pay_slip_id = psdwtax.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS sssloan_deduction FROM pay_slip_deductions WHERE deduction_id = 5) AS psdsssloan 
+                                            ON ps.pay_slip_id = psdsssloan.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS pagibigloan_deduction FROM pay_slip_deductions WHERE deduction_id = 6) AS psdpagibigloan 
+                                            ON ps.pay_slip_id = psdpagibigloan.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS cashadvance_deduction FROM pay_slip_deductions WHERE deduction_id = 7) AS psdcashadvance 
+                                            ON ps.pay_slip_id = psdcashadvance.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS cooploan_deduction FROM pay_slip_deductions WHERE deduction_id = 8) AS psdcooploan
+                                            ON ps.pay_slip_id = psdcooploan.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS coopcontribution_deduction FROM pay_slip_deductions WHERE deduction_id = 9) AS psdcoopcontrib 
+                                            ON ps.pay_slip_id = psdcoopcontrib.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS calamityloan_deduction FROM pay_slip_deductions WHERE deduction_id = 12) AS psdcalamityloan 
+                                            ON ps.pay_slip_id = psdcalamityloan.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, (deduction_amount) AS hdmfloan_deduction FROM pay_slip_deductions WHERE deduction_id = 21) AS psdhdmfloan 
+                                            ON ps.pay_slip_id = psdhdmfloan.pay_slip_id
+                                                LEFT JOIN
+                                            (SELECT pay_slip_id, SUM(deduction_amount) AS other_deductions FROM pay_slip_deductions 
+                                                LEFT JOIN refdeduction ON refdeduction.deduction_id = pay_slip_deductions.deduction_id
+                                            WHERE
+                                                refdeduction.deduction_type_id != 1
+                                                    AND refdeduction.deduction_type_id != 2
+                                                    AND refdeduction.deduction_type_id != 4
+                                                    AND active_deduct = TRUE
+                                            GROUP BY pay_slip_id) AS psod ON ps.pay_slip_id = psod.pay_slip_id
+                                        WHERE
+                                            erd.active_rates_duties = 1
+                                         ".($pay_period_id == null?"":" AND dtr.pay_period_id='".$pay_period_id."'")."
+                                         ".($ref_department_id == "all"?"":" AND erd.ref_department_id='".$ref_department_id."'")."
+                                          ORDER BY el.last_name");
 
             return $query->result();
     }
+
 
     function get_monthly_salary_filter_year($filter_value2,$filter_value3,$filter_year) {
             //1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision
@@ -1268,7 +1297,6 @@ class PayrollReports_model extends CORE_Model {
     //                 AND ndr.deduction_id = $filter_value2");
     //     return $loan->result();
     // }
-
     function getloan($employee_id,$deduction_id,$period_start,$period_end){
         $this->db->query("SET @balance:=0.00;");
         $sql="SELECT 
@@ -1364,10 +1392,10 @@ class PayrollReports_model extends CORE_Model {
         return $loan_temp->result();
     }
 
-     function get_13thmonthpay_wofilter($filter_value3,$start_date,$end_date,$factor=12) {
+     function get_13thmonthpay_wofilter($filter_value3,$start_date,$end_date) {
             //1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision
-            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,SUM(dtr.reg_amt) as total_reg_amt, ((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt)) as total_reg_days_pay,
-                ((((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt))) / '.$factor.') as grand_13thmonth_pay, SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro, el.employee_id
+            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,SUM(dtr.reg_amt) as total_reg_amt,
+                                         SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro
                                          FROM pay_slip as ps
                                         LEFT JOIN daily_time_record as dtr
                                             ON ps.dtr_id=dtr.dtr_id
@@ -1380,7 +1408,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN (SELECT pay_slip_id,(earnings_amount) as earnings_amount FROM pay_slip_other_earnings WHERE earnings_id=7) as salary_retro
                                             ON ps.pay_slip_id=salary_retro.pay_slip_id
                                         WHERE 
-                                            el.is_deleted = 0
+                                            AND el.is_deleted = 0
                                             AND erd.active_rates_duties=1 
                                             AND erd.ref_branch_id='.$filter_value3.'
                                             AND 
@@ -1421,11 +1449,10 @@ class PayrollReports_model extends CORE_Model {
             return $query->result();
     }
 
-    function get_13thmonthpay_year_filter($filter_value2,$filter_value3,$start_date,$end_date,$factor=12) {
+    function get_13thmonthpay_year_filter($filter_value2,$filter_value3,$start_date,$end_date) {
             //1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision
-            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt, SUM(dtr.reg_amt) as total_reg_amt,el.employee_id,
-                ((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt)) as total_reg_days_pay,
-                ((((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt))) / '.$factor.') as grand_13thmonth_pay, SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro
+            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,SUM(dtr.reg_amt) as total_reg_amt,
+                                         SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro
                                          FROM pay_slip as ps
                                         LEFT JOIN daily_time_record as dtr
                                             ON ps.dtr_id=dtr.dtr_id
@@ -1452,12 +1479,9 @@ class PayrollReports_model extends CORE_Model {
 
                                             // AND rpp.pay_period_year='.$filter_value2.' 
 
-    function get_13thmonthpay_employee_filter($filter_value,$filter_value3,$start_date,$end_date,$factor=12) {
+    function get_13thmonthpay_employee_filter($filter_value,$filter_value3) {
             //1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision
-            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(dtr.reg_amt) as total_reg_amt,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro, el.employee_id,
-                ((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt)) as total_reg_days_pay,
-                ((((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt))) / '.$factor.') as grand_13thmonth_pay
-
+            $query = $this->db->query('SELECT ps.*,CONCAT(el.last_name,", ",el.first_name," ",el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,erd.salary_reg_rates,SUM(dtr.reg_amt) as total_reg_amt,SUM(erd.salary_reg_rates) as total_basic_pay,dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt,  SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro
                                          FROM pay_slip as ps
                                         LEFT JOIN daily_time_record as dtr
                                             ON ps.dtr_id=dtr.dtr_id
@@ -1470,11 +1494,8 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN (SELECT pay_slip_id,(earnings_amount) as earnings_amount FROM pay_slip_other_earnings WHERE earnings_id=7) as salary_retro
                                             ON ps.pay_slip_id=salary_retro.pay_slip_id
                                         WHERE 
-                                            el.is_deleted = 0
+                                            AND el.is_deleted = 0
                                             AND dtr.employee_id='.$filter_value.' 
-                                            AND 
-                                                ((rpp.pay_period_start BETWEEN "'.$start_date.'" AND "'.$end_date.'") OR 
-                                                (rpp.pay_period_end BETWEEN "'.$start_date.'" AND "'.$end_date.'"))
                                             AND erd.active_rates_duties=1 
                                             AND erd.ref_branch_id='.$filter_value3);            
 
@@ -1503,16 +1524,13 @@ class PayrollReports_model extends CORE_Model {
             return $query->result();
     }
 
-    function get_13thmonthpay($filter_value,$filter_value2,$filter_value3,$start_date,$end_date,$factor=12) {
+    function get_13thmonthpay($filter_value,$filter_value2,$filter_value3,$start_date,$end_date) {
             // 1=allowance 2=salary adjustments 3=meal allowance 4=other allowance 5=commision
             $query = $this->db->query("SELECT ps.*,CONCAT(el.last_name,', ',el.first_name,' ',el.middle_name) as fullname, SUM(ps.reg_pay) as total_reg,
-                SUM(dtr.reg_amt) as total_reg_amt,el.employee_id,
-                ((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt)) as total_reg_days_pay,
-                ((((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount),0) + SUM(ps.days_with_pay_amt)) -  SUM(ps.days_wout_pay_amt))) / ".$factor.") as grand_13thmonth_pay,
+                SUM(dtr.reg_amt) as total_reg_amt,
                 erd.salary_reg_rates,SUM(erd.salary_reg_rates) as total_basic_pay,
                 dtr.for_13th_month,SUM(dtr.for_13th_month) as total_13thmonth,SUM(ps.days_with_pay_amt) as dayswithpayamt,
-                                         SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt, SUM(ps.minutes_late_amt) as total_minutes_late_amt,
-                                         COALESCE(SUM(salary_retro.earnings_amount),0) as retro
+                                         SUM(ps.days_wout_pay_amt) as total_days_wout_pay_amt, SUM(ps.minutes_late_amt) as total_minutes_late_amt,COALESCE(SUM(salary_retro.earnings_amount),0) as retro
                                          FROM pay_slip as ps
                                         LEFT JOIN daily_time_record as dtr
                                             ON ps.dtr_id=dtr.dtr_id

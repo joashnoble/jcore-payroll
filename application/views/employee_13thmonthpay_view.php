@@ -59,15 +59,9 @@
 <!-- numeric formatter -->
 <script src="assets/plugins/formatter/autoNumeric.js" type="text/javascript"></script>
 <script src="assets/plugins/formatter/accounting.js" type="text/javascript"></script>
-
+    <style>
+    </style>
 <?php echo $loaderscript; ?>
-
-
-<style type="text/css">
-    td.dataTables_empty{
-        text-align: center;
-    }
-</style>
 </head>
 
 <body class="animated-content">
@@ -154,36 +148,9 @@
                                           </div>
                                         </div>
                                     </div>
-                                    <div id="p_preview" style="overflow: scroll;" class="hidden">
-                                    </div>
-                                    <div id="per_preview" style="overflow: scroll;" class="hidden">
-                                    </div>
                                     <hr>
-                                    <div class="panel-body table-responsive" style="padding-top:5px;">
-                                        <table id="tbl_process_13thmonth" class="table table-striped table-bordered" cellspacing="0" width="100%">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th>Employee Name</th>
-                                                    <th style="text-align: right;width: 200px;">Total Reg Pay</th>
-                                                    <th style="text-align: right;width: 200px;">Days w/ Pay</th>
-                                                    <th style="text-align: right;width: 200px;">Total</th>
-                                                    <th style="text-align: right;width: 200px;">Accumulated 13th Month Pay</th>
-                                                 </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <th colspan="2" style="text-align: right;"><b>TOTAL :</b></th>
-                                                    <th style="text-align: right;"></th>
-                                                    <th style="text-align: right;"></th>
-                                                    <th style="text-align: right;"></th>
-                                                    <th style="text-align: right;"></th>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>  
-                                                                      
+                                    <div id="p_preview" style="overflow: scroll;">
+                                    </div>
                                 </div>
 
                                 <div class="panel-footer"></div>
@@ -229,7 +196,6 @@ $(document).ready(function(){
     var _payperiod;
     var _employee;
     var d = new Date();
-    var dt;
 
     _branch=$("#branch_filter_list").select2({
         /*dropdownParent: $("#modal_create_schedule"),*/
@@ -256,6 +222,13 @@ $(document).ready(function(){
     _employee.select2('val', '');
     $('#payperiod_filter').val(d.getFullYear()).trigger("change")
 
+    var refresh_process_ele = function(){
+        $('#btn_process_13thmonth').click(function(){
+            var year = $('#payperiod_filter').val();
+            $('#year').html(year);
+            $('#modal_confirmation').modal('show');
+        });
+    };
 
     var get_13thmonth_pay = function(){
         filter_pay_period = $('#payperiod_filter').val();
@@ -293,204 +266,18 @@ $(document).ready(function(){
     };
 
 
-    var initialize_control = function(){
-
-        dt=$('#tbl_process_13thmonth').DataTable({
-            "fnInitComplete": function (oSettings, json) {
-                $.unblockUI();
-            },            
-            "dom": '<"toolbar">frtip',
-            "bLengthChange":false,
-              "paging": false,
-                "bInfo" : false,
-                "bSort": false,
-            "language": {
-                "searchPlaceholder":"Search"
-            },            
-            "ajax":{
-                    "url": "PayrollHistory/layout/employeee-13thmonth-pay-dt",
-                    "type": "GET",
-                    "bDestroy": true,
-                    "data": function ( d ) {
-                        return $.extend( {}, d, {
-                            "pay_period_year": $('#payperiod_filter').val(),
-                            "ref_branch_id": $('#branch_filter_list').val(),
-                            "employee_id": $('#employee_filter').val()
-                        });
-                    }
-                },
-            "columns": [
-                {
-                    "targets": [0],
-                    "class":          "pay_slip_show",
-                    "orderable":      false,
-                    "data":           null,
-                    "defaultContent": "<center><span class='fa fa-print' style='font-size: 14pt;cursor: pointer;'></span></center>"
-                },
-                { targets:[1],data: "fullname", },
-                { targets:[2],data: "total_13thmonth",
-                    render: $.fn.dataTable.render.number( ',', '.', 2 )
-                },
-                { targets:[3],data: "dayswithpayamt",
-                    render: $.fn.dataTable.render.number( ',', '.', 2 )
-                },
-                { targets:[4],data: "total_reg_days_pay",
-                    render: $.fn.dataTable.render.number( ',', '.', 2 )
-                },
-                { targets:[5],data: "grand_13thmonth_pay",
-                    render: $.fn.dataTable.render.number( ',', '.', 2 )
-                }   
-            ],
-            "rowCallback":function( row, data, index ){
-
-                $(row).find('td').eq(2).attr({
-                    "align": "right"
-                });
-                $(row).find('td').eq(3).attr({
-                    "align": "right"
-                });
-                $(row).find('td').eq(4).attr({
-                    "align": "right"
-                });
-                $(row).find('td').eq(5).attr({
-                    "align": "right"
-                });
-            },
-
-            "footerCallback": function ( row, data, start, end, display ) {
-                var api = this.api(), data;
-               // console.log(data);
-     
-                // Remove the formatting to get integer data for summation
-                var intVal = function ( i ) {
-                    return typeof i === 'string' ?
-                        i.replace(/[\$,]/g, '')*1 :
-                        typeof i === 'number' ?
-                            i : 0;
-                };
-     
-     
-                // Total over this page
-                pageTotalRegPay = api
-                    .column( 2, { page: 'current'} )
-                    .data()
-                    .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-
-                pageTotalDayswPay = api
-                    .column( 3, { page: 'current'} )
-                    .data()
-                    .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-
-
-                pageTotal = api
-                    .column( 4, { page: 'current'} )
-                    .data()
-                    .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-
-
-                pageTotalAccPay = api
-                    .column( 5, { page: 'current'} )
-                    .data()
-                    .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
-                        return intVal(a) + intVal(b);
-                    }, 0 );
-
-
-                // Update footer
-                $( api.column( 2 ).footer() ).html(
-                    '<b>'+accounting.formatNumber(pageTotalRegPay,2) +'</b>'
-                );
-
-                $( api.column( 3 ).footer() ).html(
-                    '<b>'+accounting.formatNumber(pageTotalDayswPay,2) +'</b>'
-                );
-
-                $( api.column( 4 ).footer() ).html(
-                  '<b>'+accounting.formatNumber(pageTotal,2) +'</b>'
-                );
-
-                $( api.column( 5 ).footer() ).html(
-                  '<b>'+accounting.formatNumber(pageTotalAccPay,2) +'</b>'
-                );
-            }
-
-        });
-
-    }();
-
-    $('#tbl_process_13thmonth tbody').on( 'click', 'tr td.pay_slip_show', function () {
-            _selectRowObj=$(this).closest('tr');
-            var data=dt.row(_selectRowObj).data();
-            
-            employee_id = data.employee_id;   
-            pay_period_year = $('#payperiod_filter').val();
-            
-            $.ajax({
-                "dataType":"html",
-                "type":"POST",
-                "url":"PayrollHistory/layout/per-employeee-13thmonth-pay/"+employee_id+"/"+pay_period_year,
-                beforeSend : function(){
-                            $('#per_preview').html("<center><img src='assets/img/loader/preloaderimg.gif'><h3>Loading...</h3></center>");
-                        },
-                    }).done(function(response){
-                        $('#per_preview').html(response);
-                });
-
-            showinitializeprint();
-            var currentURL = window.location.href;
-            var output = currentURL.match(/^(.*)\/[^/]*$/)[1];
-            output = output+"/assets/css/css_special_files.css";
-            $("#per_preview").printThis({
-                debug: false,
-                importCSS: true,
-                importStyle: false,
-                printContainer: false,
-                printDelay: 1000,
-                loadCSS: output,
-                formValues:true
-            });
-            setTimeout(function() {
-                 $.unblockUI();
-            }, 1000);                    
-    });
-
-    var refresh_process_ele = function(){
-        $('#btn_process_13thmonth').click(function(){
-            var year = $('#payperiod_filter').val();
-            $('#year').html(year);
-            $('#modal_confirmation').modal('show');
-        });
-    };
-
     get_13thmonth_pay();
 
     $("#branch_filter_list").change(function(){
         get_13thmonth_pay();
-        $('#tbl_process_13thmonth').DataTable().ajax.reload();
     });
 
     $("#payperiod_filter").change(function(){
         get_13thmonth_pay();
-        $('#tbl_process_13thmonth').DataTable().ajax.reload();
-
     });
 
     $("#employee_filter").change(function(){
         get_13thmonth_pay();
-        $('#tbl_process_13thmonth').DataTable().ajax.reload();
     });
         
     $('#export_13month_pay').on('click', function() {
