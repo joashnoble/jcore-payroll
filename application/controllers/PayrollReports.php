@@ -339,6 +339,7 @@ class PayrollReports extends CORE_Controller
                         break;
 
             case 'payroll-employee-ledger': //
+
                         $start_date = date("m-d-Y", strtotime($filter_value3));
                         $end_date = date("m-d-Y", strtotime($type));
 
@@ -352,6 +353,12 @@ class PayrollReports extends CORE_Controller
                         'company_setup.*'
                         );
                          $data['company']=$getcompany[0];
+
+                        // if(isset($loans[0]->deduction_regular_id)){
+                        //     $deduction_regular_id = $loans[0]->deduction_regular_id;
+                        //     $data['loanadjustments']=$this->PayrollReports_model->getloanadjustments($deduction_regular_id);
+                        // }
+
 
                         $typeofloan=$this->RefDeductionSetup_model->get_list(
                         $filter_value2,

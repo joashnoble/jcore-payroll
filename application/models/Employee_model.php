@@ -8,16 +8,6 @@ class Employee_model extends CORE_Model {
         parent::__construct();
     }
 
-    function get_employee_list(){
-        $sql = "SELECT 
-                el.*,
-                CONCAT(el.last_name,', ',el.first_name,' ',el.middle_name) as full_name
-            FROM
-                employee_list el
-                WHERE el.is_deleted = FALSE
-                ORDER BY el.last_name";
-        return $this->db->query($sql)->result();
-    }
 
     function getEmplist(){
         $query = $this->db->query("SELECT 

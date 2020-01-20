@@ -19,19 +19,38 @@
     <link rel="stylesheet" href="assets/plugins/spinner/dist/ladda-themeless.min.css">
 
     <link type="text/css" href="assets/plugins/datatables/dataTables.bootstrap.css" rel="stylesheet">
-    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet"><!-- iCheck -->
-    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/_all.css" rel="stylesheet"><!-- Custom Checkboxes / iCheck -->
+
+
+
+    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">              <!-- iCheck -->
+    <link type="text/css" href="assets/plugins/iCheck/skins/minimal/_all.css" rel="stylesheet">                   <!-- Custom Checkboxes / iCheck -->
+
+    <link href="assets/plugins/datapicker/datepicker3.css" rel="stylesheet">
+
     <link href="assets/plugins/select2/select2.min.css" rel="stylesheet">
 
+
+    <link href="assets/css/plugins/datapicker/datepicker3.css" rel="stylesheet">
     <?php echo $_switcher_settings; ?>
     <?php echo $_def_js_files; ?>
 
     <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
     <script type="text/javascript" src="assets/plugins/datatables/dataTables.bootstrap.js"></script>
 
+
+    <!-- Date range use moment.js same as full calendar plugin -->
+    <script src="assets/plugins/fullcalendar/moment.min.js"></script>
+    <!-- Data picker -->
+    <script src="assets/plugins/datapicker/bootstrap-datepicker.js"></script>
+
     <!-- Select2 -->
     <script src="assets/plugins/select2/select2.full.min.js"></script>
 
+
+    <!-- Date range use moment.js same as full calendar plugin -->
+    <script src="assets/js/plugins/fullcalendar/moment.min.js"></script>
+    <!-- Data picker -->
+    <script src="assets/js/plugins/datapicker/bootstrap-datepicker.js"></script>
 
     <!-- twitter typehead -->
     <script src="assets/plugins/twittertypehead/handlebars.js"></script>
@@ -146,7 +165,7 @@
                             <div class="panel panel-default">
                                 <button class="btn delete"  id="btn_canceldtr" title="back" >
                                     <span class="glyphicon glyphicon-arrow-left"></span></button>
-                                    <button class="btn btn-success" id="print_all" title="Print All" >
+                                    <button class="btn btn-success"  id="print_all" title="Print All" >
                                         <span class="glyphicon glyphicon-print"></span>
                                     </button>
                                     <button class="btn btn-primary" id="send_pay_slip" title="Send Pay Slip" >
@@ -155,9 +174,7 @@
 
 
                                         <div class="panel-heading" style="background-color:#2c3e50 !important;margin-top:2px;">
-                                             <h2 style="color:white;font-weight:300;"> PaySlip </h2>
-                                             <a href="pdf/payslip.pdf" target="_blank"><i class="fa fa-question-circle help" style="color: white!important; font-size: 15pt!important;float: right;margin-top: 15px!important;" data-toggle="tooltip" data-placement="top" title="Help"></i></a>
-                                             <br>
+                                             <h2 style="color:white;font-weight:300;"> PaySlip </h2><br>
                                              <left><h5 style="color:white;font-weight:400;line-height:1px;margin-top:2px;"><period id="" class="periodcoveredtext"></period></h5></left>
                                               </div>
 
@@ -369,7 +386,7 @@
                     <img src="assets/img/question_mark.png" style="width: 50px; position: absolute;margin-left: 30px;"> 
                     <p id="modal-body-message" style="font-size: 12pt;width: 80%;font-weight: normal!important;margin-left: 100px; font-weight: 400;margin-top: 10px;">Are you sure you want to send all payslip of the employees?</p>
                     <hr>
-                    <small><b style="color: red">Note:</b> If the employee does not have an email address on the HR System. It will not send the payslip of that employee. Make sure that all of the email of the employees on this pay period is encoded in the HR System.</small>
+                    <small><b style="color: red">Note:</b> If the employee do not have an email address on the HR System. It will not send the payslip of that employee. Make sure that all of the email of the employees on this pay period is encoded in the HR System.</small>
                 </div>
 
                 <div class="modal-footer">
@@ -633,11 +650,19 @@ $(document).ready(function(){
         } );
 
     $("#download_pay_slip").click(function(){
-            window.location = "PaySlip/layout/pay-slip/"+ _selectedID+"/0/pdf";
+                window.location = "PaySlip/layout/pay-slip/"+ _selectedID+"/0/pdf";
+            //alert(_selectedID);
         });
 
+    /*$("#print_pay_slip").click(function(){
+                window.open('PaySlip/layout/pay-slip/'+ _selectedID+'/0/preview', '_blank');
+            //alert(_selectedID);
+        });*/
+
     $("#print_all").click(function(){
-            window.open('PaySlip/layout/pay-slip-printall/'+_selectedYear+'/'+_selectedIDDepartment+'/'+_selectedIDBranch,'_blank');
+            //window.open('PaySlip/layout/pay-slip-printall/all/'+_selectedYear+'/', '_blank');
+            window.open('PaySlip/layout/pay-slip-print-all/'+_selectedYear+'/'+_selectedIDDepartment+'/'+_selectedIDBranch+'/','_blank');
+        //alert(_selectedID);
     });
 
     $('#send_pay_slip').click(function(){
@@ -683,7 +708,7 @@ $(document).ready(function(){
         return $.ajax({
             "dataType":"json",
             "type":"POST",
-            "url":"PaySlip/layout/emailAllPayslip/"+_selectedYear+"/"+_selectedIDDepartment+"/"+_selectedIDBranch,
+            "url":"PaySlip/layout/emailAllPayslip/"+_selectedYear,
             "beforeSend": showSpinningProgress()
         });
     };    

@@ -5744,7 +5744,7 @@ class Hris_Reports extends CORE_Controller
                             $filter = 'refpayperiod.month_id = '.$filter_value2.' AND ref_branch.ref_branch_id ='.$filter_value.' AND emp_rates_duties.active_rates_duties=1 AND refpayperiod.pay_period_year = '.$filter_value3;
                         }
 
-                        $data["wtax_report"]=$this->DailyTimeRecord_model->get_wtax_report($filter,$filter_value2,$filter_value3);
+                        $data["wtax_report"]=$this->DailyTimeRecord_model->get_wtax_report($filter);
 
                         $getcompany=$this->GeneralSettings_model->get_list(
                         null,

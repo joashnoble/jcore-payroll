@@ -50,6 +50,9 @@ class TemporaryDeduction extends CORE_Controller
         $data['employee_list']=$this->Employee_model->get_list(
                     array('employee_list.is_deleted'=>FALSE),
                     'employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name'
+                   // null,
+                   // true,
+                   // '4'
                     );
         $data['title'] = 'Temporary Deduction';
 
@@ -160,68 +163,35 @@ class TemporaryDeduction extends CORE_Controller
                 $m_deduction_regular = $this->Regular_Deduction_model;
                 $user_id=$this->session->user_id;
 
-                $employee_id = $this->input->post('employee_id', TRUE);
                 $deduction_per_pay_amount = $this->input->post('deduction_per_pay_amount', TRUE);
-                
-                if ($employee_id == 'all'){
-                
-                    $employee = $this->Employee_model->get_employee_list();
 
-                    for ($i=0; $i < count($employee) ; $i++) { 
+                $m_deduction_regular->employee_id = $this->input->post('employee_id', TRUE);
+                $m_deduction_regular->deduction_id = $this->input->post('deduction_id', TRUE);
+                $m_deduction_regular->pay_period_id = $this->input->post('pay_period_id', TRUE);
+                $m_deduction_regular->deduction_cycle = $this->input->post('deduction_cycle', TRUE);
+                //$m_deduction_regular->deduction_total_amount = $this->input->post('deduction_total_amount', TRUE);
+                $m_deduction_regular->deduction_per_pay_amount = $this->get_numeric_value($deduction_per_pay_amount);
+                $m_deduction_regular->deduction_regular_remarks = $this->input->post('deduction_regular_remarks', TRUE);
+                $m_deduction_regular->is_temporary = 1;
 
-                        $m_deduction_regular->employee_id = $employee[$i]->employee_id;
-                        $m_deduction_regular->deduction_id = $this->input->post('deduction_id', TRUE);
-                        $m_deduction_regular->pay_period_id = $this->input->post('pay_period_id', TRUE);
-                        $m_deduction_regular->deduction_cycle = $this->input->post('deduction_cycle', TRUE);
-                        //$m_deduction_regular->deduction_total_amount = $this->input->post('deduction_total_amount', TRUE);
-                        $m_deduction_regular->deduction_per_pay_amount = $this->get_numeric_value($deduction_per_pay_amount);
-                        $m_deduction_regular->deduction_regular_remarks = $this->input->post('deduction_regular_remarks', TRUE);
-                        $m_deduction_regular->is_temporary = 1;
+                $m_deduction_regular->date_created = date("Y-m-d H:i:s");
+                $m_deduction_regular->created_by = $this->session->user_id;
+                $m_deduction_regular->save();
 
-                        $m_deduction_regular->date_created = date("Y-m-d H:i:s");
-                        $m_deduction_regular->created_by = $this->session->user_id;
-                        $m_deduction_regular->save();
+                $deduction_regular_id = $m_deduction_regular->last_insert_id();
 
-                    }
+                $response['title'] = 'Success!';
+                $response['stat'] = 'success';
+                $response['msg'] = 'Temporary Deduction successfully created.';
 
-                    $response['title'] = 'Success!';
-                    $response['stat'] = 'success';
-                    $response['mode'] = 1;
-                    $response['msg'] = 'Temporary Deduction successfully created.';
-
-                }else{
-
-                    $m_deduction_regular->employee_id = $this->input->post('employee_id', TRUE);
-                    $m_deduction_regular->deduction_id = $this->input->post('deduction_id', TRUE);
-                    $m_deduction_regular->pay_period_id = $this->input->post('pay_period_id', TRUE);
-                    $m_deduction_regular->deduction_cycle = $this->input->post('deduction_cycle', TRUE);
-                    //$m_deduction_regular->deduction_total_amount = $this->input->post('deduction_total_amount', TRUE);
-                    $m_deduction_regular->deduction_per_pay_amount = $this->get_numeric_value($deduction_per_pay_amount);
-                    $m_deduction_regular->deduction_regular_remarks = $this->input->post('deduction_regular_remarks', TRUE);
-                    $m_deduction_regular->is_temporary = 1;
-
-                    $m_deduction_regular->date_created = date("Y-m-d H:i:s");
-                    $m_deduction_regular->created_by = $this->session->user_id;
-                    $m_deduction_regular->save();
-
-                    $deduction_regular_id = $m_deduction_regular->last_insert_id();
-
-                    $response['title'] = 'Success!';
-                    $response['stat'] = 'success';
-                    $response['mode'] = 1;
-                    $response['msg'] = 'Temporary Deduction successfully created.';
-
-                    $response['row_added'] = $this->Regular_Deduction_model->get_list($deduction_regular_id,
-                        'new_deductions_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refdeduction.deduction_desc,refdeductiontype.deduction_type_desc',
-                        array(
-                             array('employee_list','employee_list.employee_id=new_deductions_regular.employee_id','left'),
-                             array('refdeduction','refdeduction.deduction_id=new_deductions_regular.deduction_id','left'),
-                             array('refdeductiontype','refdeductiontype.deduction_type_id=refdeduction.deduction_type_id','left'),
-                            )
-                        );
-
-                }
-
+                $response['row_added'] = $this->Regular_Deduction_model->get_list($deduction_regular_id,
+                    'new_deductions_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refdeduction.deduction_desc,refdeductiontype.deduction_type_desc',
+                    array(
+                         array('employee_list','employee_list.employee_id=new_deductions_regular.employee_id','left'),
+                         array('refdeduction','refdeduction.deduction_id=new_deductions_regular.deduction_id','left'),
+                         array('refdeductiontype','refdeductiontype.deduction_type_id=refdeduction.deduction_type_id','left'),
+                        )
+                    );
                 echo json_encode($response);
 
                 break;
@@ -263,7 +233,7 @@ class TemporaryDeduction extends CORE_Controller
                 $user_id=$this->session->user_id;
                 $deduction_regular_id = $this->input->post('deduction_regular_id', TRUE);
 
-                // $m_deduction_regular->employee_id = $this->input->post('employee_id', TRUE);
+                $m_deduction_regular->employee_id = $this->input->post('employee_id', TRUE);
                 $m_deduction_regular->deduction_id = $this->input->post('deduction_id', TRUE);
                 //$m_deduction_regular->pay_period_id = $this->input->post('pay_period_id', TRUE);
                 $m_deduction_regular->deduction_cycle = $this->input->post('deduction_cycle', TRUE);
@@ -280,7 +250,7 @@ class TemporaryDeduction extends CORE_Controller
 
                 $response['title']='Success';
                 $response['stat']='success';
-                $response['msg']='Temporary Deduction successfully updated.';
+                $response['msg']='Section information successfully updated.';
                 $response['row_updated']=$this->Regular_Deduction_model->get_list($deduction_regular_id,
                     'new_deductions_regular.*,employee_list.*,CONCAT(employee_list.first_name," ",employee_list.middle_name," ",employee_list.last_name) as full_name,refdeduction.deduction_desc,refdeductiontype.deduction_type_desc',
                     array(
@@ -294,4 +264,15 @@ class TemporaryDeduction extends CORE_Controller
 
         }
     }
+
+
+
+
+
+
+
+
+
+
+
 }

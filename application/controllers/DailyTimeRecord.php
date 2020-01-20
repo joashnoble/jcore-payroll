@@ -275,8 +275,8 @@ class DailyTimeRecord extends CORE_Controller
                 $m_daily_time_record->sun_reg_hol_amt = $this->get_numeric_value($sun_reg_hol)*$per_hour_pay*$factor_file[0]->sun_regular_holiday;
                 $m_daily_time_record->sun_spe_hol_amt = $this->get_numeric_value($sun_spe_hol)*$per_hour_pay*$factor_file[0]->sun_spe_holiday;
                 //skipped days w.pay wopay
-                $m_daily_time_record->days_wout_pay_amt = $per_hour_pay*$this->get_numeric_value($days_wout_pay);
-                $m_daily_time_record->days_with_pay_amt = $per_hour_pay*$this->get_numeric_value($days_with_pay);
+                $m_daily_time_record->days_wout_pay_amt = ($salary_reg_rates/$hour_per_day)*$this->get_numeric_value($days_wout_pay);
+                $m_daily_time_record->days_with_pay_amt = ($salary_reg_rates/$hour_per_day)*$this->get_numeric_value($days_with_pay);
                 $m_daily_time_record->minutes_late_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_late);
                 $m_daily_time_record->minutes_undertime_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_undertime);
                 $m_daily_time_record->minutes_excess_break_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_excess_break);
@@ -480,8 +480,8 @@ class DailyTimeRecord extends CORE_Controller
                 $m_daily_time_record->sun_reg_hol_amt = $this->get_numeric_value($sun_reg_hol)*$per_hour_pay*$factor_file[0]->sun_regular_holiday;
                 $m_daily_time_record->sun_spe_hol_amt = $this->get_numeric_value($sun_spe_hol)*$per_hour_pay*$factor_file[0]->sun_spe_holiday;
                 //skipped days w.pay wopay
-                $m_daily_time_record->days_wout_pay_amt = $per_hour_pay*$this->get_numeric_value($days_wout_pay);
-                $m_daily_time_record->days_with_pay_amt = $per_hour_pay*$this->get_numeric_value($days_with_pay);
+                $m_daily_time_record->days_wout_pay_amt = ($salary_reg_rates/$hour_per_day)*$this->get_numeric_value($days_wout_pay);
+                $m_daily_time_record->days_with_pay_amt = ($salary_reg_rates/$hour_per_day)*$this->get_numeric_value($days_with_pay);
                 $m_daily_time_record->minutes_late_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_late);
                 $m_daily_time_record->minutes_undertime_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_undertime);
                 $m_daily_time_record->minutes_excess_break_amt = ($per_hour_pay/60)*$this->get_numeric_value($minutes_excess_break);
@@ -559,17 +559,7 @@ class DailyTimeRecord extends CORE_Controller
               echo json_encode($chck_pay_type);
             break;
 
-            case 'getAppliedLeave':
-
-                $employee_id = $this->input->post('employee_id', TRUE);
-                $pay_period_id = $this->input->post('pay_period_id', TRUE);
-
-                $pay_period = $this->RefPayPeriod_model->get_list($pay_period_id);
-                $response['data'] = $this->DailyTimeRecord_model->get_dtr_leave($employee_id,$pay_period[0]->pay_period_year);
-                echo json_encode($response);
-            break;            
-
-            case 'processpayroll':
+             case 'processpayroll':
                 $m_daily_time_record=$this->DailyTimeRecord_model;
 
                 $dtr_id = $this->input->post('dtr_id', TRUE);

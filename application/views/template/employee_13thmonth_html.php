@@ -7,7 +7,7 @@
             <hr><br />
         </strong>
     </div>
-    <table class="table">
+    <table class="table" width="100%">
         <thead>
             <tr>
                 <th style="text-align: left;" width="5%"></th>

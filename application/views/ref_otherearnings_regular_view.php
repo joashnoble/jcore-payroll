@@ -79,19 +79,19 @@
         }
 
         .dataTables_filter input {
-            width:210px !important;
+        	width:210px !important;
         }
 
         #is_taxable {
-            width:25px !important;
-            height:25px !important;
-            cursor:pointer;
+        	width:25px !important;
+        	height:25px !important;
+        	cursor:pointer;
         }
 
         #taxCheck {
-            color:green;
-            font-size:20px;
-            font-weight:bold;
+        	color:green;
+        	font-size:20px;
+        	font-weight:bold;
         }
 
     </style>
@@ -178,7 +178,6 @@
                                                     <th>Earnings Cycle</th>
                                                     <th>Is Taxable ?</th>
                                                     <th>Remarks</th>
-                                                    <th>Status</th>
                                                     <th><center>Action</center></th>
                                                  </tr>
                                             </thead>
@@ -233,12 +232,10 @@
                             <div class="row">
                               <div class="col-md-12">
                                 <div class="form-group">
-                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1">
-                                            <i class="red">*</i> Employee :
-                                        </label>
+                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1">Employee :</label>
                                         <div class="col-sm-8">
                                             <select class="form-control" id="employee_id" name="employee_id" data-error-msg="Employee is Required!" required>
-                                            <option value="">Select Employee</option>
+                                            <option value="0">[ Select Employee ]</option>
                                             <?php
 
                                                 foreach($employee_list as $row) {
@@ -250,10 +247,10 @@
                                         </div>
                                 </div>
                                 <div class="form-group">
-                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Earnings Type :</label>
+                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1">Earning Description :</label>
                                         <div class="col-sm-8">
                                             <select class="form-control" id="earnings_id" name="earnings_id" data-error-msg="Earnings Type is Required!" required>
-                                            <option value="">Select Earnings</option>
+                                            <option value="0">[ Select Earnings ]</option>
                                             <?php
                                                 foreach($refotherearnings as $row)
                                                 {
@@ -264,16 +261,16 @@
                                         </div>
                                 </div>
                                 <div class="form-group">
-                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Amount :</label>
+                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1">Amount :</label>
                                         <div class="col-sm-8">
                                             <input class="form-control numeric" id="oe_regular_amount" name="oe_regular_amount" placeholder="Amount" data-error-msg="Amount is Required!" required>
                                         </div>
                                 </div>
                                 <div class="form-group">
-                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Earnings Cycle :</label>
+                                        <label class="col-sm-4 inlinecustomlabel-sm" for="inputEmail1">Earnings Cycle :</label>
                                         <div class="col-sm-8">
                                             <select class="form-control" id="oe_cycle" name="oe_cycle" data-error-msg="Earnings Cycle is Required!" required>
-                                                <option value="">Select Earnings Cycle</option>
+                                                <option value="0">[ Select Earnings Cycle ]</option>
                                                 <option value="1">1st Week</option>
                                                 <option value="2">2nd Week</option>
                                                 <option value="3">3rd Week</option>
@@ -297,19 +294,6 @@
                                             <textarea class="form-control" id="oe_regular_remarks" name="oe_regular_remarks" placeholder="Remarks" ></textarea>
                                         </div>
                                 </div>
-
-                                    <div class="form-group">
-                                      <label class="col-sm-4 inlinecustomlabel" for="inputPassword1">Status :</label>
-                                        <div class="col-sm-8">
-                                           <select class="form-control" id="earnings_status_id" name="earnings_status_id" required data-error-msg="Status is Required!">
-                                                <?php foreach($status as $status){?>
-                                                    <option value="<?php echo $status->status_id; ?>">
-                                                        <?php echo $status->status; ?>
-                                                    </option>
-                                                <?php } ?>
-                                           </select>    
-                                        </div>
-                                    </div>
                               </div>
                             <!-- </div><br>
                             <div class="row">
@@ -354,13 +338,7 @@ $(document).ready(function(){
                 { targets:[2],data: "full_name" },
                 { targets:[3],data: "earnings_desc" },
                 { targets:[4],data: "earnings_type_desc" },
-                {
-                    className: "text-right",
-                    targets:[5],data: "oe_regular_amount",
-                    render: function(data){
-                        return accounting.formatNumber(data,2);
-                    }
-                },
+                { targets:[5],data: "oe_regular_amount" },
                 { targets:[6],data: "oe_cycle",
                     render: function (data, type, full, meta){
                         //alert(data);
@@ -401,19 +379,7 @@ $(document).ready(function(){
                 { targets:[7],data: getCheck },
                 { targets:[8],data: "oe_regular_remarks" },
                 {
-                    targets:[9], data:null,
-                    render: function (data, type, full, meta){
-
-                        if (data.earnings_status_id == 1){
-                            return '<center><i class="fa fa-check-circle" style="color: green;"></i></center>';
-                        }else{
-                            return '<center><i class="fa fa-times-circle" style="color: red;"></i></center>';
-                        }
-
-                    }
-                },                
-                {
-                    targets:[10],
+                    targets:[9],
                     render: function (data, type, full, meta){
 
                         return '<center>'+right_otherregearnings_edit+right_otherregearnings_delete+'</center>';
@@ -469,21 +435,15 @@ $(document).ready(function(){
             _selectRowObj=$(this).closest('tr');
             var data=dt.row(_selectRowObj).data();
             _selectedID=data.oe_regular_id;
-
-            $('#employee_id').prop({ disabled : true });
-            $('#earnings_id').prop({ disabled : true });
-
             $('#oe_regular_id').val(data.oe_regular_id);
             $('#employee_id').val(data.employee_id).trigger("change");
-            $('#earnings_id').val(data.earnings_id).trigger("change");
-            $('#oe_cycle').val(data.oe_cycle).trigger("change");
-
+            /*$('#employee_id').val(data.employee_id);*/
+            $('#earnings_id').val(data.earnings_id);
             $('#pay_period_id').val(data.pay_period_id);
             $('#oe_regular_amount').val(data.oe_regular_amount);
+            $('#oe_cycle').val(data.oe_cycle);
             $('#is_taxable').val(data.is_taxable);
             $('#oe_regular_remarks').val(data.oe_regular_remarks);
-
-            $('#earnings_status_id').val(data.earnings_status_id);
 
             if(data.is_taxable==1){
                 $('#is_taxable').prop('checked', true);
@@ -556,51 +516,26 @@ $(document).ready(function(){
 
         $('#btn_new').click(function(){
             _txnMode="new";
-
-            _employees.val(null).trigger("change");
-            _earnings.val(null).trigger("change");
-            _oe_cycle.val(null).trigger("change");
-
-            $('#employee_id').prop({ disabled : false });
-            $('#earnings_id').prop({ disabled : false });
-
+            $('#employee_id').select2('val','');
             $('#modal_create_OtherEarnings_Regular').modal('show');
             clearFields($('#frm_otherearnings_regular'));
             $('#oe_regular_id').val(0);
-            $('#earnings_status_id').val(1);
         });
 
         _employees=$("#employee_id").select2({
         dropdownParent: $("#modal_create_OtherEarnings_Regular"),
             placeholder: "Select Employee",
-            allowClear: false
+            allowClear: true
         });
 
         _employees.select2('val', null);
-
-        _earnings=$("#earnings_id").select2({
-            dropdownParent: $("#modal_create_OtherEarnings_Regular"),
-            placeholder: "Select Earning Type",
-            allowClear: false
-        });
-
-        _earnings.select2('val', null);
-
-        _oe_cycle=$("#oe_cycle").select2({
-            dropdownParent: $("#modal_create_OtherEarnings_Regular"),
-            placeholder: "Select Earnings Cycle",
-            allowClear: false
-        });
-
-        _oe_cycle.select2('val', null);        
-
 
     var validateRequiredFields=function(f){
         var stat=true;
         $('div.form-group').removeClass('has-error');
         $('input[required],textarea[required],select[required]',f).each(function(){
                 if($(this).is('select')){
-                if($(this).val()==0 || $(this).val()==null){
+                if($(this).val()==0){
                     showNotification({title:"Error!",stat:"error",msg:$(this).data('error-msg')});
                     $(this).closest('div.form-group').addClass('has-error');
                     $(this).focus();

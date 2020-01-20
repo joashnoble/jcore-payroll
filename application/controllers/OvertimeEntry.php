@@ -60,7 +60,6 @@ class OvertimeEntry extends CORE_Controller
             case 'updateOvertimeEntry':
 
               $m_overtime=$this->DailyTimeRecord_model;
-              $factor_file = $m_overtime->get_factorfile();
 
               $dtr_id=$this->input->post('id',TRUE);
               $ot_reg=$this->input->post('ot_reg',TRUE);
@@ -77,10 +76,6 @@ class OvertimeEntry extends CORE_Controller
               $nsd_sun_spe_hol=$this->input->post('nsd_sun_spe_hol',TRUE);
             
               for($i=0;$i<count($dtr_id);$i++){
-
-                $rates = $m_overtime->getRatesDuties($this->get_numeric_value($dtr_id[$i]));
-                $per_hour_pay = $rates[0]->per_hour_pay;
-
                 $m_overtime->ot_reg=$this->get_numeric_value($ot_reg[$i]);
                 $m_overtime->ot_reg_reg_hol=$this->get_numeric_value($ot_reg_reg_hol[$i]);
                 $m_overtime->ot_reg_spe_hol=$this->get_numeric_value($ot_reg_spe_hol[$i]);
@@ -94,24 +89,9 @@ class OvertimeEntry extends CORE_Controller
                 $m_overtime->nsd_sun_reg_hol=$this->get_numeric_value($nsd_sun_reg_hol[$i]);
                 $m_overtime->nsd_sun_spe_hol=$this->get_numeric_value($nsd_sun_spe_hol[$i]);
 
-                // Amount
-                $m_overtime->ot_reg_amt = $this->get_numeric_value($ot_reg[$i])*$per_hour_pay*$factor_file[0]->regular_ot;
-                $m_overtime->ot_reg_reg_hol_amt = $this->get_numeric_value($ot_reg_reg_hol[$i])*$per_hour_pay*$factor_file[0]->regular_holiday_ot;
-                $m_overtime->ot_reg_spe_hol_amt = $this->get_numeric_value($ot_reg_spe_hol[$i])*$per_hour_pay*$factor_file[0]->spe_holiday_ot;
-                $m_overtime->ot_sun_amt = $this->get_numeric_value($ot_sun[$i])*$per_hour_pay*$factor_file[0]->sunday_ot;
-                $m_overtime->ot_sun_reg_hol_amt = $this->get_numeric_value($ot_sun_reg_hol[$i])*$per_hour_pay*$factor_file[0]->sun_regular_holiday_ot;
-                $m_overtime->ot_sun_spe_hol_amt = $this->get_numeric_value($ot_sun_spe_hol[$i])*$per_hour_pay*$factor_file[0]->sun_spe_holiday_ot;
-
-                $m_overtime->nsd_reg_amt = $this->get_numeric_value($nsd_reg[$i])*$per_hour_pay*$factor_file[0]->night_shift;
-                $m_overtime->nsd_reg_reg_hol_amt = $this->get_numeric_value($nsd_reg_reg_hol[$i])*$per_hour_pay*$factor_file[0]->night_shift_reg_holiday;
-                $m_overtime->nsd_reg_spe_hol_amt = $this->get_numeric_value($nsd_reg_spe_hol[$i])*$per_hour_pay*$factor_file[0]->night_shift_spe_holiday;
-                $m_overtime->nsd_sun_amt = $this->get_numeric_value($nsd_sun[$i])*$per_hour_pay*$factor_file[0]->sun_night_shift;
-                $m_overtime->nsd_sun_reg_hol_amt = $this->get_numeric_value($nsd_sun_reg_hol[$i])*$per_hour_pay*$factor_file[0]->sun_night_shift_reg_holiday;
-                $m_overtime->nsd_sun_spe_hol_amt = $this->get_numeric_value($nsd_sun_spe_hol[$i])*$per_hour_pay*$factor_file[0]->sun_night_shift_spe_holiday;
-
                 $m_overtime->modified_by = $this->session->user_id;
                 $m_overtime->date_modified = date("Y-m-d H:i:s");
-                $m_overtime->modify($this->get_numeric_value($dtr_id[$i]));
+                $m_overtime->modify($dtr_id[$i]);
               }
 
                 $response['title']='Success';

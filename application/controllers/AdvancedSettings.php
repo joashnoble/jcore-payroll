@@ -111,22 +111,6 @@ class AdvancedSettings extends CORE_Controller
                     $m_default_deduction->default_id = $default_id;
                     $m_default_deduction->deduction_sequence = $sequence[$i];
                     $m_default_deduction->save();
-
-                    if ($sequence[$i] == 1){
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 6;
-                        $m_default_deduction->save();
-
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 8;
-                        $m_default_deduction->save();
-                    }
-
-                    if ($sequence[$i] == 2){
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 7;
-                        $m_default_deduction->save();
-                    }
                 }
 
                $d_deduction = $m_default_deduction->get_check_seq($default_id);
@@ -201,22 +185,6 @@ class AdvancedSettings extends CORE_Controller
                     $m_default_deduction->default_id = $default_id;
                     $m_default_deduction->deduction_sequence = $sequence[$i];
                     $m_default_deduction->save();
-
-                    if ($sequence[$i] == 1){
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 6;
-                        $m_default_deduction->save();
-
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 8;
-                        $m_default_deduction->save();
-                    }
-
-                    if ($sequence[$i] == 2){
-                        $m_default_deduction->default_id = $default_id;
-                        $m_default_deduction->deduction_sequence = 7;
-                        $m_default_deduction->save();
-                    }
                 }
 
                 $d_deduction = $m_default_deduction->get_check_seq($default_id);

@@ -298,7 +298,7 @@
                               </div>
                               <div class="col-md-6">
                                 <div class="form-group" style="margin-bottom:2px; !important">
-                                          <label class="boldlabel" style="margin-bottom:0px;">Group:</label>
+                                          <label class="boldlabel" style="margin-bottom:0px;">Department:</label>
                                           <select class="form-control" id="group_id" name="group_id" id="sel1">
                                             <option value="all">All Groups</option>
                                            <?php
@@ -322,10 +322,11 @@
                 </div>
                 </div>
 
-                <div id="modal_temp_deduction" class="modal fade" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false"><!--modal-->
+                <div id="modal_temp_deduction" class="modal fade" tabindex="-1" role="dialog"><!--modal-->
                 <div class="modal-dialog modal-md">
                     <div class="modal-content">
                         <div class="modal-header" style="background-color:#27ae60;">
+                            <button type="button" style="color:white;" class="close"  data-dismiss="modal" aria-hidden="true">X</button>
                             <h4 class="modal-title" style="color:white;"><span id="modal_mode"> Temporary Deductions : <transactionlabel id="transactionlabel"></transactionlabel></h4>
                         </div>
 
@@ -333,11 +334,10 @@
                             <form id="frm_new_tempdeduction">
                                 <div class="container" style="width:100% !important;">
                                     <div class="form-group">
-                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Employee :</label>
+                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1">Employee :</label>
                                         <div class="col-sm-8">
                                             <select class="form-control" name="employee_id" id="employee_id" data-error-msg="Please Select Employee" required>
                                             <option value="">[ Select Employee ]</option>
-                                            <option value="all">All Employees</option>
                                            <?php
                                                                 foreach($employee_list as $row)
                                                                 {
@@ -348,9 +348,9 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Deduction :</label>
+                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1">Deduction Desc :</label>
                                         <div class="col-sm-8">
-                                            <select class="form-control" name="deduction_id" id="deduction_id" data-error-msg="Please Select Deduction" required>
+                                            <select class="form-control" name="deduction_id" id="deduction_id" data-error-msg="Please Select Employee" required>
                                             <option value="">[ Select Deduction Description ]</option>
                                            <?php
                                                                 foreach($refdeduction as $row)
@@ -362,7 +362,7 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1"><i class="red">*</i> Amount :</label>
+                                        <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1">Amount :</label>
                                         <div class="col-sm-6">
                                             <div class="input-group">
                                               <span class="input-group-addon" id=""><i class="fa fa-money" aria-hidden="true"></i></span>
@@ -373,7 +373,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 inlinecustomlabel-sm" for="inputEmail1">Remarks :</label>
                                         <div class="col-sm-6">
-                                            <textarea type="text" class="form-control" name="deduction_regular_remarks" placeholder="Remarks" aria-describedby="sizing-addon2" data-error-msg="Remarks is Required"></textarea>
+                                            <textarea type="text" class="form-control" name="deduction_regular_remarks" placeholder="Remarks" aria-describedby="sizing-addon2" data-error-msg="Remarks is Required" required></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -413,9 +413,6 @@ $(document).ready(function(){
     var dt; var _txnMode; var _txnModeRate; var _selectedID;
     var _selectedDateCovered; var _selectedYear; var _periodstart; var _periodend; var _selectedIDDepartment="all"; var _selectedIDGroup="all";
     var _selectedemprate; var _selectedEmpget; var _pusheddata; var _selectRowObjtempdeduct; var _selectedIDtempdeduct;
-    var _year; var _pay_period; var _refdepartment_id; var _refgroup_id; var _deduction;
-    var d = new Date();
-    var n = d.getFullYear();
 
     var getDtr=function(){
                     dt_temporary_deduction=$('#tbl_temporary_deduction').DataTable({
@@ -476,37 +473,6 @@ $(document).ready(function(){
     }
 
     $('.numeric').autoNumeric('init');
-
-    var initializeControls=function(){
-
-        _year=$("#year").select2({
-            dropdownParent: $("#modal_filter"),
-            placeholder: "Select Year",
-            allowClear: false
-        });
-
-        _year.val(n).trigger("change");
-
-        _pay_period=$("#pay_period").select2({
-            dropdownParent: $("#modal_filter"),
-            placeholder: "Select Pay Period",
-            allowClear: false
-        });
-
-        _refdepartment_id=$("#ref_department_id").select2({
-            dropdownParent: $("#modal_filter"),
-            placeholder: "Select Department",
-            allowClear: false
-        });
-
-        _refgroup_id=$("#group_id").select2({
-            dropdownParent: $("#modal_filter"),
-            placeholder: "Select Group",
-            allowClear: false
-        });
-
-
-    }();
 
     var bindEventHandlers=(function(){
         var detailRows = [];
@@ -706,11 +672,8 @@ $(document).ready(function(){
                 if(_txnMode=="createtempdeduction"){
                     createTemporaryDeduction().done(function(response){
                     showNotification(response);
-                    dt_temporary_deduction.ajax.reload();
+                    dt_temporary_deduction.row.add(response.row_added[0]).draw();
                     }).always(function(){
-                        $('#btn_save_temp_deduction').prop('disabled',false);
-                        $('#btn_close_temp_deduction').prop('disabled',false);
-
                         $.unblockUI();
                         $('#modal_temp_deduction').modal('toggle');
                     });
@@ -728,21 +691,27 @@ $(document).ready(function(){
                 }
             }
         });
-        
+
+
+
+
+
         $('#tbl_temporary_deduction tbody').on('click','button[name="temp_deduction_edit"]',function(){
             _txnMode="edittempdeduction";
 
             $('#modal_temp_deduction').modal('toggle');
             $('#transactionlabel').text("Edit");
-
-            $('#employee_id').attr("disabled",true);
-
             _selectRowObjtempdeduct=$(this).closest('tr');
             var data=dt_temporary_deduction.row(_selectRowObjtempdeduct).data();
             _selectedIDtempdeduct=data.deduction_regular_id;
 
             $('#employee_id').val(data.employee_id).trigger("change");
-            $('#deduction_id').val(data.deduction_id).trigger("change");
+            /*$('#employee_id').val(data.employee_id);
+*/            $('#deduction_id').val(data.deduction_id);
+            //alert(_selectedIDtempdeduct);
+           // alert($('input[name="tax_exempt"]').length);
+            //$('input[name="tax_exempt"]').val(0);
+            //$('input[name="inventory"]').val(data.is_inventory);
 
             $('input,textarea').each(function(){
                 var _elem=$(this);
@@ -752,7 +721,10 @@ $(document).ready(function(){
                     }
                 });
             });
+
+
         });
+
 
         $('#tbl_temporary_deduction tbody').on('click','button[name="temp_deduction_remove"]',function(){
             _selectRowObjtempdeduct=$(this).closest('tr');
@@ -774,9 +746,6 @@ $(document).ready(function(){
     })();
 
     var createTemporaryDeduction=function(){
-        $('#btn_save_temp_deduction').prop('disabled',true);
-        $('#btn_close_temp_deduction').prop('disabled',true);
-
         var _data=$('#frm_new_tempdeduction').serializeArray();
         _data.push({name : "pay_period_id" ,value : _selectedYear});
         return $.ajax({
@@ -835,18 +804,10 @@ $(document).ready(function(){
     _employees=$("#employee_id").select2({
         dropdownParent: $("#modal_temp_deduction"),
             placeholder: "Select Employee",
-            allowClear: false
+            allowClear: true
         });
 
     _employees.select2('val', null);
-
-    _deduction=$("#deduction_id").select2({
-        dropdownParent: $("#modal_temp_deduction"),
-            placeholder: "Select Deduction",
-            allowClear: false
-        });
-
-    _deduction.select2('val', null);
 
     var validateRequiredFields=function(f){
         var stat=true;

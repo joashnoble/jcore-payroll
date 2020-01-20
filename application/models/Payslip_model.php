@@ -42,33 +42,6 @@ class Payslip_model extends CORE_Model {
       return $query->result();
     }
 
-    function get_payslip_all($pay_period_id,$department_id=null,$branch_id=null){
-      $query = $this->db->query("SELECT 
-              ps.*,
-              dtr.*,
-              CONCAT(date_format(rpp.pay_period_start,'%m/%d/%Y'),' ~ ',date_format(rpp.pay_period_end,'%m/%d/%Y')) as payperiod,
-              CONCAT(el.first_name,' ',el.middle_name,' ',el.last_name) as full_name,
-              rp.payment_type,
-              rd.department,
-              rg.group_desc,
-              rb.branch
-          FROM
-              pay_slip ps
-              LEFT JOIN daily_time_record dtr ON dtr.dtr_id = ps.dtr_id
-              LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
-              LEFT JOIN employee_list el ON el.employee_id = dtr.employee_id
-              LEFT JOIN emp_rates_duties erd ON erd.emp_rates_duties_id = el.emp_rates_duties_id
-              LEFT JOIN ref_payment_type rp ON rp.ref_payment_type_id = erd.ref_payment_type_id
-              LEFT JOIN ref_department rd ON rd.ref_department_id = erd.ref_department_id
-              LEFT JOIN ref_branch rb On rb.ref_branch_id = erd.ref_branch_id
-              LEFT JOIN refgroup rg ON rg.group_id = erd.group_id
-                WHERE dtr.pay_period_id = $pay_period_id
-                ".($department_id=="all"?"":" AND erd.ref_department_id = $department_id")."
-                ".($branch_id=="all"?"":" AND erd.ref_branch_id = $branch_id")."
-                ORDER BY el.last_name ASC");
-          return $query->result();
-    }
-
     function get_payslip($filter_payperiod, $filter_dept, $filter_branch){
 
         $dept = ($filter_dept != "all") ? "AND dptmt.ref_department_id=$filter_dept" : "";

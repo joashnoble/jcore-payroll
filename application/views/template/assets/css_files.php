@@ -16,10 +16,6 @@
 
 <link href="assets/plugins/sweet-alert/sweetalert.css" rel="stylesheet"> <!-- sweetalert -->
 <style>
-	.red{
-		color: red;
-		font-weight: bold;
-	}
 	.select2-dropdown{ z-index:1060 !important; }
 	.demo-options{
 		top:50px !important;
