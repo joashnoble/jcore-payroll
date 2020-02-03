@@ -1351,7 +1351,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                             $withholding_lookup = $this->Wtax_lookup($wtax_lookup_amount,$ref_payment_type_id);
                                         }
 
-                                            echo $ref_payment_type_id;
+                                            // echo $ref_payment_type_id;
 
 
                                   }
