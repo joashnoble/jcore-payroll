@@ -85,7 +85,7 @@
 
                     <ol class="breadcrumb" style="margin-bottom:0px;">
                         <li><a href="dashboard">Dashboard</a></li>
-                        <li><a href="Employee13thMonthPay">Employee 13 Month Pay</a></li>
+                        <li><a href="Employee13thMonthPay">Employee 13th Month Pay</a></li>
                     </ol>
 
                     <div class="container-fluid">
@@ -93,7 +93,7 @@
                         <div id="div_2316_list">
                             <div class="panel panel-default">
                                 <div class="panel-heading" style="background-color:#2c3e50 !important;margin-top:2px;">
-                                     <center><h2 style="color:white;font-weight:300;">Employee 13 Month Pay</h2></center>
+                                     <center><h2 style="color:white;font-weight:300;">Employee 13th Month Pay</h2></center>
                                 </div>
                                 <div class="panel-body table-responsive">
                                     <div style="margin: 20px;">
@@ -164,6 +164,7 @@
                                             <thead>
                                                 <tr>
                                                     <th></th>
+                                                    <th><center><input type="checkbox" style="height: 20px;width: 20px;" id="select_all"></center></th>
                                                     <th>Employee Name</th>
                                                     <th style="text-align: right;width: 200px;">Total Reg Pay</th>
                                                     <th style="text-align: right;width: 200px;">Days w/ Pay</th>
@@ -174,7 +175,7 @@
                                             <tbody></tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th colspan="2" style="text-align: right;"><b>TOTAL :</b></th>
+                                                    <th colspan="3" style="text-align: right;"><b>TOTAL :</b></th>
                                                     <th style="text-align: right;"></th>
                                                     <th style="text-align: right;"></th>
                                                     <th style="text-align: right;"></th>
@@ -210,7 +211,7 @@
 
                 <img src="assets/img/question_mark.png" style="width: 50px; position: absolute;margin-left: 30px;"> 
                 <p id="modal-body-message" style="font-size: 12pt;width: 80%;font-weight: normal!important;margin-left: 100px; font-weight: 400;margin-top: 10px;">Are you sure you want to continue processing the 13th Month?</p><br/>
-                <center><span style="color: red;"><b>Note :</b><i> Once the Year is processed you cannot reprocess the 13th Month for that specific year.</i></span></center>
+<!--                 <center><span style="color: red;"><b>Note :</b><i> Once the Year is processed you cannot reprocess the 13th Month for that specific year.</i></span></center> -->
             </div>
 
             <div class="modal-footer">
@@ -272,12 +273,12 @@ $(document).ready(function(){
 
                     var rows = response.data;
 
-                    if (rows.length <= 0){
+                    // if (response.status > 0){
                         $('#process_panel').append('<button type="button" class="btn btn-info col-sm-12" id="btn_process_13thmonth" style="margin-top: 5px;"><i class="fa fa-cog"></i> Process</button>');
                         refresh_process_ele();
-                    }else{
-                        $('#process_panel').append('<label class="label label-default" style="width: 100%;font-size: 12pt;padding: 5px;margin-top: 10px;"><span class="fa fa-check-circle"></span> <i>Processed</i></label>');
-                    }
+                    // }else{
+                    //     $('#process_panel').append('<label class="label label-default" style="width: 100%;font-size: 12pt;padding: 5px;margin-top: 10px;"><span class="fa fa-check-circle"></span> <i>Processed</i></label>');
+                    // }
             });
 
         $.ajax({
@@ -327,17 +328,22 @@ $(document).ready(function(){
                     "data":           null,
                     "defaultContent": "<center><span class='fa fa-print' style='font-size: 14pt;cursor: pointer;'></span></center>"
                 },
-                { targets:[1],data: "fullname", },
-                { targets:[2],data: "total_13thmonth",
+                { visible:false,targets:[1],data: "employee_id",
+                    render: function (data, type, full, meta){
+                        return "<center><input type='checkbox' class='emp_checkbox' style='height: 20px;width: 20px;' id='employee_id' name='employee_id[]' value="+data+"></center>";
+                    }
+                },                
+                { targets:[2],data: "fullname", },
+                { targets:[3],data: "total_13thmonth",
                     render: $.fn.dataTable.render.number( ',', '.', 2 )
                 },
-                { targets:[3],data: "dayswithpayamt",
+                { targets:[4],data: "dayswithpayamt",
                     render: $.fn.dataTable.render.number( ',', '.', 2 )
                 },
-                { targets:[4],data: "total_reg_days_pay",
+                { targets:[5],data: "total_reg_days_pay",
                     render: $.fn.dataTable.render.number( ',', '.', 2 )
                 },
-                { targets:[5],data: "grand_13thmonth_pay",
+                { targets:[6],data: "balance",
                     render: $.fn.dataTable.render.number( ',', '.', 2 )
                 }   
             ],
@@ -372,57 +378,57 @@ $(document).ready(function(){
      
                 // Total over this page
                 pageTotalRegPay = api
-                    .column( 2, { page: 'current'} )
+                    .column( 3, { page: 'current'} )
                     .data()
                     .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
+                        // console.log(intVal(a) + intVal(b));
                         return intVal(a) + intVal(b);
                     }, 0 );
 
 
                 pageTotalDayswPay = api
-                    .column( 3, { page: 'current'} )
+                    .column( 4, { page: 'current'} )
                     .data()
                     .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
+                        // console.log(intVal(a) + intVal(b));
                         return intVal(a) + intVal(b);
                     }, 0 );
 
 
 
                 pageTotal = api
-                    .column( 4, { page: 'current'} )
+                    .column( 5, { page: 'current'} )
                     .data()
                     .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
+                        // console.log(intVal(a) + intVal(b));
                         return intVal(a) + intVal(b);
                     }, 0 );
 
 
 
                 pageTotalAccPay = api
-                    .column( 5, { page: 'current'} )
+                    .column( 6, { page: 'current'} )
                     .data()
                     .reduce( function (a, b) {
-                        console.log(intVal(a) + intVal(b));
+                        // console.log(intVal(a) + intVal(b));
                         return intVal(a) + intVal(b);
                     }, 0 );
 
 
                 // Update footer
-                $( api.column( 2 ).footer() ).html(
+                $( api.column( 3 ).footer() ).html(
                     '<b>'+accounting.formatNumber(pageTotalRegPay,2) +'</b>'
                 );
 
-                $( api.column( 3 ).footer() ).html(
+                $( api.column( 4 ).footer() ).html(
                     '<b>'+accounting.formatNumber(pageTotalDayswPay,2) +'</b>'
                 );
 
-                $( api.column( 4 ).footer() ).html(
+                $( api.column( 5 ).footer() ).html(
                   '<b>'+accounting.formatNumber(pageTotal,2) +'</b>'
                 );
 
-                $( api.column( 5 ).footer() ).html(
+                $( api.column( 6 ).footer() ).html(
                   '<b>'+accounting.formatNumber(pageTotalAccPay,2) +'</b>'
                 );
             }
@@ -438,6 +444,8 @@ $(document).ready(function(){
             employee_id = data.employee_id;   
             pay_period_year = $('#payperiod_filter').val();
             
+            // window.open('PayrollHistory/layout/per-employeee-13thmonth-pay/'+employee_id+'/'+pay_period_year,'_blank');
+
             $.ajax({
                 "dataType":"html",
                 "type":"POST",
@@ -449,29 +457,46 @@ $(document).ready(function(){
                         $('#per_preview').html(response);
                 });
 
-            showinitializeprint();
-            var currentURL = window.location.href;
-            var output = currentURL.match(/^(.*)\/[^/]*$/)[1];
-            output = output+"/assets/css/css_special_files.css";
-            $("#per_preview").printThis({
-                debug: false,
-                importCSS: true,
-                importStyle: false,
-                printContainer: false,
-                printDelay: 1000,
-                loadCSS: output,
-                formValues:true
-            });
             setTimeout(function() {
-                 $.unblockUI();
-            }, 1000);                    
+                showinitializeprint();
+                var currentURL = window.location.href;
+                var output = currentURL.match(/^(.*)\/[^/]*$/)[1];
+                output = output+"/assets/css/css_special_files.css";
+                $("#per_preview").printThis({
+                    debug: false,
+                    importCSS: true,
+                    importStyle: false,
+                    printContainer: false,
+                    printDelay: 1000,
+                    loadCSS: output,
+                    formValues:true
+                });
+                setTimeout(function() {
+                     $.unblockUI();
+                }, 500);     
+            }, 500);    
+
+          
+    });
+
+    $('#select_all').click(function(){
+        var status = $(this).is(":checked");
+        $('#tbl_process_13thmonth tbody').find('input:checkbox').prop('checked', status);
     });
 
     var refresh_process_ele = function(){
         $('#btn_process_13thmonth').click(function(){
-            var year = $('#payperiod_filter').val();
-            $('#year').html(year);
-            $('#modal_confirmation').modal('show');
+
+            // var count = $("#tbl_process_13thmonth input[type=checkbox]:checked").length;
+
+            // if(count <= 0){
+            //     showNotification({title:"Error!",stat:"error",msg:"Please check atleast one employee."});
+            // }else{
+                var year = $('#payperiod_filter').val();
+                $('#year').html(year);
+                $('#modal_confirmation').modal('show');
+            // }
+
         });
     };
 
@@ -526,15 +551,18 @@ $(document).ready(function(){
 
             if(response.stat == "success"){
                 get_13thmonth_pay();
+                $('#tbl_process_13thmonth').DataTable().ajax.reload();
             }
 
             $.unblockUI();
+            // $('#select_all').prop('checked', false);
         });
 
     });
 
     var process13thmonth=function(){
-        var _data=$('#').serializeArray();
+        // var _data = dt.$('input, select').serializeArray();
+        var _data = $('#').serializeArray();
         _data.push({name : "year" ,value : $('#payperiod_filter').val()});
 
         return $.ajax({

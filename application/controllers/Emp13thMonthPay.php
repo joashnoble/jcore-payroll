@@ -43,7 +43,7 @@ class Emp13thMonthPay extends CORE_Controller
     }
 
 
-    function schedule($transaction=null,$filter_value=null,$filter_value2=null,$type=null){
+    function schedule($transaction=null,$filter_value=null,$filter_value2=null,$type=null,$filter_value3=null){
 
 
 
@@ -57,8 +57,9 @@ class Emp13thMonthPay extends CORE_Controller
                 $year = $this->input->post('year', TRUE);
                 $ref_branch_id = $this->input->post('ref_branch_id', TRUE);
                 $ref_department_id = $this->input->post('ref_department_id', TRUE);
+                $batch_id = $this->input->post('batch_id', TRUE);
 
-                $response['data'] = $m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id);
+                $response['data'] = $m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id,null,null,$batch_id);
                 echo json_encode($response);
                 break;
 
@@ -84,8 +85,9 @@ class Emp13thMonthPay extends CORE_Controller
                 $year = $filter_value;
                 $ref_branch_id = $filter_value2;
                 $ref_department_id = $type;
+                $batch_id = $filter_value3;
 
-                $data['data']=$m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id);
+                $data['data'] = $m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id,null,null,$batch_id);
 
                 echo $this->load->view('template/pay_13thmonth_content_all_html',$data,TRUE);
                 break;
@@ -273,9 +275,10 @@ class Emp13thMonthPay extends CORE_Controller
                 $year = $filter_value;
                 $ref_branch_id = $filter_value2;
                 $ref_department_id = $type;
+                $batch_id = $filter_value3;
 
-                $info = $m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id);
-    
+                $info = $m_13thmonth->get_13thmonth_processed($year,$ref_branch_id,$ref_department_id,null,null,$batch_id);
+
                 if (count($info) > 0){
 
                 for ($i=0; $i < count($info); $i++) { 

@@ -177,7 +177,7 @@ class Payslip_model extends CORE_Model {
                               FROM
                                   pay_slip_deductions
                               WHERE
-                                  deduction_id = 12) AS psdcalamityloan ON ps.pay_slip_id = psdcalamityloan.pay_slip_id
+                                  deduction_id = 12 OR 20) AS psdcalamityloan ON ps.pay_slip_id = psdcalamityloan.pay_slip_id
                                   LEFT JOIN
                               (SELECT
                                   pay_slip_id, SUM(deduction_amount) AS other_deductions

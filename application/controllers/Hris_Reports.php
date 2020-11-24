@@ -1222,7 +1222,14 @@ class Hris_Reports extends CORE_Controller
                         $data['year']=$filter_value3;
                         //echo json_encode($data);
                         //show only inside grid with menu button
+
+                        if ($type == 1){
                             echo $this->load->view('template/sss_list_html',$data,TRUE);
+                        }else if($type == 2){
+                            echo $this->load->view('template/sss_list_adj_html',$data,TRUE);
+                        }else if($type == 3){
+                            echo $this->load->view('template/actual_sss_list_html',$data,TRUE);
+                        }
                 break;
 
                 case 'export-sss-list': //
@@ -1395,19 +1402,37 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('C10','Ecode');
                             $excel->getActiveSheet()->setCellValue('D10','Name');
                             $excel->getActiveSheet()->setCellValue('E10','SSS No.');
-                            $excel->getActiveSheet()->setCellValue('F10','Employee');
-                            $excel->getActiveSheet()->setCellValue('G10','Employer');
-                            $excel->getActiveSheet()->setCellValue('H10','EC');
-                            $excel->getActiveSheet()->setCellValue('I10','Total');
+
+                            if($type == 1 OR $type == 3){
+                                $excel->getActiveSheet()->setCellValue('F10','Employee');
+                                $excel->getActiveSheet()->setCellValue('G10','Employer');
+                                $excel->getActiveSheet()->setCellValue('H10','EC');
+                                $excel->getActiveSheet()->setCellValue('I10','Total');
+                            }else{
+                                $excel->getActiveSheet()->setCellValue('F10','Actual Reg Pay');
+                                $excel->getActiveSheet()->setCellValue('G10','SSS Actual Deduction');
+                                $excel->getActiveSheet()->setCellValue('H10','SSS Remittance');
+                                $excel->getActiveSheet()->setCellValue('I10','SSS (ADJ)');
+                            }
+
                         }else{
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Ecode');
                             $excel->getActiveSheet()->setCellValue('C10','Name');
                             $excel->getActiveSheet()->setCellValue('D10','SSS No.');
-                            $excel->getActiveSheet()->setCellValue('E10','Employee');
-                            $excel->getActiveSheet()->setCellValue('F10','Employer');
-                            $excel->getActiveSheet()->setCellValue('G10','EC');
-                            $excel->getActiveSheet()->setCellValue('H10','Total');
+
+                            if($type == 1 OR $type == 3){
+                                $excel->getActiveSheet()->setCellValue('E10','Employee');
+                                $excel->getActiveSheet()->setCellValue('F10','Employer');
+                                $excel->getActiveSheet()->setCellValue('G10','EC');
+                                $excel->getActiveSheet()->setCellValue('H10','Total');
+                            }else{
+                                $excel->getActiveSheet()->setCellValue('E10','Actual Reg Pay');
+                                $excel->getActiveSheet()->setCellValue('F10','SSS Actual Deduction');
+                                $excel->getActiveSheet()->setCellValue('G10','SSS Remittance');
+                                $excel->getActiveSheet()->setCellValue('H10','SSS (ADJ)');
+                            }
+
                         }
 
                         $i = 11;
@@ -1416,6 +1441,17 @@ class Hris_Reports extends CORE_Controller
                         $total_ec=0;
                         $grand_total = 0;
                         $row_total = 0;
+
+                        $total_reg_pay=0;
+                        $total_sss_deducted=0;
+                        $total_sss_actual_deducted=0;
+                        $total_sss_adj=0;
+     
+                        $total_actual_sss_employee=0;
+                        $total_actual_sss_employer=0;
+                        $total_actual_sss_ec=0;
+                        $total_actual_sss_grand_total = 0;
+
                         $count=1;             
                         
                         if(count($sss_report)!=0 || count($sss_report)!=null){
@@ -1463,25 +1499,65 @@ class Hris_Reports extends CORE_Controller
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->full_name);
                                     $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);
                                     $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->totalregpay,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row->sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row->actual_sss_total,2));
+                                    }
+
                                 }else{
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->full_name);
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);
                                     $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->totalregpay,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_total,2));
+                                    }
+
+
                                 }
                                     
                                     
                                     $total_employer+=$row->employer;
                                     $total_ec+=$row->employer_contribution;
                                     $grand_total+=$row_total;
+
+                                    $total_reg_pay+=$row->totalregpay;
+                                    $total_sss_deducted+=$row->employee;
+                                    $total_sss_actual_deducted+=$row->actual_sss_employee;
+                                    $total_sss_adj+=$row->sss_adj;
+
+                                    $total_actual_sss_employee+=$row->actual_sss_employee;
+                                    $total_actual_sss_employer+=$row->actual_sss_employer;
+                                    $total_actual_sss_ec+=$row->actual_sss_ec;
+                                    $total_actual_sss_grand_total+=$row->actual_sss_total;
+
                                     $count++;
                                     $i++;
                             }}}
@@ -1536,10 +1612,24 @@ class Hris_Reports extends CORE_Controller
 
                                     $excel->getActiveSheet()->getStyle('A'.$i.':'.'I'.$i)->getFont()->setBold(TRUE);
 
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_reg_pay,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_sss_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_sss_actual_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($total_sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($total_actual_sss_grand_total,2));
+                                    }
+
+
                                 }else{
                                     $excel->getActiveSheet()->mergeCells('A'.$i.':'.'D'.$i);
                                     $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
@@ -1548,16 +1638,38 @@ class Hris_Reports extends CORE_Controller
 
                                     $excel->getActiveSheet()->getStyle('A'.$i.':'.'H'.$i)->getFont()->setBold(TRUE);
 
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_reg_pay,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_sss_actual_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_actual_sss_grand_total,2));
+                                    }
+
                                 }
 
                         if ($month == "All"){
                             $filename = "SSS REPORT - ".$year;
                         }else{
-                            $filename = "SSS REPORT - ".$month.' '.$year;
+
+                            if ($type == 1){
+                                $typefilter = 'SSS Deducted';
+                            }else if($type == 2){
+                                $typefilter = 'Deduction (ADJ)';
+                            }else if($type == 3){
+                                $typefilter = 'SSS Actual Deduction';
+                            }
+
+                            $filename = "SSS REPORT - ".$month.' '.$year.' - ('.$typefilter.')';
                         }
 
                         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1751,19 +1863,37 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('C10','Ecode');
                             $excel->getActiveSheet()->setCellValue('D10','Name');
                             $excel->getActiveSheet()->setCellValue('E10','SSS No.');
-                            $excel->getActiveSheet()->setCellValue('F10','Employee');
-                            $excel->getActiveSheet()->setCellValue('G10','Employer');
-                            $excel->getActiveSheet()->setCellValue('H10','EC');
-                            $excel->getActiveSheet()->setCellValue('I10','Total');
+
+                            if($type == 1 OR $type == 3){
+                                $excel->getActiveSheet()->setCellValue('F10','Employee');
+                                $excel->getActiveSheet()->setCellValue('G10','Employer');
+                                $excel->getActiveSheet()->setCellValue('H10','EC');
+                                $excel->getActiveSheet()->setCellValue('I10','Total');
+                            }else{
+                                $excel->getActiveSheet()->setCellValue('F10','Actual Reg Pay');
+                                $excel->getActiveSheet()->setCellValue('G10','SSS Actual Deduction');
+                                $excel->getActiveSheet()->setCellValue('H10','SSS Remittance');
+                                $excel->getActiveSheet()->setCellValue('I10','SSS (ADJ)');
+                            }
+
                         }else{
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Ecode');
                             $excel->getActiveSheet()->setCellValue('C10','Name');
                             $excel->getActiveSheet()->setCellValue('D10','SSS No.');
-                            $excel->getActiveSheet()->setCellValue('E10','Employee');
-                            $excel->getActiveSheet()->setCellValue('F10','Employer');
-                            $excel->getActiveSheet()->setCellValue('G10','EC');
-                            $excel->getActiveSheet()->setCellValue('H10','Total');
+
+                            if($type == 1 OR $type == 3){
+                                $excel->getActiveSheet()->setCellValue('E10','Employee');
+                                $excel->getActiveSheet()->setCellValue('F10','Employer');
+                                $excel->getActiveSheet()->setCellValue('G10','EC');
+                                $excel->getActiveSheet()->setCellValue('H10','Total');
+                            }else{
+                                $excel->getActiveSheet()->setCellValue('E10','Actual Reg Pay');
+                                $excel->getActiveSheet()->setCellValue('F10','SSS Actual Deduction');
+                                $excel->getActiveSheet()->setCellValue('G10','SSS Remittance');
+                                $excel->getActiveSheet()->setCellValue('H10','SSS (ADJ)');
+                            }
+
                         }
 
                         $i = 11;
@@ -1772,6 +1902,17 @@ class Hris_Reports extends CORE_Controller
                         $total_ec=0;
                         $grand_total = 0;
                         $row_total = 0;
+
+                        $total_reg_pay=0;
+                        $total_sss_deducted=0;
+                        $total_sss_actual_deducted=0;
+                        $total_sss_adj=0;
+     
+                        $total_actual_sss_employee=0;
+                        $total_actual_sss_employer=0;
+                        $total_actual_sss_ec=0;
+                        $total_actual_sss_grand_total = 0;
+
                         $count=1;             
                         
                         if(count($sss_report)!=0 || count($sss_report)!=null){
@@ -1819,25 +1960,65 @@ class Hris_Reports extends CORE_Controller
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->full_name);
                                     $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);
                                     $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->totalregpay,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row->sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row->actual_sss_total,2));
+                                    }
+
                                 }else{
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->full_name);
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);
                                     $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->totalregpay,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->actual_sss_total,2));
+                                    }
+
+
                                 }
                                     
                                     
                                     $total_employer+=$row->employer;
                                     $total_ec+=$row->employer_contribution;
                                     $grand_total+=$row_total;
+
+                                    $total_reg_pay+=$row->totalregpay;
+                                    $total_sss_deducted+=$row->employee;
+                                    $total_sss_actual_deducted+=$row->actual_sss_employee;
+                                    $total_sss_adj+=$row->sss_adj;
+
+                                    $total_actual_sss_employee+=$row->actual_sss_employee;
+                                    $total_actual_sss_employer+=$row->actual_sss_employer;
+                                    $total_actual_sss_ec+=$row->actual_sss_ec;
+                                    $total_actual_sss_grand_total+=$row->actual_sss_total;
+
                                     $count++;
                                     $i++;
                             }}}
@@ -1892,10 +2073,24 @@ class Hris_Reports extends CORE_Controller
 
                                     $excel->getActiveSheet()->getStyle('A'.$i.':'.'I'.$i)->getFont()->setBold(TRUE);
 
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_reg_pay,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_sss_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_sss_actual_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($total_sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('I'.$i,number_format($total_actual_sss_grand_total,2));
+                                    }
+
+
                                 }else{
                                     $excel->getActiveSheet()->mergeCells('A'.$i.':'.'D'.$i);
                                     $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
@@ -1904,17 +2099,38 @@ class Hris_Reports extends CORE_Controller
 
                                     $excel->getActiveSheet()->getStyle('A'.$i.':'.'H'.$i)->getFont()->setBold(TRUE);
 
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
-                                }
+                                    if($type == 1){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
+                                    }else if($type == 2){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_reg_pay,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_sss_actual_deducted,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_sss_adj,2));
+                                    }else if($type == 3){
+                                        $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_actual_sss_employee,2));
+                                        $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_actual_sss_employer,2));
+                                        $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_actual_sss_ec,2));
+                                        $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_actual_sss_grand_total,2));
+                                    }
 
+                                }
 
                         if ($month == "All"){
                             $filename = "SSS REPORT - ".$year;
                         }else{
-                            $filename = "SSS REPORT - ".$month.' '.$year;
+
+                            if ($type == 1){
+                                $typefilter = 'SSS Deducted';
+                            }else if($type == 2){
+                                $typefilter = 'Deduction (ADJ)';
+                            }else if($type == 3){
+                                $typefilter = 'SSS Actual Deduction';
+                            }
+
+                            $filename = "SSS REPORT - ".$month.' '.$year.' - ('.$typefilter.')';
                         }
 
                         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

@@ -85,7 +85,7 @@ class PayrollHistory extends CORE_Controller
     }
 
 
-    function layout($layout=null,$filter_value=null,$filter_value2=null,$filter_value3=null,$type=null,$filter_value4=null){
+    function layout($layout=null,$filter_value=null,$filter_value2=null,$filter_value3=null,$type=null,$filter_value4=null,$filter_value5=null){
 
 
 
@@ -375,8 +375,8 @@ class PayrollHistory extends CORE_Controller
 
                             foreach($getpayrollregister as $row){
 
-                                $net_pay = $netpay=$row->gross_pay-($row->days_wout_pay_amt+$row->minutes_late_amt+$row->minutes_undertime_amt+$row->minutes_excess_break_amt+$row->sss_deduction+$row->philhealth_deduction+$row->pagibig_deduction+$row->wtax_deduction+$row->sssloan_deduction+$row->pagibigloan_deduction+$row->coopcontribution_deduction+$row->cooploan_deduction+$row->cashadvance_deduction+$row->calamityloan_deduction+$row->other_deductions);
-
+                                // $net_pay = $netpay=$row->gross_pay-($row->days_wout_pay_amt+$row->minutes_late_amt+$row->minutes_undertime_amt+$row->minutes_excess_break_amt+$row->sss_deduction+$row->philhealth_deduction+$row->pagibig_deduction+$row->wtax_deduction+$row->sssloan_deduction+$row->pagibigloan_deduction+$row->coopcontribution_deduction+$row->cooploan_deduction+$row->cashadvance_deduction+$row->calamityloan_deduction+$row->other_deductions);
+                                $net_pay = $row->net_pay;
                                 $grandtotal+=$net_pay;
 
                                 $excel->getActiveSheet()
@@ -649,7 +649,6 @@ class PayrollHistory extends CORE_Controller
                        
                         $data['get_department']=$get_department;
                         $data['get_period'] = $get_period;
-
                         $getcompany=$this->GeneralSettings_model->get_list(
                         null,
                         'company_setup.*'
@@ -704,26 +703,26 @@ class PayrollHistory extends CORE_Controller
                     $excel->setActiveSheetIndex(0);
                     $excel->getActiveSheet()->setTitle("PAYROLL SUMMARY");
 
-                    $excel->getActiveSheet()->mergeCells('A1:AM1');
-                    $excel->getActiveSheet()->mergeCells('A2:AM2');
-                    $excel->getActiveSheet()->mergeCells('A3:AM3');
-                    $excel->getActiveSheet()->mergeCells('A4:AM4');
+                    $excel->getActiveSheet()->mergeCells('A1:AN1');
+                    $excel->getActiveSheet()->mergeCells('A2:AN2');
+                    $excel->getActiveSheet()->mergeCells('A3:AN3');
+                    $excel->getActiveSheet()->mergeCells('A4:AN4');
 
                     $excel->getActiveSheet()->setCellValue('A1',$company->company_name)
                                             ->setCellValue('A2',$company->address)
                                             ->setCellValue('A3',$company->contact_no)
                                             ->setCellValue('A4',$company->email_address);
 
-                    $excel->getActiveSheet()->mergeCells('A5:AM5');
+                    $excel->getActiveSheet()->mergeCells('A5:AN5');
 
-                    $excel->getActiveSheet()->getStyle('A6'.':'.'AM7')->getFont()->setBold(TRUE);
-                    $excel->getActiveSheet()->mergeCells('A6:AM6');
-                    $excel->getActiveSheet()->mergeCells('A7:AM7');
+                    $excel->getActiveSheet()->getStyle('A6'.':'.'AN7')->getFont()->setBold(TRUE);
+                    $excel->getActiveSheet()->mergeCells('A6:AN6');
+                    $excel->getActiveSheet()->mergeCells('A7:AN7');
 
                     $excel->getActiveSheet()->setCellValue('A6','Pay Period : '.$get_period)
                                             ->setCellValue('A7','Department : '.$get_department);
                     
-                    $excel->getActiveSheet()->getStyle('A9:AM9')->getFont()->setBold(TRUE);
+                    $excel->getActiveSheet()->getStyle('A9:AN9')->getFont()->setBold(TRUE);
 
                     $excel->getActiveSheet()->getColumnDimension('A')->setWidth('5');
                     $excel->getActiveSheet()->getColumnDimension('B')->setWidth('35');
@@ -764,9 +763,10 @@ class PayrollHistory extends CORE_Controller
                     $excel->getActiveSheet()->getColumnDimension('AK')->setWidth('15');
                     $excel->getActiveSheet()->getColumnDimension('AL')->setWidth('15');
                     $excel->getActiveSheet()->getColumnDimension('AM')->setWidth('15');
+                    $excel->getActiveSheet()->getColumnDimension('AN')->setWidth('15');
 
                     $excel->getActiveSheet()
-                            ->getStyle('C9:AM9')
+                            ->getStyle('C9:AN9')
                             ->getAlignment()
                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -805,10 +805,11 @@ class PayrollHistory extends CORE_Controller
                     $excel->getActiveSheet()->setCellValue('AG9','SSS Loan');
                     $excel->getActiveSheet()->setCellValue('AH9','Pagibig Loan');
                     $excel->getActiveSheet()->setCellValue('AI9','Cash Advance (Reg)');
-                    $excel->getActiveSheet()->setCellValue('AJ9','Calamity Loan');
-                    $excel->getActiveSheet()->setCellValue('AK9','Other Deduct');
-                    $excel->getActiveSheet()->setCellValue('AL9','Total Deductions');
-                    $excel->getActiveSheet()->setCellValue('AM9','Net Pay');
+                    $excel->getActiveSheet()->setCellValue('AJ9','Pagibig Calamity Loan');
+                    $excel->getActiveSheet()->setCellValue('AK9','SSS Calamity Loan');                    
+                    $excel->getActiveSheet()->setCellValue('AL9','Other Deduct');
+                    $excel->getActiveSheet()->setCellValue('AM9','Total Deductions');
+                    $excel->getActiveSheet()->setCellValue('AN9','Net Pay');
 
                     $basic_pay=0;
                     $reg_holiday=0;
@@ -831,7 +832,8 @@ class PayrollHistory extends CORE_Controller
                     $sssloan_deduction=0;
                     $pagibigloan_deduction=0;
                     $cashadvance_deduction=0;
-                    $calamityloan_deduction=0;
+                    $pagibig_calamityloan_deduction=0;
+                    $sss_calamityloan_deduction=0;
                     $s_otherdeduct=0;
                     $s_deductions=0;
                     $s_gross_pay=0;
@@ -845,7 +847,7 @@ class PayrollHistory extends CORE_Controller
 
 
                             $excel->getActiveSheet()
-                                    ->getStyle('C'.$i.':AM'.$i)
+                                    ->getStyle('C'.$i.':AN'.$i)
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -854,7 +856,7 @@ class PayrollHistory extends CORE_Controller
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
                             
-                            $excel->getActiveSheet()->getStyle('C'.$i.':AI'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                            $excel->getActiveSheet()->getStyle('C'.$i.':AN'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
                             $ot_hrs = $row->ot_reg+$row->ot_reg_reg_hol+$row->ot_reg_spe_hol+$row->ot_sun+$row->ot_sun_reg_hol+$row->ot_sun_spe_hol;
                             $nsd_hrs = $row->nsd_reg+$row->nsd_reg_reg_hol+$row->nsd_reg_spe_hol+$row->nsd_sun+$row->nsd_sun_reg_hol+$row->nsd_sun_spe_hol;
@@ -880,7 +882,8 @@ class PayrollHistory extends CORE_Controller
                             $sssloan_deduction += $row->sssloan_deduction;
                             $pagibigloan_deduction += $row->pagibigloan_deduction;
                             $cashadvance_deduction += $row->cashadvance_deduction;
-                            $calamityloan_deduction += $row->calamityloan_deduction;
+                            $pagibig_calamityloan_deduction += $row->pagibig_calamityloan_deduction;
+                            $sss_calamityloan_deduction += $row->sss_calamityloan_deduction;
                             $s_otherdeduct += $row->other_deductions;
                             $s_deductions += $row->total_deductions;
                             $s_gross_pay += $row->gross_pay;
@@ -921,10 +924,11 @@ class PayrollHistory extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('AG'.$i,number_format($row->sssloan_deduction,2));
                             $excel->getActiveSheet()->setCellValue('AH'.$i,number_format($row->pagibigloan_deduction,2));
                             $excel->getActiveSheet()->setCellValue('AI'.$i,number_format($row->cashadvance_deduction,2));
-                            $excel->getActiveSheet()->setCellValue('AJ'.$i,number_format($row->calamityloan_deduction,2));
-                            $excel->getActiveSheet()->setCellValue('AK'.$i,number_format($row->other_deductions,2));
-                            $excel->getActiveSheet()->setCellValue('AL'.$i,number_format($row->total_deductions,2));
-                            $excel->getActiveSheet()->setCellValue('AM'.$i,number_format($row->net_pay,2));
+                            $excel->getActiveSheet()->setCellValue('AJ'.$i,number_format($row->pagibig_calamityloan_deduction,2));
+                            $excel->getActiveSheet()->setCellValue('AK'.$i,number_format($row->sss_calamityloan_deduction,2));
+                            $excel->getActiveSheet()->setCellValue('AL'.$i,number_format($row->other_deductions,2));
+                            $excel->getActiveSheet()->setCellValue('AM'.$i,number_format($row->total_deductions,2));
+                            $excel->getActiveSheet()->setCellValue('AN'.$i,number_format($row->net_pay,2));
 
                             $i++;
                             $a++;
@@ -937,7 +941,7 @@ class PayrollHistory extends CORE_Controller
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);  
 
-                                $excel->getActiveSheet()->mergeCells('A'.$i.':AM'.$i);
+                                $excel->getActiveSheet()->mergeCells('A'.$i.':AN'.$i);
                                 $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                 $i++;
                         }
@@ -977,18 +981,23 @@ class PayrollHistory extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('J'.$pan_3,'Total Gross Pay: ');
                             $excel->getActiveSheet()->setCellValue('J'.$pan_4,'Total Deduction: ');
                             $excel->getActiveSheet()->setCellValue('J'.$pan_5,'Salaries & Wages: ');
+
+                            $excel->getActiveSheet()->setCellValue('L'.$pan_1,'Pagibig Calamity Loan: ');
+                            $excel->getActiveSheet()->setCellValue('L'.$pan_2,'SSS Calamity Loan: ');
   
                             $excel->getActiveSheet()->getStyle('C'.$pan_1.':C'.$pan_5)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
                             $excel->getActiveSheet()->getStyle('E'.$pan_1.':E'.$pan_5)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
                             $excel->getActiveSheet()->getStyle('G'.$pan_1.':G'.$pan_5)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
                             $excel->getActiveSheet()->getStyle('I'.$pan_1.':I'.$pan_5)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
                             $excel->getActiveSheet()->getStyle('K'.$pan_1.':K'.$pan_5)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                            $excel->getActiveSheet()->getStyle('M'.$pan_1.':M'.$pan_2)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
                             $excel->getActiveSheet()->getStyle('B'.$pan_1.':B'.$pan_5)->getFont()->setBold(TRUE);
                             $excel->getActiveSheet()->getStyle('D'.$pan_1.':D'.$pan_5)->getFont()->setBold(TRUE);
                             $excel->getActiveSheet()->getStyle('F'.$pan_1.':F'.$pan_5)->getFont()->setBold(TRUE);
                             $excel->getActiveSheet()->getStyle('H'.$pan_1.':H'.$pan_5)->getFont()->setBold(TRUE);
                             $excel->getActiveSheet()->getStyle('J'.$pan_1.':J'.$pan_5)->getFont()->setBold(TRUE);
+                            $excel->getActiveSheet()->getStyle('L'.$pan_1.':L'.$pan_2)->getFont()->setBold(TRUE);
 
                             $excel->getActiveSheet()
                                     ->getStyle('C'.$pan_1.':C'.$pan_5)
@@ -1009,7 +1018,12 @@ class PayrollHistory extends CORE_Controller
                             $excel->getActiveSheet()
                                     ->getStyle('K'.$pan_1.':K'.$pan_5)
                                     ->getAlignment()
-                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);                                   
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+                            $excel->getActiveSheet()
+                                    ->getStyle('M'.$pan_1.':M'.$pan_2)
+                                    ->getAlignment()
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);                                          
+
 
                             $excel->getActiveSheet()->setCellValue('C'.$pan_1,number_format($basic_pay,2));
                             $excel->getActiveSheet()->setCellValue('C'.$pan_2,number_format($reg_holiday,2));
@@ -1040,6 +1054,9 @@ class PayrollHistory extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('K'.$pan_3,number_format($s_gross_pay,2));
                             $excel->getActiveSheet()->setCellValue('K'.$pan_4,number_format($s_deductions,2));
                             $excel->getActiveSheet()->setCellValue('K'.$pan_5,number_format($salaries_wages,2));
+
+                            $excel->getActiveSheet()->setCellValue('M'.$pan_1,number_format($pagibig_calamityloan_deduction,2));
+                            $excel->getActiveSheet()->setCellValue('M'.$pan_2,number_format($sss_calamityloan_deduction,2));                            
 
                             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
@@ -1191,6 +1208,27 @@ class PayrollHistory extends CORE_Controller
                         $year = $filter_value2;
                         $m_13thmonth = $this->Emp_13thmonth_model;
 
+                        $year_setup = $this->RefYearSetup_model->getYearSetup($year);
+                        $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
+
+                        if (count($year_setup) > 0){
+                            $start_13thmonth_date = $year_setup[0]->start_13thmonth_date;
+                            $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
+                            $factor = $year_setup[0]->factor_setup;
+                        }else{
+                            $start_13thmonth_date = '01-01-'.$year;
+                            $end_13thmonth_date = '12-31-'.$year;
+                            $factor = 12;
+                        }
+
+                        $datenow = date('Y-m-d');
+
+                        if($end_13thmonth_date >= $datenow){
+                            $response['status'] = 1;
+                        }else{
+                            $response['status'] = 0;
+                        }
+
                         $response['data'] = $this->Emp_13thmonth_model->get_13thmonth_processed($year);
                         echo json_encode($response);
 
@@ -1218,25 +1256,26 @@ class PayrollHistory extends CORE_Controller
                             $factor = 12;
                         }
 
-                        if (count($check_year) > 0){
-                            $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
+                        // if (count($check_year) > 0){
+                            // $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
+                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
 
-                        }else{
+                        // }else{
 
-                            if($filter_value!="all" AND $year!="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($filter_value,$year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                                /*echo json_encode($getpayrollregsummary);*/
-                            }
-                            if($filter_value=="all" AND $year!="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                            }
-                            if($filter_value!="all" AND $year=="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($filter_value,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                            }
-                            if($filter_value=="all" AND $year=="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                            }
-                        }
+                        //     if($filter_value!="all" AND $year!="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($filter_value,$year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                        //         /*echo json_encode($getpayrollregsummary);*/
+                        //     }
+                        //     if($filter_value=="all" AND $year!="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                        //     }
+                        //     if($filter_value!="all" AND $year=="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($filter_value,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                        //     }
+                        //     if($filter_value=="all" AND $year=="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                        //     }
+                        // }
 
                         /*echo json_encode($getpayrollregsummary);*/
                         /*$getpayrollregsummary=$this->Payslip_model->get_list(
@@ -1345,10 +1384,11 @@ class PayrollHistory extends CORE_Controller
 
                         break;
 
-                     case 'employeee-13thmonth-pay-dt': //
+                    case 'employeee-13thmonth-pay-dt': //
 
                         $year = $this->input->get('pay_period_year');
                         $ref_branch_id = $this->input->get('ref_branch_id');
+                        $ref_department_id = $this->input->get('ref_department_id');
                         $employee_id = $this->input->get('employee_id');
                         
                         $m_13thmonth = $this->Emp_13thmonth_model;
@@ -1363,37 +1403,37 @@ class PayrollHistory extends CORE_Controller
                             $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                             $factor = $year_setup[0]->factor_setup;
                         }else{
-                            $start_13thmonth_date = '01-01-'.$year;
-                            $end_13thmonth_date = '12-31-'.$year;
+                            $start_13thmonth_date = $year.'-01-01';
+                            $end_13thmonth_date = $year.'12-31';
                             $factor = 12;
                         }
 
-                        if (count($check_year) > 0){
-                            $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
+                        // if (count($check_year) > 0){
+                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
 
-                        }else{
+                        // }else{
 
-                            if($employee_id!="all" AND $year!="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($employee_id,$year,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
-                                /*echo json_encode($getpayrollregsummary);*/
-                            }
-                            if($employee_id=="all" AND $year!="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
-                            }
-                            if($employee_id!="all" AND $year=="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($employee_id,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
-                            }
-                            if($employee_id=="all" AND $year=="all"){
-                                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
-                            }
-                        }
+                        //     if($employee_id!="all" AND $year!="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($employee_id,$year,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        //         /*echo json_encode($getpayrollregsummary);*/
+                        //     }
+                        //     if($employee_id=="all" AND $year!="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        //     }
+                        //     if($employee_id!="all" AND $year=="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($employee_id,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        //     }
+                        //     if($employee_id=="all" AND $year=="all"){
+                        //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        //     }
+                        // }
 
                         $response['data']=$get13thmonth_pay;
                         echo json_encode($response);
 
                         break;
 
-                     case 'per-employeee-13thmonth-pay': //
+                    case 'per-employeee-13thmonth-pay': //
                         //show only inside grid with menu button
 
                         $m_13thmonth = $this->Emp_13thmonth_model;
@@ -1416,13 +1456,15 @@ class PayrollHistory extends CORE_Controller
                             $factor = 12;
                         }
 
-                        if (count($check_year) > 0){
-                            $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($pay_period_year,'all','all',null,$employee_id);
+                        $get13thmonth_pay=$m_13thmonth->get_13thmonth($pay_period_year,'all','all',$employee_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        
+                        // if (count($check_year) > 0){
+                        //     $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($pay_period_year,'all','all',null,$employee_id);
 
-                        }else{
+                        // }else{
                             
-                            $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($employee_id,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
-                        }
+                        //     $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($employee_id,$ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                        // }
 
                         if($ref_branch_id!="all"){
                             $getbranch=$this->RefBranch_model->get_list(
@@ -1449,7 +1491,6 @@ class PayrollHistory extends CORE_Controller
 
                         break;
 
-
                 case 'employee-13thmonth-pay-register': //
 
                         $payment = $filter_value;
@@ -1457,8 +1498,7 @@ class PayrollHistory extends CORE_Controller
                         $branch = $filter_value3;
                         $department = $type;
                         $status = $filter_value4;
-
-
+                        $batch_id = $filter_value5;
 
                         $year_setup = $this->RefYearSetup_model->getYearSetup($year);
                         $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
@@ -1473,7 +1513,13 @@ class PayrollHistory extends CORE_Controller
                             $factor = 12;
                         }
 
-                        $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+                        // $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+
+                        if($batch_id == 'all'){
+                            $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_allprocessed($year,$branch,$department,null,null,null,$status);
+                        }else{
+                            $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_processed($year,$branch,$department,null,null,$batch_id,$status);
+                        }
 
                         if($branch!="all"){
                             $getbranch=$this->RefBranch_model->get_list($branch,'ref_branch.branch');
@@ -1496,6 +1542,7 @@ class PayrollHistory extends CORE_Controller
                         $data['get_department']=$get_department;
                         $data['yearfilter']=$year;
                         $data['factor']=$factor;
+                        $data['batch']=$batch_id;
 
                         $getcompany=$this->GeneralSettings_model->get_list(null,'company_setup.*'
                         );
@@ -1704,7 +1751,7 @@ class PayrollHistory extends CORE_Controller
 
             //     break;
 
-            case 'export_employee_13thmonth_pay':
+                       case 'export_employee_13thmonth_pay':
                     $excel = $this->excel;
 
                     $year = $filter_value2;
@@ -1726,25 +1773,26 @@ class PayrollHistory extends CORE_Controller
                         $factor = 12;
                     }
 
-                    if (count($check_year) > 0){
-                        $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
+                    // if (count($check_year) > 0){
+                        // $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
+                    $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
 
-                    }else{
+                    // }else{
 
-                        if($filter_value!="all" AND $year!="all"){
-                            $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($filter_value,$year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                            /*echo json_encode($getpayrollregsummary);*/
-                        }
-                        if($filter_value=="all" AND $year!="all"){
-                            $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                        }
-                        if($filter_value!="all" AND $year=="all"){
-                            $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($filter_value,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                        }
-                        if($filter_value=="all" AND $year=="all"){
-                            $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($filter_value3,$start_13thmonth_date,$end_13thmonth_date);
-                        }
-                    }
+                    //     if($filter_value!="all" AND $year!="all"){
+                    //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay($filter_value,$year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                    //         /*echo json_encode($getpayrollregsummary);*/
+                    //     }
+                    //     if($filter_value=="all" AND $year!="all"){
+                    //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_year_filter($year,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                    //     }
+                    //     if($filter_value!="all" AND $year=="all"){
+                    //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_employee_filter($filter_value,$filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                    //     }
+                    //     if($filter_value=="all" AND $year=="all"){
+                    //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($filter_value3,$start_13thmonth_date,$end_13thmonth_date);
+                    //     }
+                    // }
 
                     if($filter_value3!="all"){
                         $getbranch=$this->RefBranch_model->get_list(
@@ -1905,6 +1953,7 @@ class PayrollHistory extends CORE_Controller
                     $branch = $filter_value3;
                     $department = $type;
                     $status = $filter_value4;
+                    $batch_id = $filter_value5;
 
                     $year_setup = $this->RefYearSetup_model->getYearSetup($year);
                     $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
@@ -1919,7 +1968,13 @@ class PayrollHistory extends CORE_Controller
                         $factor = 12;
                     }
 
-                    $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+                    // $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+
+                    if($batch_id == 'all'){
+                        $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_allprocessed($year,$branch,$department,null,null,null,$status);
+                    }else{
+                        $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_processed($year,$branch,$department,null,null,$batch_id,$status);
+                    }
 
                     if($branch!="all"){
                         $getbranch=$this->RefBranch_model->get_list($branch,'ref_branch.branch');
@@ -1967,34 +2022,45 @@ class PayrollHistory extends CORE_Controller
                     $excel->getActiveSheet()->mergeCells('A11:C11');
 
                     $excel->getActiveSheet()->setCellValue('A6','13th Month Pay')
-                                            ->setCellValue('A7','Year : '.$year)
+                                            ->setCellValue('A7','Year : '.$year.' / Batch : '. $batch_id)
                                             ->setCellValue('A8','Branch : '.$get_branch)
                                             ->setCellValue('A9','Department : '.$get_department)
                                             ->setCellValue('A10','Payment Type : Cash')
                                             ->setCellValue('A11','Date : '.date('m/d/Y'));
                     
-                    $excel->getActiveSheet()->getStyle('A13:C13')->getFont()->setBold(TRUE);
+                    $excel->getActiveSheet()->getStyle('A13:F13')->getFont()->setBold(TRUE);
 
                     $excel->getActiveSheet()->getColumnDimension('A')->setWidth('10');
                     $excel->getActiveSheet()->getColumnDimension('B')->setWidth('35');
-                    $excel->getActiveSheet()->getColumnDimension('C')->setWidth('30');
+                    $excel->getActiveSheet()->getColumnDimension('C')->setWidth('20');
+                    $excel->getActiveSheet()->getColumnDimension('D')->setWidth('20');
+                    $excel->getActiveSheet()->getColumnDimension('E')->setWidth('20');
+                    $excel->getActiveSheet()->getColumnDimension('F')->setWidth('30');
 
                     $excel->getActiveSheet()
-                            ->getStyle('C13')
+                            ->getStyle('C13:F13')
                             ->getAlignment()
                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                     $excel->getActiveSheet()->setCellValue('A13','ECODE');
                     $excel->getActiveSheet()->setCellValue('B13','Employee Name');
-                    $excel->getActiveSheet()->setCellValue('C13','Accumulated 13TH Month Pay');
+                    $excel->getActiveSheet()->setCellValue('C13','Total Reg Pay');
+                    $excel->getActiveSheet()->setCellValue('D13','Days w/ Pay');
+                    $excel->getActiveSheet()->setCellValue('E13','Total');
+                    $excel->getActiveSheet()->setCellValue('F13','Accumulated 13TH Month Pay');
 
                     $grand_total_13thmonth=0;
+                    $grand_reg_pay = 0;
+                    $grand_day_wpay = 0;
+                    $grand_total = 0;
 
                     $i = 14;
                     $a = 1;
                     if(count($get13thmonth_pay)!=0 || count($get13thmonth_pay)!=null){
 
                         foreach($get13thmonth_pay as $row){
+
+                            $total_reg_pay = 0;
 
                             if($row->bank_account_isprocess == 0){
 
@@ -2004,19 +2070,29 @@ class PayrollHistory extends CORE_Controller
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 
                             $excel->getActiveSheet()
-                                    ->getStyle('C'.$i)
+                                    ->getStyle('C'.$i.':F'.$i)
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);                                    
                             
-                            $excel->getActiveSheet()->getStyle('C'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                            $excel->getActiveSheet()->getStyle('C'.$i.':F'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
-                            $total_13thmonth = ((($row->total_13thmonth+$row->retro+$row->dayswithpayamt)-($row->total_days_wout_pay_amt))/$factor);
+                            $total_reg_pay = $row->total_13thmonth+$row->retro+$row->dayswithpayamt;
+                            $total_13thmonth = ((($total_reg_pay)-($row->total_days_wout_pay_amt))/$factor);
+
+                            $grand_reg_pay += $row->total_13thmonth;
+                            $grand_day_wpay += $row->dayswithpayamt;
+                            $grand_total += $total_reg_pay;
+
                             $grand_total_13thmonth += $total_13thmonth;
 
 
                             $excel->getActiveSheet()->setCellValue('A'.$i,$row->ecode);
                             $excel->getActiveSheet()->setCellValue('B'.$i,$row->fullname);
-                            $excel->getActiveSheet()->setCellValue('C'.$i,number_format($total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('C'.$i,number_format($row->total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($row->dayswithpayamt,2));
+                            $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_reg_pay,2));
+
+                            $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_13thmonth,2));
 
                             $i++;
                             $a++;
@@ -2024,15 +2100,20 @@ class PayrollHistory extends CORE_Controller
                             }}
 
                             $excel->getActiveSheet()
-                                    ->getStyle('A'.$i.':C'.$i)
+                                    ->getStyle('A'.$i.':F'.$i)
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
-                            $excel->getActiveSheet()->getStyle('C'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
-                            $excel->getActiveSheet()->getStyle('A'.$i.':C'.$i)->getFont()->setBold(TRUE);
+                            $excel->getActiveSheet()->getStyle('C'.$i.':F'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+
+
+                            $excel->getActiveSheet()->getStyle('A'.$i.':F'.$i)->getFont()->setBold(TRUE);
 
                             $excel->getActiveSheet()->setCellValue('B'.$i,'Total : ');
-                            $excel->getActiveSheet()->setCellValue('C'.$i,number_format($grand_total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('C'.$i,number_format($grand_reg_pay,2));
+                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($grand_day_wpay,2));
+                            $excel->getActiveSheet()->setCellValue('E'.$i,number_format($grand_total,2));
+                            $excel->getActiveSheet()->setCellValue('F'.$i,number_format($grand_total_13thmonth,2));
 
                         }else{
                                 $excel->getActiveSheet()
@@ -2040,7 +2121,7 @@ class PayrollHistory extends CORE_Controller
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);  
 
-                                $excel->getActiveSheet()->mergeCells('A'.$i.':C'.$i);
+                                $excel->getActiveSheet()->mergeCells('A'.$i.':F'.$i);
                                 $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                 $i++;
                         }
@@ -2076,6 +2157,7 @@ class PayrollHistory extends CORE_Controller
                     $branch = $filter_value3;
                     $department = $type;
                     $status = $filter_value4;
+                    $batch_id = $filter_value5;
 
                     $year_setup = $this->RefYearSetup_model->getYearSetup($year);
                     $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
@@ -2090,7 +2172,13 @@ class PayrollHistory extends CORE_Controller
                         $factor = 12;
                     }
 
-                    $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+                    // $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter($branch,$department,$start_13thmonth_date,$end_13thmonth_date,$status);
+
+                    if($batch_id == 'all'){
+                        $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_allprocessed($year,$branch,$department,null,null,null,$status);
+                    }else{
+                        $get13thmonth_pay=$this->Emp_13thmonth_model->get_13thmonth_processed($year,$branch,$department,null,null,$batch_id,$status);
+                    }                    
 
                     if($branch!="all"){
                         $getbranch=$this->RefBranch_model->get_list($branch,'ref_branch.branch');
@@ -2138,36 +2226,47 @@ class PayrollHistory extends CORE_Controller
                     $excel->getActiveSheet()->mergeCells('A11:D11');
 
                     $excel->getActiveSheet()->setCellValue('A6','13th Month Pay')
-                                            ->setCellValue('A7','Year : '.$year)
+                                            ->setCellValue('A7','Year : '.$year.' / Batch : '.$batch_id)
                                             ->setCellValue('A8','Branch : '.$get_branch)
                                             ->setCellValue('A9','Department : '.$get_department)
                                             ->setCellValue('A10','Payment Type : Bank')
                                             ->setCellValue('A11','Date : '.date('m/d/Y'));
                     
-                    $excel->getActiveSheet()->getStyle('A13:D13')->getFont()->setBold(TRUE);
+                    $excel->getActiveSheet()->getStyle('A13:G13')->getFont()->setBold(TRUE);
 
                     $excel->getActiveSheet()->getColumnDimension('A')->setWidth('10');
                     $excel->getActiveSheet()->getColumnDimension('B')->setWidth('35');
                     $excel->getActiveSheet()->getColumnDimension('C')->setWidth('20');
                     $excel->getActiveSheet()->getColumnDimension('D')->setWidth('30');
+                    $excel->getActiveSheet()->getColumnDimension('E')->setWidth('30');
+                    $excel->getActiveSheet()->getColumnDimension('F')->setWidth('30');
+                    $excel->getActiveSheet()->getColumnDimension('G')->setWidth('30');
 
                     $excel->getActiveSheet()
-                            ->getStyle('D13')
+                            ->getStyle('D13:G13')
                             ->getAlignment()
                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                     $excel->getActiveSheet()->setCellValue('A13','ECODE');
                     $excel->getActiveSheet()->setCellValue('B13','Employee Name');
                     $excel->getActiveSheet()->setCellValue('C13','Bank Account #');
-                    $excel->getActiveSheet()->setCellValue('D13','Accumulated 13TH Month Pay');
+                    $excel->getActiveSheet()->setCellValue('D13','Total Reg Pay');
+                    $excel->getActiveSheet()->setCellValue('E13','Days w/ Pay   ');
+                    $excel->getActiveSheet()->setCellValue('F13','Total');
+                    $excel->getActiveSheet()->setCellValue('G13','Accumulated 13th Month Pay');
 
                     $grand_total_13thmonth=0;
+                    $grand_reg_pay = 0;
+                    $grand_day_wpay = 0;
+                    $grand_total = 0;
 
                     $i = 14;
                     $a = 1;
                     if(count($get13thmonth_pay)!=0 || count($get13thmonth_pay)!=null){
 
                         foreach($get13thmonth_pay as $row){
+
+                            $total_reg_pay = 0;
 
                             if($row->bank_account_isprocess == 1){
 
@@ -2177,20 +2276,30 @@ class PayrollHistory extends CORE_Controller
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 
                             $excel->getActiveSheet()
-                                    ->getStyle('D'.$i)
+                                    ->getStyle('D'.$i.':G'.$i)
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);                                    
                             
-                            $excel->getActiveSheet()->getStyle('D'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                            $excel->getActiveSheet()->getStyle('D'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
-                            $total_13thmonth = ((($row->total_13thmonth+$row->retro+$row->dayswithpayamt)-($row->total_days_wout_pay_amt))/$factor);
+                            $total_reg_pay = $row->total_13thmonth+$row->retro+$row->dayswithpayamt;
+                            $total_13thmonth = ((($total_reg_pay)-($row->total_days_wout_pay_amt))/$factor);
+
+                            $grand_reg_pay += $row->total_13thmonth;
+                            $grand_day_wpay += $row->dayswithpayamt;
+                            $grand_total += $total_reg_pay;
+
                             $grand_total_13thmonth += $total_13thmonth;
 
 
                             $excel->getActiveSheet()->setCellValue('A'.$i,$row->ecode);
                             $excel->getActiveSheet()->setCellValue('B'.$i,$row->fullname);
                             $excel->getActiveSheet()->setCellValue('C'.$i,$row->bank_account);
-                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($row->total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->dayswithpayamt,2));
+                            $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_reg_pay,2));
+
+                            $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_13thmonth,2));
 
                             $i++;
                             $a++;
@@ -2198,15 +2307,17 @@ class PayrollHistory extends CORE_Controller
                             }}
 
                             $excel->getActiveSheet()
-                                    ->getStyle('A'.$i.':D'.$i)
+                                    ->getStyle('A'.$i.':G'.$i)
                                     ->getAlignment()
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
-                            $excel->getActiveSheet()->getStyle('D'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
-                            $excel->getActiveSheet()->getStyle('A'.$i.':D'.$i)->getFont()->setBold(TRUE);
-
+                            $excel->getActiveSheet()->getStyle('D'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                            $excel->getActiveSheet()->getStyle('A'.$i.':G'.$i)->getFont()->setBold(TRUE);
                             $excel->getActiveSheet()->setCellValue('C'.$i,'Total : ');
-                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($grand_total_13thmonth,2));
+                            $excel->getActiveSheet()->setCellValue('D'.$i,number_format($grand_reg_pay,2));
+                            $excel->getActiveSheet()->setCellValue('E'.$i,number_format($grand_day_wpay,2));
+                            $excel->getActiveSheet()->setCellValue('F'.$i,number_format($grand_total,2));
+                            $excel->getActiveSheet()->setCellValue('G'.$i,number_format($grand_total_13thmonth,2));
 
                         }else{
                                 $excel->getActiveSheet()
@@ -2214,7 +2325,7 @@ class PayrollHistory extends CORE_Controller
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);  
 
-                                $excel->getActiveSheet()->mergeCells('A'.$i.':D'.$i);
+                                $excel->getActiveSheet()->mergeCells('A'.$i.':G'.$i);
                                 $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                 $i++;
                         }
@@ -2240,7 +2351,7 @@ class PayrollHistory extends CORE_Controller
                             $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
                             $objWriter->save('php://output');
 
-                break;                                
+                break;                                   
 
 
                         case 'employee-compensation':

@@ -49,9 +49,17 @@ class Employee13thMonthPay extends CORE_Controller
 
             case 'process_13thmonth':
                 
-
                 $year = $this->input->post('year', TRUE);
+                $employee_id = $this->input->post('employee_id', TRUE);
                 $m_13thmonth = $this->Emp_13thmonth_model;
+
+                // if(count($employee_id) <= 0){
+                //     $response['title']='Error!';
+                //     $response['stat']='error';
+                //     $response['msg']='Unable to process! No 13th Month found.';
+                //     echo json_encode($response);
+                //     exit();
+                // }
 
                 $year_setup = $this->RefYearSetup_model->getYearSetup($year);
                 $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
@@ -66,37 +74,76 @@ class Employee13thMonthPay extends CORE_Controller
                     $factor = 12;
                 }
 
-                $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter('all','all',$start_13thmonth_date,$end_13thmonth_date,1);
+                // $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter('all','all',$start_13thmonth_date,$end_13thmonth_date,1);
+                $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
 
                 if(count($get13thmonth_pay) <= 0){
                     $response['title']='Error!';
                     $response['stat']='error';
-                    $response['msg']='There are no available 13th Month Pay to process';
-                    echo json_encode($response);                
+                    $response['msg']='Unable to process! No 13th Month found.';
+                    echo json_encode($response);
                     exit();
                 }
 
-                for ($i=0; $i < count($get13thmonth_pay); $i++) { 
 
-                    $m_13thmonth->employee_id = $get13thmonth_pay[$i]->employee_id;
-                    $m_13thmonth->year = $year;
-                    $m_13thmonth->for_13th_month =  $this->get_numeric_value($get13thmonth_pay[$i]->for_13th_month);
-                    $m_13thmonth->retro =  $this->get_numeric_value($get13thmonth_pay[$i]->retro);
-                    $m_13thmonth->dayswithpayamt =  $this->get_numeric_value($get13thmonth_pay[$i]->dayswithpayamt);
-                    $m_13thmonth->total_13thmonth =  $this->get_numeric_value($get13thmonth_pay[$i]->total_13thmonth);
-                    $m_13thmonth->total_days_wout_pay_amt =  $this->get_numeric_value($get13thmonth_pay[$i]->total_days_wout_pay_amt);
-                    $m_13thmonth->grand_13thmonth_pay = ((($this->get_numeric_value($get13thmonth_pay[$i]->total_13thmonth) + $this->get_numeric_value($get13thmonth_pay[$i]->retro) + $this->get_numeric_value($get13thmonth_pay[$i]->dayswithpayamt)) - $this->get_numeric_value($get13thmonth_pay[$i]->total_days_wout_pay_amt)) / $this->get_numeric_value($factor));
-                    $m_13thmonth->factor =  $this->get_numeric_value($factor);
-                    $m_13thmonth->start_date = date('Y-m-d', strtotime($start_13thmonth_date));
-                    $m_13thmonth->end_date = date('Y-m-d', strtotime($end_13thmonth_date));
-                    $m_13thmonth->save();
+                // for ($a=0; $a < count($employee_id); $a++) { 
+                    
+                    for ($i=0; $i < count($get13thmonth_pay); $i++) { 
+                            
+                        // if($employee_id[$a] == $get13thmonth_pay[$i]->employee_id){
 
-                    $emp_13thmonth_id = $m_13thmonth->last_insert_id();
+                            $batch = $m_13thmonth->get_last_batch($year);
 
-                    $m_13thmonth->emp_13thmonth_no = '00'.date('Y').''.$emp_13thmonth_id;
-                    $m_13thmonth->modify($emp_13thmonth_id);
-                        
-                }
+                            if(count($batch) <= 0){
+                                $batch_id = 1;
+                            }else{
+                                if($batch[0]->batch_id == 1){
+                                    $batch_id = 2;
+                                }
+                                else if($batch[0]->batch_id == 2){
+                                    $batch_id = 2;
+                                }
+                                else{
+                                    $batch_id = 1;
+                                };
+                            }
+
+                            $m_13thmonth->employee_id = $get13thmonth_pay[$i]->employee_id;
+                            $m_13thmonth->year = $year;
+                            $m_13thmonth->for_13th_month =  $this->get_numeric_value($get13thmonth_pay[$i]->for_13th_month);
+                            $m_13thmonth->retro =  $this->get_numeric_value($get13thmonth_pay[$i]->retro);
+                            $m_13thmonth->dayswithpayamt =  $this->get_numeric_value($get13thmonth_pay[$i]->dayswithpayamt);
+                            $m_13thmonth->total_13thmonth =  $this->get_numeric_value($get13thmonth_pay[$i]->total_13thmonth);
+                            $m_13thmonth->total_days_wout_pay_amt =  $this->get_numeric_value($get13thmonth_pay[$i]->total_days_wout_pay_amt);
+                            // $m_13thmonth->grand_13thmonth_pay = ((($this->get_numeric_value($get13thmonth_pay[$i]->total_13thmonth) + $this->get_numeric_value($get13thmonth_pay[$i]->retro) + $this->get_numeric_value($get13thmonth_pay[$i]->dayswithpayamt)) - $this->get_numeric_value($get13thmonth_pay[$i]->total_days_wout_pay_amt)) / $this->get_numeric_value($factor));
+
+                            $m_13thmonth->grand_13thmonth_pay = $this->get_numeric_value($get13thmonth_pay[$i]->balance);
+
+                            $m_13thmonth->factor =  $this->get_numeric_value($factor);
+                            $m_13thmonth->start_date = date('Y-m-d', strtotime($start_13thmonth_date));
+                            $m_13thmonth->end_date = date('Y-m-d', strtotime($end_13thmonth_date));
+                            $m_13thmonth->batch_id = $batch_id;
+                            $m_13thmonth->processed_date = date('Y-m-d h:i:s');
+                            $m_13thmonth->save();
+
+                            $emp_13thmonth_id = $m_13thmonth->last_insert_id();
+
+                            $m_13thmonth->emp_13thmonth_no = '00'.date('Y').''.$emp_13thmonth_id;
+                            $m_13thmonth->modify($emp_13thmonth_id);
+
+                        // }
+
+                    }
+
+                // }
+
+                // if(count($get13thmonth_pay) <= 0){
+                //     $response['title']='Error!';
+                //     $response['stat']='error';
+                //     $response['msg']='There are no available 13th Month Pay to process';
+                //     echo json_encode($response);                
+                //     exit();
+                // }
 
                 $response['title']='Success!';
                 $response['stat']='success';

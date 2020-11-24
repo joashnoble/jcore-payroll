@@ -82,37 +82,13 @@ class DailyTimeRecord extends CORE_Controller
             break;
 
             case 'dtristoprocess':
+                $filter2="";
                 $pay_period_id = $this->input->post('pay_period_id', TRUE);
                 $ref_department_id = $this->input->post('ref_department_id', TRUE);
                 $ref_branch_id = $this->input->post('ref_branch_id', TRUE);
-                $space=" ";
-                $test="";
-                if($ref_department_id=="all" AND $ref_branch_id=="all"){
-                $test=array('daily_time_record.pay_period_id'=>$pay_period_id,'daily_time_record.is_deleted'=>FALSE,'emp_rates_duties.active_rates_duties'=>TRUE,'employee_list.is_deleted'=>FALSE);
-                }
-                if($ref_department_id=="all" AND $ref_branch_id!="all"){
-                $test=array('daily_time_record.pay_period_id'=>$pay_period_id,'daily_time_record.is_deleted'=>FALSE,'emp_rates_duties.active_rates_duties'=>TRUE,'emp_rates_duties.ref_branch_id'=>$ref_branch_id,'employee_list.is_deleted'=>FALSE);
+                $employee_status = $this->input->post('employee_status', TRUE);
 
-                }
-                if($ref_department_id!="all" AND $ref_branch_id=="all"){
-                $test=array('daily_time_record.pay_period_id'=>$pay_period_id,'daily_time_record.is_deleted'=>FALSE,'emp_rates_duties.active_rates_duties'=>TRUE,'emp_rates_duties.ref_department_id'=>$ref_department_id,'employee_list.is_deleted'=>FALSE);
-
-                }
-                if($ref_department_id!="all" AND $ref_branch_id!="all"){
-                $test=array('daily_time_record.pay_period_id'=>$pay_period_id,'daily_time_record.is_deleted'=>FALSE,'emp_rates_duties.active_rates_duties'=>TRUE,'emp_rates_duties.ref_department_id'=>$ref_department_id,'emp_rates_duties.ref_branch_id'=>$ref_branch_id,'employee_list.is_deleted'=>FALSE);
-
-                }
-                $response['data']=$this->DailyTimeRecord_model->get_list(
-                    $test,
-                    'daily_time_record.*,employee_list.*,CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,ref_department.department',
-                    array(
-                         array('employee_list','employee_list.employee_id=daily_time_record.employee_id','left'),
-                         array('emp_rates_duties','emp_rates_duties.emp_rates_duties_id=employee_list.emp_rates_duties_id','left'),
-                         array('ref_department','ref_department.ref_department_id=emp_rates_duties.ref_department_id','left'),
-                         array('ref_branch','ref_branch.ref_branch_id=emp_rates_duties.ref_branch_id','left'),
-                         //array('pay_slip','pay_slip.dtr_id=daily_time_record.dtr_id','left'),
-                        )
-                    );
+                $response['data']=$this->DailyTimeRecord_model->get_process_payroll($pay_period_id,$ref_department_id,$ref_branch_id,$employee_status);
                 echo json_encode($response);
                 break;
 

@@ -16,7 +16,7 @@
 		text-align: center;
 	}
 </style>
-<div style="height:1000px; margin: 20px;">
+<div style="height:700px; margin: 20px;">
 	<div style="font-size: 11pt;">
 		<?php include 'template_header.php';?>
 

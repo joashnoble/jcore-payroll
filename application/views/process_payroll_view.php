@@ -265,19 +265,31 @@
                                 </div>
                               </div>
                               <div class="col-md-6">
-                                <div class="form-group" style="margin-bottom:2px; !important">
-                                          <label class="boldlabel" style="margin-bottom:0px;">Branch:</label>
-                                          <select class="form-control" id="ref_branch_id" name="ref_branch_id" id="sel1">
-                                            <option value="all">All Branch</option>
-                                           <?php
-                                                                foreach($ref_branch as $row)
-                                                                {
-                                                                    echo '<option value="'.$row->ref_branch_id  .'">'.$row->branch.'</option>';
-                                                                }
-                                                                ?>
-                                          </select>
-                                </div>
+                                    <div class="form-group" style="margin-bottom:2px!important;">
+                                              <label class="boldlabel" style="margin-bottom:0px;">Employee Status:</label>
+                                              <select class="form-control" id="emp_stat" name="emp_stat">
+                                                <option value="all">All</option>
+                                                <option value="Active" selected>Active</option>
+                                                <option value="Inactive">Inactive</option>
+                                              </select>
+                                    </div>
                               </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group" style="margin-bottom:2px; !important">
+                                              <label class="boldlabel" style="margin-bottom:0px;">Branch:</label>
+                                              <select class="form-control" id="ref_branch_id" name="ref_branch_id" id="sel1">
+                                                <option value="all">All Branch</option>
+                                               <?php
+                                                                    foreach($ref_branch as $row)
+                                                                    {
+                                                                        echo '<option value="'.$row->ref_branch_id  .'">'.$row->branch.'</option>';
+                                                                    }
+                                                                    ?>
+                                              </select>
+                                    </div>
+                                </div>
                             </div>
                             </form>
                         </div>
@@ -296,7 +308,7 @@ $(document).ready(function(){
     var dt; var _txnMode; var _txnModeRate; var _selectedID;
     var _selectedDateCovered; var _selectedYear; var _periodstart; var _periodend; var _selectedIDDepartment="all"; var _selectedIDBranch="all";
     var _selectedemprate; var _selectedEmpget; var _pusheddata; var _selectRowObjtempdeduct; var _selectedIDtempdeduct;
-    var _selectRowObjProcess;var _year; var _pay_period; var _refdepartment_id; var _refbranch_id;
+    var _selectRowObjProcess;var _year; var _pay_period; var _refdepartment_id; var _refbranch_id; var _employeeStatus;
 
     var d = new Date();
     var n = d.getFullYear();
@@ -316,7 +328,8 @@ $(document).ready(function(){
                 return $.extend( {}, d, {
                     "pay_period_id": _selectedYear,//id of pay period
                     "ref_department_id": _selectedIDDepartment,
-                    "ref_branch_id": _selectedIDBranch
+                    "ref_branch_id": _selectedIDBranch,
+                    "employee_status": _employeeStatus.select2('val')
                     } );
                 }
             },
@@ -401,6 +414,11 @@ $(document).ready(function(){
             allowClear: false
         });
 
+        _employeeStatus=$("#emp_stat").select2({
+            dropdownParent: $("#modal_filter"),
+            placeholder: "Select Employee Status",
+            allowClear: false
+        });
 
     }();
 

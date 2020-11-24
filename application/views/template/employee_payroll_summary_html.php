@@ -77,7 +77,15 @@
 	<!-- 				<th style="text-align:right;">Coop Contri.</th>
 					<th style="text-align:right;">Coop Loan</th> -->
 					<th style="text-align:right;">Cash Advance(Reg)</th>
-					<th style="text-align:right;">Calamity Loan</th>
+<!-- 
+ 					<?php if(count($calamity) > 0){
+						foreach($calamity as $clist){?>
+							<th style="text-align: right;">
+								<?php echo $clist->deduction_desc; ?>
+							</th>
+					<?php }}?> -->
+					<th style="text-align: right;">Pagibig Calamity Loan</th>
+					<th style="text-align: right;">SSS Calamity Loan</th>
 					<th style="text-align:right;">Other Deduct</th>
 					<th style="text-align:right;">Total Deductions</th>
 					<th style="text-align:right;">Net Pay</th>
@@ -107,7 +115,8 @@
 					$sssloan_deduction=0;
 					$pagibigloan_deduction=0;
 					$cashadvance_deduction=0;
-					$calamityloan_deduction=0;
+					$pagibig_calamityloan_deduction=0;
+					$sss_calamityloan_deduction=0;
 					$s_otherdeduct=0;
 					$s_deductions=0;
 					$s_gross_pay=0;
@@ -164,7 +173,8 @@
 					<td align="center"><?php echo number_format($row->sssloan_deduction,2); ?></td>
 					<td align="center"><?php echo number_format($row->pagibigloan_deduction,2); ?></td>
 					<td align="center"><?php echo number_format($row->cashadvance_deduction,2); ?></td>
-					<td align="center"><?php echo number_format($row->calamityloan_deduction,2); ?></td>
+					<td align="center"><?php echo number_format($row->pagibig_calamityloan_deduction,2); ?></td>
+					<td align="center"><?php echo number_format($row->sss_calamityloan_deduction,2); ?></td>
 	        		<td align="center"><?php echo number_format($row->other_deductions,2); ?></td>
 					<td align="center"><?php echo number_format($row->total_deductions,2);?></td>
 					<td align="center"><?php echo number_format($row->net_pay,2);?></td>
@@ -191,7 +201,8 @@
 					$sssloan_deduction += $row->sssloan_deduction;
 					$pagibigloan_deduction += $row->pagibigloan_deduction;
 					$cashadvance_deduction += $row->cashadvance_deduction;
-					$calamityloan_deduction += $row->calamityloan_deduction;
+					$pagibig_calamityloan_deduction += $row->pagibig_calamityloan_deduction;
+					$sss_calamityloan_deduction += $row->sss_calamityloan_deduction;
 					$s_otherdeduct += $row->other_deductions;
 					$s_deductions += $row->total_deductions;
 					$s_gross_pay += $row->gross_pay;
@@ -220,6 +231,9 @@
 						<td style="word-wrap: break-word; max-width: 20px; width: 20px;"></td>
 						<td class="tablepaytotals" style="font-weight:bold;">Excess Break :</td>
 						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($excess_break,2); ?></td>
+						<td style="word-wrap: break-word; max-width: 20px; width: 20px;"></td>
+						<td class="tablepaytotals" style="font-weight:bold;">Pagibig Calamity Loan :</td>
+						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($pagibig_calamityloan_deduction,2); ?></td>								
 					</tr>
 					<tr>
 						<td class="tablepaytotals" style="font-weight:bold;">Regular Holiday:</td>
@@ -236,6 +250,9 @@
 						<td></td>
 						<td class="tablepaytotals" style="font-weight:bold;">Other Deduct :</td>
 						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($s_otherdeduct,2); ?></td>
+						<td></td>
+						<td class="tablepaytotals" style="font-weight:bold;">SSS Calamity Loan :</td>
+						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($sss_calamityloan_deduction,2); ?></td>							
 					</tr>
 					<tr>
 						<td class="tablepaytotals" style="font-weight:bold;">Special Holiday:</td>
@@ -285,8 +302,6 @@
 						<td></td>
 						<td class="tablepaytotals" style="font-weight:bold;">Salaries &amp; Wages :</td>
 						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($salaries_wages,2); ?></td>
-<!-- 						<td class="tablepaytotals" style="font-weight:bold;">Calamity Loan :</td>
-						<td class="tablepaytotals" style="text-align: right;"><?php echo number_format($calamityloan_deduction,2); ?></td>	 -->	
 					</tr>
 				</table>
 			</div>

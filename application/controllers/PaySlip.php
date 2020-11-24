@@ -183,9 +183,9 @@ class Payslip extends CORE_Controller
                         'SUM(deduction_amount) as total_coop_contribution'
                         );
 
-                        //PAG IBIG CALAMITY La+OAN DEDUCTION GET
+                        //PAG IBIG CALAMITY LOAN DEDUCTION GET
                         $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                        'pay_slip_id='.$filter_value.' AND deduction_id=12  AND active_deduct=TRUE',
+                        'pay_slip_id='.$filter_value.' AND (deduction_id=12 OR deduction_id=20)  AND active_deduct=TRUE',
                         'SUM(deduction_amount) as total_calamity_loan'
                         );
 
@@ -348,7 +348,7 @@ class Payslip extends CORE_Controller
 
                     //PAG IBIG CALAMITY La+OAN DEDUCTION GET
                     $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$filter_value.' AND deduction_id=12  AND active_deduct=TRUE',
+                    'pay_slip_id='.$filter_value.' AND (deduction_id=12 OR deduction_id=20)  AND active_deduct=TRUE',
                     'SUM(deduction_amount) as total_calamity_loan'
                     );
 
@@ -580,7 +580,7 @@ class Payslip extends CORE_Controller
 
                     //PAG IBIG CALAMITY La+OAN DEDUCTION GET
                     $getpagibigcalamityloan=$this->PaySlip_deduction_model->get_list(
-                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND deduction_id=12  AND active_deduct=TRUE',
+                    'pay_slip_id='.$info[$i]->pay_slip_id.' AND (deduction_id=12 OR deduction_id=20) AND active_deduct=TRUE',
                     'SUM(deduction_amount) as total_calamity_loan'
                     );
 

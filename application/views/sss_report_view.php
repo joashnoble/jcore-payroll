@@ -1,53 +1,33 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <?php echo $loader; ?>
 <head>
-
     <meta charset="utf-8">
-
     <title>JCORE PAYROLL - <?php echo $title; ?></title>
-
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="description" content="Avenxo Admin Theme">
     <meta name="author" content="">
-
     <?php echo $_def_css_files; ?>
-
     <link rel="stylesheet" href="assets/plugins/spinner/dist/ladda-themeless.min.css">
-
     <link type="text/css" href="assets/plugins/datatables/dataTables.bootstrap.css" rel="stylesheet">
-
-
-
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/blue.css" rel="stylesheet">              <!-- iCheck -->
     <link type="text/css" href="assets/plugins/iCheck/skins/minimal/_all.css" rel="stylesheet">                   <!-- Custom Checkboxes / iCheck -->
-
     <link href="assets/plugins/datapicker/datepicker3.css" rel="stylesheet">
-
     <link href="assets/plugins/select2/select2.min.css" rel="stylesheet">
-
-
     <?php echo $_switcher_settings; ?>
 <?php echo $_def_js_files; ?>
 
-
 <script type="text/javascript" src="assets/plugins/datatables/jquery.dataTables.js"></script>
 <script type="text/javascript" src="assets/plugins/datatables/dataTables.bootstrap.js"></script>
-
-
 <!-- Date range use moment.js same as full calendar plugin -->
 <script src="assets/plugins/fullcalendar/moment.min.js"></script>
 <!-- Data picker -->
 <script src="assets/plugins/datapicker/bootstrap-datepicker.js"></script>
-
 <!-- Select2 -->
 <script src="assets/plugins/select2/select2.full.min.js"></script>
-
-
 <!-- Date range use moment.js same as full calendar plugin -->
 
 <!-- twitter typehead -->
@@ -106,25 +86,25 @@
                                               ?>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label style="font-weight: bold;" for="inputEmail1">Month Filter :</label>
                                             <select class="form-control" name="month_filter" id="month_filter" data-error-msg="Month Filter is required" required>
-                                                <option value="all">All</option>
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">May</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">September</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">December</option>
+                                                <!-- <option value="all">All</option> -->
+                                                <option value="1" <?php if(date('m')==1){ echo 'selected'; } ?>>January</option>
+                                                <option value="2" <?php if(date('m')==2){ echo 'selected'; } ?>>February</option>
+                                                <option value="3" <?php if(date('m')==3){ echo 'selected'; } ?>>March</option>
+                                                <option value="4" <?php if(date('m')==4){ echo 'selected'; } ?>>April</option>
+                                                <option value="5" <?php if(date('m')==5){ echo 'selected'; } ?>>May</option>
+                                                <option value="6" <?php if(date('m')==6){ echo 'selected'; } ?>>June</option>
+                                                <option value="7" <?php if(date('m')==7){ echo 'selected'; } ?>>July</option>
+                                                <option value="8" <?php if(date('m')==8){ echo 'selected'; } ?>>August</option>
+                                                <option value="9" <?php if(date('m')==9){ echo 'selected'; } ?>>September</option>
+                                                <option value="10" <?php if(date('m')==10){ echo 'selected'; } ?>>October</option>
+                                                <option value="11" <?php if(date('m')==11){ echo 'selected'; } ?>>November</option>
+                                                <option value="12" <?php if(date('m')==12){ echo 'selected'; } ?>>December</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <label style="font-weight: bold;" for="inputEmail1">Branch Filter:</label>
                                             <select class="form-control" name="branch_filter_list" id="branch_filter_list" data-error-msg="Branch Filter is required" required>
                                             <option value="all">All</option>
@@ -134,6 +114,14 @@
                                                         <?php echo $branch->branch; ?>
                                                     </option>
                                                        <?php } ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label style="font-weight: bold;" for="inputEmail1">Type Filter:</label>
+                                            <select class="form-control" name="type_filter_list" id="type_filter_list" data-error-msg="Type Filter is required" required>
+                                                <option value="1">SSS Deducted</option>
+                                                <option value="2">Deduction (ADJ)</option>
+                                                <option value="3">SSS Actual Deduction</option>
                                             </select>
                                         </div>
                                         <div class="col-md-4">
@@ -201,15 +189,24 @@ $(document).ready(function(){
 
     _month.select2('val', '');
 
+    _type=$("#type_filter_list").select2({
+        /*dropdownParent: $("#modal_create_schedule"),*/
+        placeholder: "Select Type",
+        allowClear: false
+    });
+
+    _type.select2('val', '');
+
 
     filter_pay_period = $('#payperiod_filter').val();
     filter_branch = $('#branch_filter_list').val();
     filter_month = $('#month_filter').val();
+    filter_type = $('#type_filter_list').val();
 
     $.ajax({
         "dataType":"html",
         "type":"POST",
-        "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"",
+        "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
         beforeSend : function(){
                     $('#p_preview').html("<center><img src='assets/img/loader/preloaderimg.gif'><h3>Loading...</h3></center>");
                 },
@@ -221,10 +218,11 @@ $(document).ready(function(){
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_month = $('#month_filter').val();
+        filter_type = $('#type_filter_list').val();
             $.ajax({
             "dataType":"html",
             "type":"POST",
-            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"",
+            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
             beforeSend : showSpinningProgressLoading(),
                 }).done(function(response){
                     $.unblockUI();
@@ -236,10 +234,12 @@ $(document).ready(function(){
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_month = $('#month_filter').val();
+        filter_type = $('#type_filter_list').val();
+
             $.ajax({
             "dataType":"html",
             "type":"POST",
-            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"",
+            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
             beforeSend : showSpinningProgressLoading(),
                 }).done(function(response){
                     $.unblockUI();
@@ -251,16 +251,36 @@ $(document).ready(function(){
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_month = $('#month_filter').val();
+        filter_type = $('#type_filter_list').val();
+
             $.ajax({
             "dataType":"html",
             "type":"POST",
-            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"",
+            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
             beforeSend : showSpinningProgressLoading(),
                 }).done(function(response){
                     $.unblockUI();
                     $('#p_preview').html(response);
                 });
     });
+
+
+        $("#type_filter_list").change(function(){
+        filter_pay_period = $('#payperiod_filter').val();
+        filter_branch = $('#branch_filter_list').val();
+        filter_month = $('#month_filter').val();
+        filter_type = $('#type_filter_list').val();
+
+            $.ajax({
+            "dataType":"html",
+            "type":"POST",
+            "url":"Hris_Reports/reports/sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
+            beforeSend : showSpinningProgressLoading(),
+                }).done(function(response){
+                    $.unblockUI();
+                    $('#p_preview').html(response);
+                });
+    });        
 
     $('#print_sss_list').click(function(event){
             showinitializeprint();
@@ -285,27 +305,31 @@ $(document).ready(function(){
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_month = $('#month_filter').val();
-        window.open("Hris_Reports/reports/export-sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"","_self");
+        filter_type = $('#type_filter_list').val();
+
+        window.open("Hris_Reports/reports/export-sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,"_self");
     });
 
     $('#email_sss_list').on('click', function() {
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_month = $('#month_filter').val();
-    showNotification({title:"Sending!",stat:"info",msg:"Please wait for a few seconds."});
+        filter_type = $('#type_filter_list').val();
 
-    var btn=$(this);
+        showNotification({title:"Sending!",stat:"info",msg:"Please wait for a few seconds."});
 
-    $.ajax({
-        "dataType":"json",
-        "type":"POST",
-        "url":"Hris_Reports/reports/email-sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"",
-        "beforeSend": showSpinningProgress(btn)
-    }).done(function(response){
-        showNotification(response);
-        showSpinningProgress(btn);
+        var btn=$(this);
 
-    });
+        $.ajax({
+            "dataType":"json",
+            "type":"POST",
+            "url":"Hris_Reports/reports/email-sss-list/"+filter_branch+"/"+filter_month+"/"+filter_pay_period+"/"+filter_type,
+            "beforeSend": showSpinningProgress(btn)
+        }).done(function(response){
+            showNotification(response);
+            showSpinningProgress(btn);
+
+        });
     });
 
     var showNotification=function(obj){

@@ -162,6 +162,13 @@
                                               </select>
                                         </div>
                                         <div class="col-md-3">
+                                            <label style="font-weight: bold;" for="inputEmail1">Batch:</label>
+                                              <select class="form-control" name="batch_id" id="batch_id">
+                                                    <option value="all">All</option>
+                                                    <option value="1">Batch 1</option>
+                                                    <option value="2">Batch 2</option>
+                                                    <!-- <option value="3">Batch 3</option> -->
+                                              </select>
                                         </div>
                                         <div class="col-md-3">
                                             <button type="button" class="btn btn-primary col-sm-12 form-control" id="export_13month_pay" style="background-color:#27ae60; color:white;">
@@ -198,6 +205,7 @@ $(document).ready(function(){
     var _payment;
     var _department;
     var _status;
+    var _batch;
 
     var d = new Date();
 
@@ -226,6 +234,12 @@ $(document).ready(function(){
         allowClear: false
     }); 
 
+
+    _batch=$("#batch_id").select2({
+        placeholder: "Select Batch",
+        allowClear: false
+    }); 
+
     $('#payperiod_filter').val(d.getFullYear()).trigger("change");
     $('#emp_status_filter_list').val(1).trigger("change");
 
@@ -235,11 +249,12 @@ $(document).ready(function(){
         filter_branch = $('#branch_filter_list').val();
         filter_department = $('#department_filter_list').val();
         filter_status = $('#emp_status_filter_list').val();
+        filter_batch = $('#batch_id').val();
 
         $.ajax({
             "dataType":"html",
             "type":"POST",
-            "url":"PayrollHistory/layout/employee-13thmonth-pay-register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status,
+            "url":"PayrollHistory/layout/employee-13thmonth-pay-register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status+"/"+filter_batch,
             beforeSend : function(){
                         $('#p_preview').html("<center><img src='assets/img/loader/preloaderimg.gif'><h3>Loading...</h3></center>");
                     },
@@ -270,6 +285,9 @@ $(document).ready(function(){
         process_13thmonth_register();
     });
 
+    $("#batch_id").change(function(){
+        process_13thmonth_register();
+    });    
 
     $('#export_13month_pay').on('click', function() {
         filter_payment = $('#payment_filter_list').val();
@@ -277,11 +295,12 @@ $(document).ready(function(){
         filter_branch = $('#branch_filter_list').val();
         filter_department = $('#department_filter_list').val();
         filter_status = $('#emp_status_filter_list').val();
+        filter_batch = $('#batch_id').val();
 
         if(filter_payment == 1){
-            window.open("PayrollHistory/layout/export_employee_13thmonth_pay_cash_register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status,"_self");
+            window.open("PayrollHistory/layout/export_employee_13thmonth_pay_cash_register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status+"/"+filter_batch,"_self");
         }else{
-            window.open("PayrollHistory/layout/export_employee_13thmonth_pay_check_register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status,"_self");
+            window.open("PayrollHistory/layout/export_employee_13thmonth_pay_check_register/"+filter_payment+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_department+"/"+filter_status+"/"+filter_batch,"_self");
         }
     });
 

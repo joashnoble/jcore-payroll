@@ -983,7 +983,7 @@ $(document).ready(function(){
             var rowlength = response.data.length;
             
                 if(rowlength > 0){
-                    $('#accumulated_13thmonth_pay').val(accounting.formatNumber(row.acc_13thmonth_pay,2));
+                    $('#accumulated_13thmonth_pay').val(accounting.formatNumber(row.balance,2));
                 }else{
                     $('#accumulated_13thmonth_pay').val('0.00');
                 }

@@ -21,6 +21,32 @@ class DailyTimeRecord_model extends CORE_Model {
             $payslip_code_query = $this->db->query('UPDATE pay_slip set pay_slip_code ="'.$pay_slip_code.'" WHERE
                                                     pay_slip_id='.$pay_slip_id);
     }*/
+    function get_process_payroll($pay_period_id,$ref_department_id,$ref_branch_id,$status){
+        $sql="SELECT 
+                dtr.*,
+                emp.*,
+                CONCAT(emp.first_name,' ',emp.middle_name,' ',emp.last_name) as full_name,
+                rd.department,
+                rb.branch
+            FROM 
+            daily_time_record dtr
+            LEFT JOIN employee_list emp ON emp.employee_id = dtr.employee_id
+            LEFT JOIN emp_rates_duties erd ON erd.emp_rates_duties_id = emp.emp_rates_duties_id
+            LEFT JOIN ref_department rd ON rd.ref_department_id = erd.ref_department_id
+            LEFT JOIN ref_branch rb ON rb.ref_branch_id = erd.ref_branch_id
+
+            WHERE 
+                erd.active_rates_duties = TRUE AND
+                emp.is_deleted = FALSE AND
+                dtr.is_deleted = FALSE AND
+                dtr.pay_period_id = $pay_period_id 
+                ".($ref_department_id=='all'?"":" AND erd.ref_department_id=".$ref_department_id)."
+                ".($ref_branch_id=='all'?"":" AND erd.ref_branch_id=".$ref_branch_id)."
+                ".($status=='all'?"":" AND emp.status='".$status."'")."
+            ";
+        return $this->db->query($sql)->result();
+    }
+
     function ifexistdtr($employee_id,$pay_period_id) {
         $query = $this->db->query('SELECT dtr_id FROM daily_time_record WHERE employee_id='.$employee_id.' AND pay_period_id='.$pay_period_id.' ');
                             $query->result();
@@ -341,10 +367,10 @@ class DailyTimeRecord_model extends CORE_Model {
     }
 
                         // ".($month_id=='all'?"":" WHERE z.employee <= z.total_philhealth_deduction")."");
-
-     function get_sss_report($filter,$month_id){
+ function get_sss_report($filter,$month_id){
         $query = $this->db->query("SELECT 
-                        z.*
+                        z.*,
+                        (z.employee - z.actual_sss_employee) as sss_adj
                     FROM
                         (SELECT 
                             y.*,
@@ -353,13 +379,22 @@ class DailyTimeRecord_model extends CORE_Model {
                                 (SELECT rsc.employer_contribution FROM ref_sss_contribution rsc
                                     WHERE rsc.ref_sss_contribution_id = y.sss_id) AS employer_contribution,
                                 (SELECT rsc.sub_total FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS sub_total,
-                                (SELECT rsc.total FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS total
+                                (SELECT rsc.total FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS total,
+
+                                COALESCE((SELECT rsc.employee FROM ref_sss_contribution rsc WHERE y.totalregpay BETWEEN salary_range_from AND salary_range_to AND is_deleted = 0),0) as actual_sss_employee,
+
+                                COALESCE((SELECT rsc.employer FROM ref_sss_contribution rsc WHERE y.totalregpay BETWEEN salary_range_from AND salary_range_to AND is_deleted = 0),0) as actual_sss_employer,
+
+                                COALESCE((SELECT rsc.employer_contribution FROM ref_sss_contribution rsc WHERE y.totalregpay BETWEEN salary_range_from AND salary_range_to AND is_deleted = 0),0) as actual_sss_ec,
+
+                                COALESCE((SELECT rsc.total FROM ref_sss_contribution rsc WHERE y.totalregpay BETWEEN salary_range_from AND salary_range_to AND is_deleted = 0),0) AS actual_sss_total
                         FROM
                             (SELECT 
                             x.pay_slip_id,
                                 x.total_sss_deduction,
                                 x.sss_id,
                                 x.total_reg_pay,
+                                x.totalregpay,
                                 x.employee_id,
                                 x.month_id,
                                 x.full_name,
@@ -377,6 +412,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                         SUM(reg_pay)
                                     ELSE emp_rates_duties.sss_phic_salary_credit
                                 END) AS total_reg_pay,
+                                SUM(reg_pay) as totalregpay,
                                 (SELECT 
                                         SUM(psd1.deduction_amount)
                                     FROM

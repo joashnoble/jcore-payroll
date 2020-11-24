@@ -44,6 +44,7 @@ class EmployeeClearance extends CORE_Controller
         $this->load->model('GeneralSettings_model');
         $this->load->model('Employee_clearance_deduction_model');
         $this->load->model('Emp_resignation_model');
+        $this->load->model('Emp_13thmonth_model');
     }
 
     public function index() {
@@ -92,8 +93,26 @@ class EmployeeClearance extends CORE_Controller
             break;
 
             case 'get13thmonth':
+                $m_13thmonth = $this->Emp_13thmonth_model;
                 $employee_id = $this->input->post('employee_id', TRUE);
-                $response['data']=$this->PayrollReports_model->get_accumulated_13thmonthpay($employee_id);
+                $year = date('Y');
+
+                $year_setup = $this->RefYearSetup_model->getYearSetup($year);
+                $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
+
+                if (count($year_setup) > 0){
+                    $start_13thmonth_date = $year_setup[0]->start_13thmonth_date;
+                    $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
+                    $factor = $year_setup[0]->factor_setup;
+                }else{
+                    $start_13thmonth_date = $year.'-01-01';
+                    $end_13thmonth_date = $year.'12-31';
+                    $factor = 12;
+                }
+
+                $response['data']=$m_13thmonth->get_13thmonth($year,'all','all',$employee_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                // $response['data']=$this->PayrollReports_model->get_accumulated_13thmonthpay($employee_id);
+
                 echo json_encode($response);
             break;
 

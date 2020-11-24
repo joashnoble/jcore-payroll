@@ -7,11 +7,11 @@
             <hr><br />
         </strong>
     </div>
-    <table class="table" width="100%">
+    <table class="table">
         <thead>
             <tr>
-                <th style="text-align: left;" width="5%"></th>
-                <th style="text-align: left;" width="25%">Employee Name</th>
+                <th style="text-align: left;" width="2%"></th>
+                <th style="text-align: left;" width="28%">Employee Name</th>
                 <!-- <th style="text-align: center;">Reg Pay</th> -->
                 <!-- <th style="text-align: right;" width="5%">Salary Retro</th> -->
                 <th style="text-align: right;" width="15%">Total Reg Pay</th>

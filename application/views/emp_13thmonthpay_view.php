@@ -83,7 +83,7 @@
 
                     <ol class="breadcrumb" style="margin-bottom:0px;">
                         <li><a href="dashboard">Dashboard</a></li>
-                        <li><a href="Emp13thMonthPay">13 Month Pay</a></li>
+                        <li><a href="Emp13thMonthPay">13th Month Pay</a></li>
                     </ol>
 
                     <div class="container-fluid">
@@ -91,12 +91,12 @@
                         <div id="div_2316_list">
                             <div class="panel panel-default">
                                 <div class="panel-heading" style="background-color:#2c3e50 !important;margin-top:2px;">
-                                     <center><h2 style="color:white;font-weight:300;">13 Month Pay</h2></center>
+                                     <center><h2 style="color:white;font-weight:300;">13th Month Pay</h2></center>
                                 </div>
                                 <div class="panel-body table-responsive">
                                     <div style="margin: 20px;">
                                       <div class="row">
-                                          <div class="col-md-3">
+                                          <div class="col-md-2">
                                               <label style="font-weight: bold;" for="inputEmail1">Pay Period Year :</label>
                                               <select class="form-control" name="payperiod_filter" id="payperiod_filter" data-error-msg="Pay Period is required" required>
                                                 <?php $minyear=2013; $maxyear=2100;
@@ -120,7 +120,7 @@
                                                          <?php } ?>
                                               </select>
                                           </div>
-                                          <div class="col-md-3">
+                                          <div class="col-md-2">
                                               <label style="font-weight: bold;" for="inputEmail1">Department :</label>
                                               <select class="form-control" name="department_filter" id="department_filter" data-error-msg="Department is required" required>
                                                 <option value="all">All</option>
@@ -134,13 +134,21 @@
                                                 ?>
                                               </select>   
                                           </div>
-                                          <div class="col-md-3">
+                                          <div class="col-md-2">
+                                              <label style="font-weight: bold;" for="inputEmail1">Batch :</label>
+                                              <select class="form-control" name="batch_filter" id="batch_filter">
+                                                <option value="1">Batch 1</option>
+                                                <option value="2">Batch 2</option>
+                                                ?>
+                                              </select>   
+                                          </div>
+                                          <div class="col-md-3" >
                                             <br>
                                             <button type="button" class="btn btn-success col-sm-12" id="print_all" style="width: 49%;margin-top: 5px;">
-                                                <i class="fa fa-print"></i> Print All
+                                                <i class="fa fa-print"></i> Print
                                             </button>
                                             <button type="button" class="btn btn-default col-sm-12" id="email_all" style="width: 49%;margin-left: 4px;margin-top: 5px;">
-                                                <i class="fa fa-envelope-o"></i> Email All
+                                                <i class="fa fa-envelope-o"></i> Email
                                             </button>
 
                                           </div>
@@ -155,7 +163,7 @@
                                                     <th></th>
                                                     <th>13th Month No</th>
                                                     <th>E-CODE</th>
-                                                    <th style="width: 30%;">Fullname</th>
+                                                    <th>Fullname</th>
                                                     <th><center>13th Month Pay</center></th>
                                                     <th><center>Action</center></th>
                                                  </tr>
@@ -257,6 +265,7 @@ $(document).ready(function(){
     var dt;
     var _selectedemp_13thmonth_id;
     var _selectedName;
+    var _batch;
     var d = new Date();
 
     _branch=$("#branch_filter_list").select2({
@@ -275,6 +284,11 @@ $(document).ready(function(){
         placeholder: "Select Department",
         allowClear: false
     });
+
+    _batch=$("#batch_filter").select2({
+        placeholder: "Select Batch",
+        allowClear: false
+    });    
 
     $('#payperiod_filter').val(d.getFullYear()).trigger("change")
 
@@ -295,7 +309,8 @@ $(document).ready(function(){
                 return $.extend( {}, d, {
                     "year": $('#payperiod_filter').val(),
                     "ref_branch_id": $('#branch_filter_list').val(),
-                    "ref_department_id": $('#department_filter').val()
+                    "ref_department_id": $('#department_filter').val(),
+                    "batch_id": $('#batch_filter').val()
                     });
                 }
             },
@@ -356,7 +371,7 @@ $(document).ready(function(){
 
             $('#modal_show_13thmonth').modal('toggle');
 
-    });
+        } );
 
     $("#branch_filter_list").change(function(){
         dt.ajax.reload( null, false );        
@@ -369,6 +384,10 @@ $(document).ready(function(){
     $("#department_filter").change(function(){
         dt.ajax.reload( null, false );   
     });
+
+    $("#batch_filter").change(function(){
+        dt.ajax.reload( null, false );   
+    });     
 
     $('#tbl_13thmonth tbody').on('click','button[name="email_13thmonth"]',function(){
         _selectRowObj=$(this).closest('tr');
@@ -386,8 +405,9 @@ $(document).ready(function(){
         var year = $('#payperiod_filter').val();
         var ref_branch_id = $('#branch_filter_list').val();
         var ref_department_id = $('#department_filter').val();
+        var batch_id = $('#batch_filter').val();
 
-        window.open('Emp13thMonthPay/schedule/print_13thmonth_all/'+year+'/'+ref_branch_id+'/'+ref_department_id+'/','_blank');
+        window.open('Emp13thMonthPay/schedule/print_13thmonth_all/'+year+'/'+ref_branch_id+'/'+ref_department_id+'/'+batch_id,'_blank');
     });    
 
     $('#email_all').click(function(){
@@ -459,11 +479,12 @@ $(document).ready(function(){
         var year = $('#payperiod_filter').val();
         var ref_branch_id = $('#branch_filter_list').val();
         var ref_department_id = $('#department_filter').val();
+        var batch_id = $('#batch_filter').val();
 
         return $.ajax({
             "dataType":"json",
             "type":"POST",
-            "url":"Emp13thMonthPay/schedule/emailAll13thMonth/"+year+"/"+ref_branch_id+"/"+ref_department_id,
+            "url":"Emp13thMonthPay/schedule/emailAll13thMonth/"+year+"/"+ref_branch_id+"/"+ref_department_id+"/"+batch_id,
             "beforeSend": showSpinningProgressLoading()
         });
     };    
