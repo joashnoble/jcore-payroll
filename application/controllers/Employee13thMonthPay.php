@@ -51,6 +51,7 @@ class Employee13thMonthPay extends CORE_Controller
                 
                 $year = $this->input->post('year', TRUE);
                 $employee_id = $this->input->post('employee_id', TRUE);
+                $status = $this->input->post('status', TRUE);
                 $m_13thmonth = $this->Emp_13thmonth_model;
 
                 // if(count($employee_id) <= 0){
@@ -75,7 +76,7 @@ class Employee13thMonthPay extends CORE_Controller
                 }
 
                 // $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_register_filter('all','all',$start_13thmonth_date,$end_13thmonth_date,1);
-                $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor,$status);
 
                 if(count($get13thmonth_pay) <= 0){
                     $response['title']='Error!';
@@ -86,27 +87,13 @@ class Employee13thMonthPay extends CORE_Controller
                 }
 
 
+                $batch = $m_13thmonth->get_last_batch($year);
+                $batch_id = $batch[0]->batch_id;
                 // for ($a=0; $a < count($employee_id); $a++) { 
                     
                     for ($i=0; $i < count($get13thmonth_pay); $i++) { 
                             
                         // if($employee_id[$a] == $get13thmonth_pay[$i]->employee_id){
-
-                            $batch = $m_13thmonth->get_last_batch($year);
-
-                            if(count($batch) <= 0){
-                                $batch_id = 1;
-                            }else{
-                                if($batch[0]->batch_id == 1){
-                                    $batch_id = 2;
-                                }
-                                else if($batch[0]->batch_id == 2){
-                                    $batch_id = 2;
-                                }
-                                else{
-                                    $batch_id = 1;
-                                };
-                            }
 
                             $m_13thmonth->employee_id = $get13thmonth_pay[$i]->employee_id;
                             $m_13thmonth->year = $year;

@@ -21,15 +21,21 @@ class Emp_13thmonth_model extends CORE_Model {
 
 	function get_last_batch($year){
 		$query = $this->db->query("SELECT 
-		   COALESCE(MAX(batch_id),0) as batch_id
+		    (CASE
+		        WHEN main.batch_id > 1 THEN 2
+		        ELSE 1
+		    END) AS batch_id
 		FROM
-		    emp_13thmonth
-		WHERE
-		    year = $year");
+		    (SELECT 
+		        COALESCE(MAX(batch_id), 0) + 1 AS batch_id
+		    FROM
+		        emp_13thmonth
+		    WHERE
+		        year = $year) AS main");
 		return $query->result();
 	}
 
-	function get_13thmonth($year=null,$branch_id='all',$department_id='all',$employee_id=null,$start_date,$end_date,$factor=12){
+	function get_13thmonth($year=null,$branch_id='all',$department_id='all',$employee_id=null,$start_date,$end_date,$factor=12,$status='All'){
 		$query = $this->db->query("SELECT 
 			    x.*,
                 ((x.total_13thmonth+x.retro +x.dayswithpayamt) - x.total_days_wout_pay_amt) AS total_reg_days_pay
@@ -137,6 +143,8 @@ class Emp_13thmonth_model extends CORE_Model {
 						".($employee_id==null?"":" AND dtr.employee_id = '".$employee_id."'")." 
 			            ".($branch_id=='all'?"":" AND erd.ref_branch_id = '".$branch_id."'")." 
 			            ".($department_id=='all'?"":" AND erd.ref_department_id = '".$department_id."'")."
+			            ".($status=='Active'?" AND (el.status = '".$status."' OR el.is_retired = 0)":"")."
+			            ".($status=='Inactive'?" AND (el.status = '".$status."' OR el.is_retired = 1)":"")."
 			            GROUP BY el.employee_id
 			            ORDER BY el.last_name ASC) AS main) AS x
 			WHERE

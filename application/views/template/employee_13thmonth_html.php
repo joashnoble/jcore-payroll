@@ -1,11 +1,18 @@
 <div style="margin: 20px;">
     <div style="font-size: 11pt;">
         <?php include 'template_header.php';?>
-        <strong>
-            13th Month Pay <br />
-            Year : <?php echo $yearfilter; ?><br />
-            <hr><br />
-        </strong>
+
+        <table width="100%" class="table">
+            <tr>
+                <td width="50%"><strong>13TH MONTH PAY</strong></td>
+                <td width="50%" align="right"><strong>Batch #</strong> : <?php echo $batch_no; ?></td>
+            </tr>
+            <tr>
+                <td><strong>Year</strong> : <?php echo $yearfilter; ?></td>
+                <td align="right"><strong>Status</strong> :  <?php echo $status; ?></td>
+            </tr>            
+        </table>
+
     </div>
     <table class="table">
         <thead>
