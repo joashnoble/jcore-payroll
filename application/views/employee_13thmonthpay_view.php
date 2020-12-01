@@ -111,6 +111,16 @@
                                               </select>
                                           </div>
                                           <div class="col-md-3">
+
+                                              <label style="font-weight: bold;" for="inputEmail1">Status :</label>
+                                              <select class="form-control" name="employee_status" id="employee_status" data-error-msg="Employee Status Filter is required" required>
+                                                <option value="All">All</option>
+                                                <option value="Active">Active</option>
+                                                <option value="Inactive">Inactive</option>
+                                              </select>
+
+
+
                                             <div class="hidden">
                                               <label style="font-weight: bold;" for="inputEmail1">Branch:</label>
                                               <select class="form-control" name="branch_filter_list" id="branch_filter_list" data-error-msg="Branch Filter is required" required>
@@ -149,7 +159,9 @@
                                             </button>
 
                                             <br/>
-                                            <div id="process_panel"></div>
+                                            <div id="process_panel">
+                                                <button type="button" class="btn btn-info col-sm-12" id="btn_process_13thmonth" style="margin-top: 5px;"><i class="fa fa-cog"></i> Process</button>
+                                            </div>
 
                                           </div>
                                         </div>
@@ -229,6 +241,7 @@ $(document).ready(function(){
     var _branch;
     var _payperiod;
     var _employee;
+    var _status;
     var d = new Date();
     var dt;
 
@@ -255,36 +268,27 @@ $(document).ready(function(){
     });
 
     _employee.select2('val', '');
-    $('#payperiod_filter').val(d.getFullYear()).trigger("change")
 
+    _status=$("#employee_status").select2({
+        placeholder: "Select Status",
+        allowClear: false
+    });
+
+    _status.select2('val', '');
+
+    $('#payperiod_filter').val(d.getFullYear()).trigger("change")
+    $('#employee_status').val('Active').trigger("change")
 
     var get_13thmonth_pay = function(){
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_employee = $('#employee_filter').val();
-
-        // Check year if processed
-        $.ajax({
-            "dataType":"json",
-            "type":"POST",
-            "url":"PayrollHistory/layout/check-13thmonth-pay/"+filter_employee+"/"+filter_pay_period+"/"+filter_branch+"",
-                }).done(function(response){
-                    $('#process_panel').html("");
-
-                    var rows = response.data;
-
-                    // if (response.status > 0){
-                        $('#process_panel').append('<button type="button" class="btn btn-info col-sm-12" id="btn_process_13thmonth" style="margin-top: 5px;"><i class="fa fa-cog"></i> Process</button>');
-                        refresh_process_ele();
-                    // }else{
-                    //     $('#process_panel').append('<label class="label label-default" style="width: 100%;font-size: 12pt;padding: 5px;margin-top: 10px;"><span class="fa fa-check-circle"></span> <i>Processed</i></label>');
-                    // }
-            });
+        filter_status = $('#employee_status').val();
 
         $.ajax({
             "dataType":"html",
             "type":"POST",
-            "url":"PayrollHistory/layout/employeee-13thmonth-pay/"+filter_employee+"/"+filter_pay_period+"/"+filter_branch+"",
+            "url":"PayrollHistory/layout/employeee-13thmonth-pay/"+filter_employee+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_status,
             beforeSend : function(){
                         $('#p_preview').html("<center><img src='assets/img/loader/preloaderimg.gif'><h3>Loading...</h3></center>");
                     },
@@ -316,7 +320,8 @@ $(document).ready(function(){
                         return $.extend( {}, d, {
                             "pay_period_year": $('#payperiod_filter').val(),
                             "ref_branch_id": $('#branch_filter_list').val(),
-                            "employee_id": $('#employee_filter').val()
+                            "employee_id": $('#employee_filter').val(),
+                            "status": $('#employee_status').val()
                         });
                     }
                 },
@@ -444,8 +449,6 @@ $(document).ready(function(){
             employee_id = data.employee_id;   
             pay_period_year = $('#payperiod_filter').val();
             
-            // window.open('PayrollHistory/layout/per-employeee-13thmonth-pay/'+employee_id+'/'+pay_period_year,'_blank');
-
             $.ajax({
                 "dataType":"html",
                 "type":"POST",
@@ -484,21 +487,11 @@ $(document).ready(function(){
         $('#tbl_process_13thmonth tbody').find('input:checkbox').prop('checked', status);
     });
 
-    var refresh_process_ele = function(){
-        $('#btn_process_13thmonth').click(function(){
-
-            // var count = $("#tbl_process_13thmonth input[type=checkbox]:checked").length;
-
-            // if(count <= 0){
-            //     showNotification({title:"Error!",stat:"error",msg:"Please check atleast one employee."});
-            // }else{
-                var year = $('#payperiod_filter').val();
-                $('#year').html(year);
-                $('#modal_confirmation').modal('show');
-            // }
-
-        });
-    };
+    $('#btn_process_13thmonth').click(function(){
+        var year = $('#payperiod_filter').val();
+        $('#year').html(year);
+        $('#modal_confirmation').modal('show');
+    });
 
     get_13thmonth_pay();
 
@@ -517,12 +510,18 @@ $(document).ready(function(){
         get_13thmonth_pay();
         $('#tbl_process_13thmonth').DataTable().ajax.reload();
     });
+
+    $("#employee_status").change(function(){
+        get_13thmonth_pay();
+        $('#tbl_process_13thmonth').DataTable().ajax.reload();
+    }); 
         
     $('#export_13month_pay').on('click', function() {
         filter_pay_period = $('#payperiod_filter').val();
         filter_branch = $('#branch_filter_list').val();
         filter_employee = $('#employee_filter').val();
-        window.open("PayrollHistory/layout/export_employee_13thmonth_pay/"+filter_employee+"/"+filter_pay_period+"/"+filter_branch+"","_self");
+        filter_status = $('#employee_status').val();
+        window.open("PayrollHistory/layout/export_employee_13thmonth_pay/"+filter_employee+"/"+filter_pay_period+"/"+filter_branch+"/"+filter_status,"_self");
     });
 
     $('#print_13month_pay').click(function(event){
@@ -564,6 +563,7 @@ $(document).ready(function(){
         // var _data = dt.$('input, select').serializeArray();
         var _data = $('#').serializeArray();
         _data.push({name : "year" ,value : $('#payperiod_filter').val()});
+        _data.push({name : "status" ,value : $('#employee_status').val()});
 
         return $.ajax({
             "dataType":"json",

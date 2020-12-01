@@ -1238,6 +1238,7 @@ class PayrollHistory extends CORE_Controller
                         //show only inside grid with menu button
 
                         $year = $filter_value2;
+                        $status = $type;
                         
                         $m_13thmonth = $this->Emp_13thmonth_model;
 
@@ -1258,7 +1259,7 @@ class PayrollHistory extends CORE_Controller
 
                         // if (count($check_year) > 0){
                             // $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
-                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor,$status);
 
                         // }else{
 
@@ -1358,10 +1359,14 @@ class PayrollHistory extends CORE_Controller
                             $get_branch = "All";
                         }
 
+
+                        $batch = $m_13thmonth->get_last_batch($year);
+                        $data['batch_no'] = $batch[0]->batch_id;
                         $data['get13thmonth_pay']=$get13thmonth_pay;
                         $data['get_branch']=$get_branch;
                         $data['yearfilter']=$year;
                         $data['factor']=$factor;
+                        $data['status']=$status;
                         $getcompany=$this->GeneralSettings_model->get_list(
                         null,
                         'company_setup.*'
@@ -1390,6 +1395,7 @@ class PayrollHistory extends CORE_Controller
                         $ref_branch_id = $this->input->get('ref_branch_id');
                         $ref_department_id = $this->input->get('ref_department_id');
                         $employee_id = $this->input->get('employee_id');
+                        $status = $this->input->get('status');
                         
                         $m_13thmonth = $this->Emp_13thmonth_model;
 
@@ -1409,7 +1415,7 @@ class PayrollHistory extends CORE_Controller
                         }
 
                         // if (count($check_year) > 0){
-                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                            $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor,$status);
 
                         // }else{
 
@@ -1440,6 +1446,7 @@ class PayrollHistory extends CORE_Controller
 
                         $employee_id = $filter_value;
                         $pay_period_year = $filter_value2;
+
                         $ref_branch_id = $m_13thmonth->get_employee_branch($employee_id)[0]->ref_branch_id;
                         $check_year = $m_13thmonth->get_13thmonth_processed($pay_period_year,'all','all',null,$employee_id);
 
@@ -1755,6 +1762,7 @@ class PayrollHistory extends CORE_Controller
                     $excel = $this->excel;
 
                     $year = $filter_value2;
+                    $status = $type;
                 
                     $m_13thmonth = $this->Emp_13thmonth_model;
 
@@ -1775,8 +1783,10 @@ class PayrollHistory extends CORE_Controller
 
                     // if (count($check_year) > 0){
                         // $get13thmonth_pay=$m_13thmonth->get_13thmonth_processed($year);
-                    $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor);
+                    $get13thmonth_pay=$m_13thmonth->get_13thmonth($year,'all','all',null,$start_13thmonth_date,$end_13thmonth_date,$factor,$status);
 
+                    $batch = $m_13thmonth->get_last_batch($year);
+                    $batch_no = $batch[0]->batch_id;
                     // }else{
 
                     //     if($filter_value!="all" AND $year!="all"){
@@ -1832,7 +1842,9 @@ class PayrollHistory extends CORE_Controller
 
                     $excel->getActiveSheet()->setCellValue('A6','13th Month Pay')
                                             ->setCellValue('A7','Branch : '.$branch)
-                                            ->setCellValue('A8','Year : '.$year);
+                                            ->setCellValue('A8','Year : '.$year)
+                                            ->setCellValue('C8','Batch # : '.$batch_no)
+                                            ->setCellValue('D8','Status : '.$status);
                     
                     $excel->getActiveSheet()->getStyle('A10:F10')->getFont()->setBold(TRUE);
 
