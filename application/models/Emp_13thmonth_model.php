@@ -10,7 +10,7 @@ class Emp_13thmonth_model extends CORE_Model {
     }
 
 
-   function get_13thmonth_processed($year=null,$branch='all',$department='all',$emp_13thmonth_id=null,$status=null){
+   function get_13thmonth_processed($year=null,$branch='all',$department='all',$emp_13thmonth_id=null){
          $query = $this->db->query("SELECT 
 			    emp_13thmonth.*,
 			    CONCAT(el.last_name,', ',el.first_name,' ',el.middle_name) as fullname,
@@ -32,8 +32,6 @@ class Emp_13thmonth_model extends CORE_Model {
 			    ".($branch=='all'?"":" AND erd.ref_branch_id = '".$branch."'")."
 			    ".($department=='all'?"":" AND erd.ref_department_id = '".$department."'")." 
 			    ".($emp_13thmonth_id==null?"":" AND emp_13thmonth.emp_13thmonth_id = '".$emp_13thmonth_id."'")." 
-                ".($status==1?' AND el.status="Active" AND el.is_retired="0"':'')."
-                ".($status==2?' AND (el.status="Inactive" OR el.is_retired=1)':'')."
 			    GROUP BY el.employee_id
 			    ORDER BY el.last_name");
 		return $query->result();

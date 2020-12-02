@@ -123,9 +123,9 @@
                                                     <i class="fa fa"></i> PRINT
                                                 </button>
                                           </div>
-                                          <div class="col-md-2">
+<!--                                           <div class="col-md-2">
                                                 <button type="button" class="btn col-sm-12 btn-primary form-control" id="export_emp_payroll_summary" style="background-color:#27ae60; color:white;margin-top: 25px;"><i class="fa fa-file-excel-o"></i> EXPORT EXCEL</button> 
-                                           </div>
+                                           </div> -->
                                         </div>
                                     </div>
                                     <hr>

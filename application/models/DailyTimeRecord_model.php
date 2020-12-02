@@ -1014,6 +1014,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                 // Wtax Full Deduct
                                 $wtax_full_deduct=$deductsettings[3]->full_deduct; 
 
+
                                 //SSS DEDUCT
                                 if($sss_is_deduct==1){
 
@@ -1106,7 +1107,6 @@ class DailyTimeRecord_model extends CORE_Model {
                                     }
 
                                     $refphilhealth = $this->Philhealth_lookup_default($philhealth_amount);
-
                                     $philhealth_id=$refphilhealth[0]->ref_philhealth_contribution_id;
                                     $philhealth = $refphilhealth[0]->employee;
 
@@ -1345,15 +1345,11 @@ class DailyTimeRecord_model extends CORE_Model {
                                         $wtax_lookup_amount = $processtemp[0]->tax_shield-$sss_phil_pagibig_deductions;
                                     }
 
-                                        if ($ref_payment_type_id == 2){ // Semi-Monthly
+                                        if ($ref_payment_type_id == 4){ // Semi-Monthly
                                             $withholding_lookup = ($this->Wtax_lookup($wtax_lookup_amount,2)) / $pcount;
                                         }else{
                                             $withholding_lookup = $this->Wtax_lookup($wtax_lookup_amount,$ref_payment_type_id);
                                         }
-
-                                            echo $ref_payment_type_id;
-
-
                                   }
                                   else{
                                         $withholding_lookup=0;
