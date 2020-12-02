@@ -139,7 +139,7 @@ class Emp_13thmonth_model extends CORE_Model {
 			        el.is_deleted = 0
 			            AND rpp.pay_period_year = $year
 			            AND erd.active_rates_duties = 1
-			            AND el.employee_id NOT IN (SELECT DISTINCT employee_clearance.employee_id FROM employee_clearance WHERE employee_clearance.is_deleted=0) 
+			            AND el.employee_id NOT IN (SELECT DISTINCT employee_clearance.employee_id FROM employee_clearance WHERE employee_clearance.is_deleted=0 AND employee_clearance.clearance_status = 1) 
 						".($employee_id==null?"":" AND dtr.employee_id = '".$employee_id."'")." 
 			            ".($branch_id=='all'?"":" AND erd.ref_branch_id = '".$branch_id."'")." 
 			            ".($department_id=='all'?"":" AND erd.ref_department_id = '".$department_id."'")."
