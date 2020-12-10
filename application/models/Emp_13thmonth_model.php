@@ -66,60 +66,12 @@ class Emp_13thmonth_model extends CORE_Model {
 			            el.employee_id,
 			            ((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount), 0) + SUM(ps.days_with_pay_amt)) - SUM(ps.days_wout_pay_amt)) AS total_reg_days_pay,
 			            ROUND(((((SUM(dtr.for_13th_month) + COALESCE(SUM(salary_retro.earnings_amount), 0) + SUM(ps.days_with_pay_amt)) - SUM(ps.days_wout_pay_amt))) / 12),2) AS grand_13thmonth_pay,
-			            
-
-			            COALESCE((SELECT 
-			                    SUM(emp_13thmonth.for_13th_month) AS pro_for_13th_month
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_for_13th_month,
-
-			            COALESCE((SELECT 
-			                    SUM(emp_13thmonth.retro) AS pro_retro
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_retro,  
-
-			            COALESCE((SELECT 
-			                    SUM(emp_13thmonth.dayswithpayamt) AS pro_dayswithpayamt
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_dayswithpayamt, 
-
-			            COALESCE((SELECT 
-			                    SUM(emp_13thmonth.total_13thmonth) AS pro_total_13thmonth
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_total_13thmonth, 			                 
-			            COALESCE((SELECT 
-			                    SUM(emp_13thmonth.grand_13thmonth_pay) AS pro_13thmonth_pay
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_13thmonth_pay,
-						
-                        COALESCE((SELECT 
-			                    SUM(emp_13thmonth.total_days_wout_pay_amt) AS pro_total_days_wout_pay_amt
-			                FROM
-			                    emp_13thmonth
-			                WHERE
-			                    emp_13thmonth.employee_id = dtr.employee_id
-			                        AND emp_13thmonth.year = rpp.pay_period_year
-			                GROUP BY emp_13thmonth.employee_id), 0) AS pro_total_days_wout_pay_amt
+                        COALESCE(pro_13thmonth.pro_for_13th_month,0) as pro_for_13th_month,
+                        COALESCE(pro_13thmonth.pro_retro,0) as pro_retro,
+                        COALESCE(pro_13thmonth.pro_dayswithpayamt,0) as pro_dayswithpayamt,
+                        COALESCE(pro_13thmonth.pro_total_13thmonth,0) as pro_total_13thmonth,
+                        COALESCE(pro_13thmonth.pro_13thmonth_pay,0) as pro_13thmonth_pay,
+                        COALESCE(pro_13thmonth.pro_total_days_wout_pay_amt,0) as pro_total_days_wout_pay_amt
 						
 					
 								
@@ -129,15 +81,24 @@ class Emp_13thmonth_model extends CORE_Model {
 			    LEFT JOIN employee_list AS el ON dtr.employee_id = el.employee_id
 			    LEFT JOIN emp_rates_duties AS erd ON el.employee_id = erd.employee_id
 			    LEFT JOIN refpayperiod AS rpp ON dtr.pay_period_id = rpp.pay_period_id
-			    LEFT JOIN (SELECT 
-			        pay_slip_id, (earnings_amount) AS earnings_amount
-			    FROM
-			        pay_slip_other_earnings
+			    LEFT JOIN (SELECT pay_slip_id, (earnings_amount) AS earnings_amount FROM pay_slip_other_earnings
 			    WHERE
 			        earnings_id = 7) AS salary_retro ON ps.pay_slip_id = salary_retro.pay_slip_id
+			    LEFT JOIN
+	                (SELECT 
+						employee_id,
+				         SUM(emp_13thmonth.grand_13thmonth_pay) AS pro_13thmonth_pay,
+	                     SUM(emp_13thmonth.for_13th_month) AS pro_for_13th_month,
+	                     SUM(emp_13thmonth.retro) AS pro_retro,
+	                     SUM(emp_13thmonth.dayswithpayamt) AS pro_dayswithpayamt,
+	                     SUM(emp_13thmonth.total_13thmonth) AS pro_total_13thmonth,
+	                     SUM(emp_13thmonth.total_days_wout_pay_amt) AS pro_total_days_wout_pay_amt
+			
+	                     FROM emp_13thmonth WHERE emp_13thmonth.year = $year GROUP BY emp_13thmonth.employee_id
+	                ) as pro_13thmonth ON pro_13thmonth.employee_id = el.employee_id
 			    WHERE
 			        el.is_deleted = 0
-			            AND rpp.pay_period_year = $year
+			            AND (rpp.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."')
 			            AND erd.active_rates_duties = 1
 			            AND el.employee_id NOT IN (SELECT DISTINCT employee_clearance.employee_id FROM employee_clearance WHERE employee_clearance.is_deleted=0 AND employee_clearance.clearance_status = 1) 
 						".($employee_id==null?"":" AND dtr.employee_id = '".$employee_id."'")." 

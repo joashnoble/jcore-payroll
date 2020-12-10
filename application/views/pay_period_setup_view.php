@@ -149,6 +149,7 @@
                                                     <th>Period End</th>
                                                     <th>Period</th>
                                                     <th>Applicable Month</th>
+                                                    <th>Applicable Year</th>
                                                     <th><center>Action</center></th>
                                                  </tr>
                                             </thead>
@@ -398,8 +399,9 @@ $(document).ready(function(){
                         }
                     }
                 },
+                { targets:[5],data: "pay_period_year" },
                 {
-                    targets:[5],
+                    targets:[6],
                     render: function (data, type, full, meta){
 
                         return '<center>'+right_payperiod_edit+right_payperiod_delete+'</center>';
@@ -412,7 +414,7 @@ $(document).ready(function(){
                      },
             "rowCallback":function( row, data, index ){
 
-                $(row).find('td').eq(5).attr({
+                $(row).find('td').eq(6).attr({
                     "align": "right"
                 });
             }

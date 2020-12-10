@@ -1536,7 +1536,7 @@ class PayrollReports_model extends CORE_Model {
 
                                             // AND rpp.pay_period_year=".$filter_value2."
 
-    function get_employee_compensation($filter_value,$filter_value2,$factor) {
+    function get_employee_compensation($filter_value,$filter_value2,$factor,$start_date,$end_date) {
 
             $query = $this->db->query("SELECT m.*,SUM(m.reg_pay) as sum_regpay,SUM(m.net_pay) as sum_netpay,
                                        SUM(m.t3rthmonth) as sum_t3rthmonth,SUM(m.total_deductions) as sum_total_deductions
@@ -1553,7 +1553,7 @@ class PayrollReports_model extends CORE_Model {
                                     LEFT JOIN months ON
                                     months.month_id = refpayperiod.month_id
                                     WHERE employee_id=".$filter_value." AND
-                                    refpayperiod.pay_period_year =  ".$filter_value2."
+                                    refpayperiod.pay_period_year = ".$filter_value2."
                                     GROUP BY Month) as m
                                     GROUP BY m.Month
                                     ORDER BY m.month_id ASC
@@ -1645,7 +1645,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 4
-                                                AND refpayperiod.pay_period_year = ".$filter_value."
+                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
                                         GROUP BY employee_id) AS getwtax ON getwtax.employee_id = employee_list.employee_id
 
 
@@ -1660,7 +1660,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
                                         LEFT JOIN pay_slip ON pay_slip.dtr_id = daily_time_record.dtr_id
                                         WHERE
-                                          refpayperiod.pay_period_year = ".$filter_value."
+                                            refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
                                         GROUP BY employee_id) AS gross ON gross.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
@@ -1673,7 +1673,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 1
-                                                AND refpayperiod.pay_period_year = ".$filter_value."
+                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
                                         GROUP BY employee_id) AS getsss ON getsss.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
@@ -1686,7 +1686,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 2
-                                                AND refpayperiod.pay_period_year = ".$filter_value."
+                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
                                         GROUP BY employee_id) AS getphil ON getphil.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
@@ -1699,7 +1699,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 3
-                                            AND refpayperiod.pay_period_year = ".$filter_value."
+                                            AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
                                         GROUP BY employee_id) AS getpagibig ON getpagibig.employee_id = employee_list.employee_id
                                         WHERE 
                                             employee_list.is_deleted = FALSE

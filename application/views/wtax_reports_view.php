@@ -192,7 +192,7 @@ $(document).ready(function(){
         allowClear: false
     });
 
-    _month.select2('val', '');
+    $('#month_filter').val(d.getMonth()+1).trigger("change");
 
     filter_pay_period = $('#payperiod_filter').val();
     filter_branch = $('#branch_filter_list').val();

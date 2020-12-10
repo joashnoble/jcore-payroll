@@ -1216,8 +1216,8 @@ class PayrollHistory extends CORE_Controller
                             $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                             $factor = $year_setup[0]->factor_setup;
                         }else{
-                            $start_13thmonth_date = '01-01-'.$year;
-                            $end_13thmonth_date = '12-31-'.$year;
+                            $start_13thmonth_date = $year.'-01-01';
+                            $end_13thmonth_date = $year.'-12-31';
                             $factor = 12;
                         }
 
@@ -1252,8 +1252,8 @@ class PayrollHistory extends CORE_Controller
                             $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                             $factor = $year_setup[0]->factor_setup;
                         }else{
-                            $start_13thmonth_date = '01-01-'.$year;
-                            $end_13thmonth_date = '12-31-'.$year;
+                            $start_13thmonth_date = $year.'-01-01';
+                            $end_13thmonth_date = $year.'-12-31';
                             $factor = 12;
                         }
 
@@ -1399,7 +1399,7 @@ class PayrollHistory extends CORE_Controller
                         
                         $m_13thmonth = $this->Emp_13thmonth_model;
 
-                        $check_year = $m_13thmonth->get_13thmonth_processed($year);
+                        // $check_year = $m_13thmonth->get_13thmonth_processed($year);
 
                         $year_setup = $this->RefYearSetup_model->getYearSetup($year);
                         $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
@@ -1410,7 +1410,7 @@ class PayrollHistory extends CORE_Controller
                             $factor = $year_setup[0]->factor_setup;
                         }else{
                             $start_13thmonth_date = $year.'-01-01';
-                            $end_13thmonth_date = $year.'12-31';
+                            $end_13thmonth_date = $year.'-12-31';
                             $factor = 12;
                         }
 
@@ -1433,7 +1433,7 @@ class PayrollHistory extends CORE_Controller
                         //         $get13thmonth_pay=$this->PayrollReports_model->get_13thmonthpay_wofilter($ref_branch_id,$start_13thmonth_date,$end_13thmonth_date,$factor);
                         //     }
                         // }
-
+                            
                         $response['data']=$get13thmonth_pay;
                         echo json_encode($response);
 
@@ -1458,8 +1458,8 @@ class PayrollHistory extends CORE_Controller
                             $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                             $factor = $year_setup[0]->factor_setup;
                         }else{
-                            $start_13thmonth_date = '01-01-'.$pay_period_year;
-                            $end_13thmonth_date = '12-31-'.$pay_period_year;
+                            $start_13thmonth_date = $year.'-01-01';
+                            $end_13thmonth_date = $year.'-12-31';
                             $factor = 12;
                         }
 
@@ -1515,8 +1515,8 @@ class PayrollHistory extends CORE_Controller
                             $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                             $factor = $year_setup[0]->factor_setup;
                         }else{
-                            $start_13thmonth_date = '01-01-'.$year;
-                            $end_13thmonth_date = '12-31-'.$year;
+                            $start_13thmonth_date = $year.'-01-01';
+                            $end_13thmonth_date = $year.'-12-31';
                             $factor = 12;
                         }
 
@@ -1776,8 +1776,8 @@ class PayrollHistory extends CORE_Controller
                         $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                         $factor = $year_setup[0]->factor_setup;
                     }else{
-                        $start_13thmonth_date = '01-01-'.$year;
-                        $end_13thmonth_date = '12-31-'.$year;
+                        $start_13thmonth_date = $year.'-01-01';
+                        $end_13thmonth_date = $year.'-12-31';
                         $factor = 12;
                     }
 
@@ -1975,8 +1975,8 @@ class PayrollHistory extends CORE_Controller
                         $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                         $factor = $year_setup[0]->factor_setup;
                     }else{
-                        $start_13thmonth_date = '01-01-'.$year;
-                        $end_13thmonth_date = '12-31-'.$year;
+                        $start_13thmonth_date = $year.'-01-01';
+                        $end_13thmonth_date = $year.'-12-31';
                         $factor = 12;
                     }
 
@@ -2179,8 +2179,8 @@ class PayrollHistory extends CORE_Controller
                         $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                         $factor = $year_setup[0]->factor_setup;
                     }else{
-                        $start_13thmonth_date = '01-01-'.$year;
-                        $end_13thmonth_date = '12-31-'.$year;
+                        $start_13thmonth_date = $year.'-01-01';
+                        $end_13thmonth_date = $year.'-12-31';
                         $factor = 12;
                     }
 
@@ -2373,12 +2373,16 @@ class PayrollHistory extends CORE_Controller
                             $start_13thmonth_date = ''; $end_13thmonth_date = ''; $factor = 0;
 
                             if (count($year_setup) > 0){
+                                $start_13thmonth_date = $year_setup[0]->start_13thmonth_date;
+                                $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                                 $factor = $year_setup[0]->factor_setup;
                             }else{
+                                $start_13thmonth_date = $year.'-01-01';
+                                $end_13thmonth_date = $year.'-12-31';
                                 $factor = 12;
                             }
 
-                            $data['employee_compensation']=$this->PayrollReports_model->get_employee_compensation($filter_value,$filter_value2,$factor);
+                            $data['employee_compensation']=$this->PayrollReports_model->get_employee_compensation($filter_value,$filter_value2,$factor,$start_13thmonth_date,$end_13thmonth_date);
                             $data['employeename']=$this->Employee_model->get_list(
                             $filter_value,
                             'CONCAT(employee_list.first_name," ",middle_name," ",employee_list.last_name) as full_name,ecode'

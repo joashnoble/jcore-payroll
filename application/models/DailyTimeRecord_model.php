@@ -490,7 +490,7 @@ class DailyTimeRecord_model extends CORE_Model {
                     FROM
                         ref_payment_type
                     WHERE
-                        ref_payment_type_id = 2) AS wtax_employee
+                        ref_payment_type_id = 2 AND ref_payment_type.is_deleted = FALSE) AS wtax_employee
             FROM
                 (SELECT 
                     b.*,
@@ -503,7 +503,8 @@ class DailyTimeRecord_model extends CORE_Model {
                             FROM
                                 ref_sss_contribution rsc
                             WHERE
-                                y.taxable_amount BETWEEN rsc.salary_range_from AND rsc.salary_range_to) AS sss_employee,
+                                y.taxable_amount BETWEEN rsc.salary_range_from AND rsc.salary_range_to
+                            AND rsc.is_deleted = FALSE) AS sss_employee,
                         '100' AS pagibig_employee,
                         (SELECT 
                                 (CASE
@@ -512,7 +513,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                         ELSE ((y.taxable_amount * percentage) / 2)
                                     END) AS employee
                             FROM
-                                ref_philhealth_contribution rpc
+                                ref_philhealth_contribution rpc WHERE rpc.is_deleted = FALSE
                             LIMIT 1) AS philhealth_employee
                 FROM
                     (SELECT 

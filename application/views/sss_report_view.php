@@ -187,7 +187,7 @@ $(document).ready(function(){
         allowClear: false
     });
 
-    _month.select2('val', '');
+    $('#month_filter').val(d.getMonth()+1).trigger("change");
 
     _type=$("#type_filter_list").select2({
         /*dropdownParent: $("#modal_create_schedule"),*/

@@ -402,8 +402,8 @@ class PayrollReports extends CORE_Controller
                     $end_13thmonth_date = $year_setup[0]->end_13thmonth_date;
                     $factor = $year_setup[0]->factor_setup;
                 }else{
-                    $start_13thmonth_date = '01-01-'.$filter_value;
-                    $end_13thmonth_date = '12-31-'.$filter_value;
+                    $start_13thmonth_date = $year.'-01-01';
+                    $end_13thmonth_date = $year.'-12-31';
                     $factor = 12;
                 }
 

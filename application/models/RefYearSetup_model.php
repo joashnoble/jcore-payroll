@@ -14,7 +14,7 @@ class RefYearSetup_model extends CORE_Model {
     }
 
     function getYearSetup($year){
-      $query = $this->db->query("SELECT * FROM emp_leave_year WHERE year = $year");
+      $query = $this->db->query("SELECT * FROM emp_leave_year WHERE year = $year AND active_year = 1");
       return $query->result();        
     }
 
