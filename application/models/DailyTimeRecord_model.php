@@ -790,12 +790,12 @@ class DailyTimeRecord_model extends CORE_Model {
                             ref_philhealth_contribution_id, 
                             (CASE
                                 WHEN '.$salary_reg_rates.' <= 10000 THEN employee
-                                WHEN '.$salary_reg_rates.' >= 40000 THEN employee
-                                ELSE (('.$salary_reg_rates.'*percentage)/2)
+                                WHEN '.$salary_reg_rates.' <= 69999.99 THEN (('.$salary_reg_rates.'*percentage)/2)
+                                ELSE employee
                             END) as employee
                         FROM
                             ref_philhealth_contribution
-                            WHERE '.$salary_reg_rates.' BETWEEN salary_range_from AND salary_range_to');
+                            WHERE '.$salary_reg_rates.' BETWEEN salary_range_from AND salary_range_to AND is_deleted = FALSE');
                                         return $tempphilhealth->result();
     }
 
