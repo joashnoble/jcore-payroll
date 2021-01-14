@@ -692,7 +692,7 @@ class DailyTimeRecord_model extends CORE_Model {
                                 ELSE (('.$salary_reg_rates.'*percentage)/2)
                             END) as employee
                         FROM
-                            ref_philhealth_contribution');
+                            ref_philhealth_contribution WHERE is_deleted = FALSE');
                                         return $tempphilhealth->result();
     }
 
