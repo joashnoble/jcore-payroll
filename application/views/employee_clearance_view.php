@@ -141,7 +141,7 @@
         .row_clearance_dateby{
             margin-right: 10px;margin-left: 10px;
         }
-        #tbl_clearance_deduction th{
+        #tbl_clearance_deduction th, #tbl_clearance_additional th{
             background: #fff; padding: 5px; color: black; border: 1px solid #CFD8DC;
         }
         #tbl_clearance_list td:nth-child(4){
@@ -261,6 +261,30 @@
                                                                     <b>Last Payroll ( Payslip No: <span id="payslip_no"></span> )</b></td>
                                                                     <td><input type="text" class="numeric form-control" name="last_payroll" id="last_payroll" readonly value="0.00"></td>
                                                                 </tr> 
+                                                                <tr>
+                                                                    <td colspan="4" width="100%">
+                                                                    <table width="100%">
+                                                                        <tr>
+                                                                            <td>
+                                                                                <button type="button" class="btn btn-success" id="btn-add-additional" style="width: 100%;">
+                                                                        <i class="fa fa-plus-circle"></i> Additional</button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <div style="background: #ECEFF1;padding: 10px;min-height: 125px;border: 1px solid #CFD8DC;">
+                                                                        <table id="tbl_clearance_additional" width="100%">
+                                                                        <thead>
+                                                                            <th width="30%">Additional Description</th>
+                                                                            <th width="10%">Amount</th>
+                                                                            <th width="5%">Action</th>
+                                                                        </tr> 
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                    </td>
+                                                                </tr>
                                                                 <tr style="background: #FAFAFA;border: 1px solid #CFD8DC;">
                                                                     <td colspan="3" align="right"><b>Grand Total:</b></td>
                                                                     <td><input type="text" class="numeric form-control" name="grand_total" id="grand_total" readonly value="0.00"></td>
@@ -298,7 +322,7 @@
                                                                         </select>
                                                                     </td>
                                                                     <td colspan="2">
-                                                                        <button type="button" class="btn btn-default" id="btn-add-deduction" style="width: 100%;">
+                                                                        <button type="button" class="btn btn-danger" id="btn-add-deduction" style="width: 100%;">
                                                                         <i class="fa fa-plus-circle"></i> Add Deduction</button>
                                                                     </td>
                                                                 </tr>
@@ -557,13 +581,12 @@ $(document).ready(function(){
 
                 getDeductions(_selectedID).done(function(response){
                     var rows=response.data;
-
+                    $("#tbl_clearance_deduction > tbody").html("");
+                    
                     if (rows.length > 0){
-
-                        $("#tbl_clearance_deduction > tbody").html("");
                         $.each(rows,function(i,value){
 
-                            $('#tbl_clearance_deduction > tbody').append(newRowItemforupdate({
+                            $('#tbl_clearance_deduction > tbody').append(newRowItem({
                                 deduction_description : value.deduction_description,
                                 deduction_amount : value.deduction_amount
                             }));   
@@ -574,6 +597,26 @@ $(document).ready(function(){
                 }).always(function(){
                     $.unblockUI();
                 });
+
+
+                getAdditional(_selectedID).done(function(response){
+                    var rows=response.data;
+                    $("#tbl_clearance_additional > tbody").html("");
+
+                    if (rows.length > 0){
+                        $.each(rows,function(i,value){
+
+                            $('#tbl_clearance_additional > tbody').append(newRowItemAdditional({
+                                additional_description : value.additional_description,
+                                additional_amount : value.additional_amount
+                            }));   
+
+                        });
+                    }
+
+                }).always(function(){
+                    $.unblockUI();
+                }); 
 
 
                 // $('#no_of_leave').val(data.no_of_leave);
@@ -794,9 +837,21 @@ $(document).ready(function(){
         });
 
         $('#btn-add-deduction').on('click',function(){
-            $('#tbl_clearance_deduction > tbody').append(newRowItem());
+            $('#tbl_clearance_deduction > tbody').append(newRowItem({
+                deduction_description : "",
+                deduction_amount : 0.00
+            }));   
             reInitializeNumeric();
         });
+
+        $('#btn-add-additional').on('click',function(){
+            $('#tbl_clearance_additional > tbody').append(newRowItemAdditional({
+                additional_description : "",
+                additional_amount : 0.00
+            }));   
+
+            reInitializeNumeric();
+        });        
 
         $('#tbl_clearance_deduction tbody').on('click','.remove_deduction',function(){
             var oRow=$('.tbl_clearance_deduction > tbody tr');
@@ -804,6 +859,13 @@ $(document).ready(function(){
             reInitializeNumeric();
             compute_deduction_amount();
         });
+
+        $('#tbl_clearance_additional tbody').on('click','.remove_additional',function(){
+            var oRow=$('.tbl_clearance_additional > tbody tr');
+            $(this).closest('tr').remove();  
+            reInitializeNumeric();
+            compute_grand_total();
+        });        
 
         $('#accumulated_13thmonth_pay').keyup(function(){
             compute_due_to_date();
@@ -831,6 +893,9 @@ $(document).ready(function(){
         compute_deduction_amount();
     });
 
+    $('#tbl_clearance_additional > tbody').on('keyup','.numeric', function(){
+        compute_grand_total();
+    });    
 
     var compute_deduction_amount = function(){
 
@@ -843,7 +908,6 @@ $(document).ready(function(){
         var compute_net_total = parseFloat(accounting.unformat(grand_total)) - parseFloat(accounting.unformat(net_value));
         $('#net_total').val(accounting.formatNumber(compute_net_total,2));
     };
-
 
     var compute_due_to_date = function(){
 
@@ -905,16 +969,23 @@ $(document).ready(function(){
         var grand_total = 0;
         var stat = $('#chckbox_lastpayroll').is(':checked');
 
+        var additional_value =0;
+        $('#tbl_clearance_additional tr td .numeric').each(function() {
+            additional_value += +parseFloat(accounting.unformat($(this).val()));
+        })
+
         if (stat == true){
             grand_total = parseFloat(accounting.unformat(total_due_date)) + 
                           parseFloat(accounting.unformat(total_leave)) +
                           parseFloat(accounting.unformat(tax_refund)) +
-                          parseFloat(accounting.unformat(last_payroll));
+                          parseFloat(accounting.unformat(last_payroll)) +
+                          parseFloat(accounting.unformat(additional_value));
 
         }else{
             grand_total = parseFloat(accounting.unformat(total_due_date)) + 
                           parseFloat(accounting.unformat(total_leave)) +
-                          parseFloat(accounting.unformat(tax_refund));
+                          parseFloat(accounting.unformat(tax_refund)) +
+                          parseFloat(accounting.unformat(additional_value));
 
         }
 
@@ -929,8 +1000,8 @@ $(document).ready(function(){
 
     var newRowItem=function(d){
     return '<tr>'+
-           '<td width="30%"><input type="text" name="deduction_description[]" class="form-control" required data-error-msg="Deduction Description is Required!"></td>'+
-           '<td width="10%"><input type="text" name="deduction_amount[]" class="numeric form-control" required data-error-msg="Deduction Amount is Required!" value="0.00"></td>'+
+           '<td width="30%"><input type="text" name="deduction_description[]" class="form-control" required data-error-msg="Deduction Description is Required!" value="'+d.deduction_description+'"></td>'+
+           '<td width="10%"><input type="text" name="deduction_amount[]" class="numeric form-control" required data-error-msg="Deduction Amount is Required!" value="'+d.deduction_amount+'"></td>'+
            '<td width="5%">'+
            '<center>'+
            '<button type="button" class="btn btn-danger remove_deduction" style="height: 20px;">'+
@@ -941,13 +1012,14 @@ $(document).ready(function(){
            '</tr>';
     };
 
-    var newRowItemforupdate=function(d){
+
+    var newRowItemAdditional=function(d){
     return '<tr>'+
-           '<td width="30%"><input type="text" name="deduction_description[]" value="'+d.deduction_description+'" class="form-control" required data-error-msg="Deduction Description is Required!"></td>'+
-           '<td width="10%"><input type="text" name="deduction_amount[]" class="numeric form-control" required data-error-msg="Deduction Amount is Required!" value="'+d.deduction_amount+'"></td>'+
+           '<td width="30%"><input type="text" name="additional_description[]" class="form-control" required data-error-msg="Additional Description is Required!" value="'+d.additional_description+'"></td>'+
+           '<td width="10%"><input type="text" name="additional_amount[]" class="numeric form-control" required data-error-msg="Additional Amount is Required!" value="'+d.additional_amount+'"></td>'+
            '<td width="5%">'+
            '<center>'+
-           '<button type="button" class="btn btn-danger remove_deduction" style="height: 20px;">'+
+           '<button type="button" class="btn btn-danger remove_additional" style="height: 20px;">'+
            '<i class="fa fa-minus" style="margin-top: -5px!important;position: absolute;margin-left: -5px!important;"></i>'+
            '</button>'+
            '</center>'+
@@ -1164,6 +1236,16 @@ $(document).ready(function(){
         });
     };
 
+    var getAdditional=function(employee_clearance_id){
+        return $.ajax({
+            "dataType":"json",
+            "type":"POST",
+            "url":"EmployeeClearance/transaction/getAdditional",
+            "data":{employee_clearance_id : employee_clearance_id},
+            "beforeSend": showSpinningProgress($('#btn_save'))
+        });
+    };
+
     var getEmpInfo=function(employee_id){
         return $.ajax({
             "dataType":"json",
@@ -1232,6 +1314,7 @@ $(document).ready(function(){
         $('#clearance_reason').val("").trigger("change");
         $('#net_total').val('0.00');
         $('#tbl_clearance_deduction > tbody').html("");
+        $('#tbl_clearance_additional > tbody').html("");
     };
 
 });

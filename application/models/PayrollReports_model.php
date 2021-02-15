@@ -84,7 +84,8 @@ class PayrollReports_model extends CORE_Model {
    function get_1601C_list($year,$month){
          $query = $this->db->query("SELECT
                             a.*,
-                            (a.gross_pay - (a.sss_employee+a.hdmf+a.phic)) AS compensation
+                            (a.gross_pay - (a.sss_employee+a.hdmf+a.phic)) AS compensation,
+                            (a.per_hour_pay * 8) as actual_basic_pay
                         FROM
                         (SELECT 
                             emp.id_number,
@@ -94,6 +95,7 @@ class PayrollReports_model extends CORE_Model {
                             emp.tin,
                             (ps.reg_hol_pay + ps.spe_hol_pay) AS holiday_pay,
                             rates.per_day_pay,
+                            rates.per_hour_pay,
                             SUM(ps.reg_pay) AS reg_pay,
                             rates.tax_shield AS gross_pay,
                             (SELECT 
@@ -458,6 +460,29 @@ class PayrollReports_model extends CORE_Model {
                             AND psd.deduction_id = $loan_id
                             GROUP BY el.employee_id
                             ORDER BY el.last_name ASC");
+        return $query->result();
+    }
+
+     function get_monthly_employee_loan($year,$month,$employee_id){
+        $query = $this->db->query("SELECT 
+                el.employee_id,
+                rd.deduction_desc,
+                SUM(psd.deduction_amount) as loan_deduction
+            FROM
+                pay_slip ps
+                LEFT JOIN daily_time_record dtr ON dtr.dtr_id = ps.dtr_id
+                LEFT JOIN employee_list el ON el.employee_id = dtr.employee_id
+                LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                LEFT JOIN pay_slip_deductions psd ON psd.pay_slip_id = ps.pay_slip_id
+                LEFT JOIN refdeduction rd ON rd.deduction_id = psd.deduction_id
+
+                WHERE 
+                    el.employee_id = $employee_id
+                    ".($month==0?"":" AND rpp.month_id='".$month."'")."
+                    AND rpp.pay_period_year = $year 
+                    AND rd.deduction_id > 4
+                    AND (rd.deduction_type_id=1 OR rd.deduction_type_id=2 OR rd.deduction_type_id=4)
+                    GROUP BY psd.deduction_id");
         return $query->result();
     }
 

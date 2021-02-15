@@ -81,8 +81,8 @@ class Report1601C extends CORE_Controller
             $excel->getActiveSheet()->setCellValue('A1',"Schedule of taxes withheld (1601C)")
                 ->setCellValue('A2',$month.' '.$filter_value);
 
-            $excel->getActiveSheet()->mergeCells('A1:T1');
-            $excel->getActiveSheet()->mergeCells('A2:T2');
+            $excel->getActiveSheet()->mergeCells('A1:U1');
+            $excel->getActiveSheet()->mergeCells('A2:U2');
 
             //create headers
             $excel->getActiveSheet()->getStyle('A4:T4')->getFont()->setBold(TRUE);
@@ -93,24 +93,25 @@ class Report1601C extends CORE_Controller
                                     ->setCellValue('E4', 'Middle Name')
                                     ->setCellValue('F4', 'TIN No.')
                                     ->setCellValue('G4', '+Holiday')
-                                    ->setCellValue('H4', '/day')
-                                    ->setCellValue('I4', 'Gross Tax')
-                                    ->setCellValue('J4', 'Gross Pay')
-                                    ->setCellValue('K4', 'HDMFeR')
-                                    ->setCellValue('L4', 'HDMFee')
-                                    ->setCellValue('M4', 'SSSeR')
-                                    ->setCellValue('N4', 'SSSeC')
-                                    ->setCellValue('O4', 'SSSeE')
-                                    ->setCellValue('P4', 'PHICeR')
-                                    ->setCellValue('Q4', 'PHICeE')
-                                    ->setCellValue('R4', 'Compensation')
-                                    ->setCellValue('S4', 'Salary')
-                                    ->setCellValue('T4', 'Withheld');
+                                    ->setCellValue('H4', 'Actual Basic Pay')
+                                    ->setCellValue('I4', '/day')
+                                    ->setCellValue('J4', 'Gross Tax')
+                                    ->setCellValue('K4', 'Gross Pay')
+                                    ->setCellValue('L4', 'HDMFeR')
+                                    ->setCellValue('M4', 'HDMFee')
+                                    ->setCellValue('N4', 'SSSeR')
+                                    ->setCellValue('O4', 'SSSeC')
+                                    ->setCellValue('P4', 'SSSeE')
+                                    ->setCellValue('Q4', 'PHICeR')
+                                    ->setCellValue('R4', 'PHICeE')
+                                    ->setCellValue('S4', 'Compensation')
+                                    ->setCellValue('T4', 'Salary')
+                                    ->setCellValue('U4', 'Withheld');
             $rows=array();
             $i=1;
             foreach($transaction as $x){
 
-                $excel->getActiveSheet()->getStyle('G'.$i.':'.'T'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                $excel->getActiveSheet()->getStyle('G'.$i.':'.'U'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
                 $rows[]=array(
                     $i,
@@ -120,6 +121,7 @@ class Report1601C extends CORE_Controller
                     $x->middle_name,
                     $x->tin,
                     $x->holiday_pay,
+                    $x->actual_basic_pay,
                     $x->per_day_pay,
                     $x->reg_pay,
                     $x->gross_pay,
@@ -149,7 +151,7 @@ class Report1601C extends CORE_Controller
 
             $excel->getActiveSheet()->fromArray($rows,NULL,'A5');
             //autofit column
-            foreach(range('A','T') as $columnID)
+            foreach(range('A','U') as $columnID)
             {
                 $excel->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(TRUE);
             }

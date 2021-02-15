@@ -30,6 +30,7 @@
 				<th>Middle Name</th>
 				<th>TIN No.</th>
 				<th style="text-align: right;">+Holiday</th>
+				<th style="text-align: right;">Actual Basic Pay</th>
 				<th style="text-align: right;">/day</th>
 				<th style="text-align: right;">Gross Tax</th>
 				<th style="text-align: right;">Gross Pay</th>
@@ -58,6 +59,7 @@
 					<td><?php echo $row->middle_name; ?></td>
 					<td><?php echo $row->tin; ?></td>
 					<td align="right"><?php echo number_format($row->holiday_pay,2); ?></td>
+					<td align="right"><?php echo number_format($row->actual_basic_pay,2); ?></td>
 					<td align="right"><?php echo number_format($row->per_day_pay,2); ?></td>
 					<td align="right"><?php echo number_format($row->reg_pay,2); ?></td>
 					<td align="right"><?php echo number_format($row->gross_pay,2); ?></td>

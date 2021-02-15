@@ -108,6 +108,34 @@
 						<td><input type="text" class="numeric" value="<?php echo number_format($row->last_payroll,2); ?>" disabled></td>
 					</tr>	
 					<?php }?>
+
+					<?php if(count($clearance_additional)>0){ 
+						$total_additional=0;
+					?>
+						<tr>
+							<td colspan="2"></td>
+							<td>Additional</td>
+							<td>Amount</td>		
+						<tr>
+					<?php
+						foreach ($clearance_additional as $additional) {
+						$total_additional+=$additional->additional_amount;
+					?>
+						<tr>
+							<td colspan="2"></td>
+							<td><input type="text" value="<?php echo $additional->additional_description; ?>" disabled></td>
+							<td><input type="text" class="numeric" value="<?php echo number_format($additional->additional_amount,2); ?>" disabled></td>
+						</tr>
+					<?php }
+
+						echo "<tr>
+							<td colspan='2'></td>
+							<td align='right'>Total Additional:</td>
+							<td><input type='text' class='numeric' value='".number_format($total_additional,2)."' disabled></td>
+							</tr>";
+					}?>
+
+
 					<tr>
 						<td colspan="3" align="right" style="padding-right: 10px!important;"><b>Grand Total:</b></td>
 						<td><input type="text" class="numeric" value="<?php echo number_format($row->grand_total,2); ?>" disabled></td>

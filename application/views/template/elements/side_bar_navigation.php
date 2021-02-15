@@ -53,6 +53,7 @@
                                 <li class="right_1601C_report_view"><a href="Report1601C">1601C Report</a></li>
                                 <li class="right_monthly_work_hours_view"><a href="MonthlyWorkedHours">Monthly Worked Hours</a></li>
                                 <li class="right_monthly_loan_view"><a href="MonthlyLoan">Monthly Loan Report</a></li>
+                                <li class="right_monthly_employee_loan_view"><a href="monthly_employee_loan">Monthly Employee Loan</a></li>
                             </ul>
                         </li>
                         <li class="right_payroll_register_view"><a href="javascript:void();"><i class="fa fa-file-text" aria-hidden="true"></i><span>Payroll Register</span></a>

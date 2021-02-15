@@ -43,6 +43,7 @@ class EmployeeClearance extends CORE_Controller
         $this->load->model('PayrollReports_model');
         $this->load->model('GeneralSettings_model');
         $this->load->model('Employee_clearance_deduction_model');
+        $this->load->model('Employee_clearance_additional_model');
         $this->load->model('Emp_resignation_model');
         $this->load->model('Emp_13thmonth_model');
     }
@@ -126,6 +127,7 @@ class EmployeeClearance extends CORE_Controller
 
                 $data['clearance']=$this->Employee_clearance_model->get_clearance_list($filter_value);
                 $data['clearance_deduction']=$this->Employee_clearance_deduction_model->get_clearance_deduction($filter_value);
+                $data['clearance_additional']=$this->Employee_clearance_additional_model->get_clearance_additional($filter_value);
 
                 echo $this->load->view('template/employee_clearance_html',$data,TRUE);
             break;
@@ -134,7 +136,13 @@ class EmployeeClearance extends CORE_Controller
                 $employee_clearance_id = $this->input->post('employee_clearance_id', TRUE);
                 $response['data']=$this->Employee_clearance_deduction_model->get_clearance_deduction($employee_clearance_id);
                 echo json_encode($response);
-            break;
+            break;       
+
+            case 'getAdditional':
+                $employee_clearance_id = $this->input->post('employee_clearance_id', TRUE);
+                $response['data']=$this->Employee_clearance_additional_model->get_clearance_additional($employee_clearance_id);
+                echo json_encode($response);
+            break;      
 
             case 'getEmpInfo':
                 $employee_id = $this->input->post('employee_id', TRUE);
@@ -150,6 +158,7 @@ class EmployeeClearance extends CORE_Controller
             case 'create':
                 $m_clearance = $this->Employee_clearance_model;
                 $m_clearance_deduction = $this->Employee_clearance_deduction_model;
+                $m_clearance_additional = $this->Employee_clearance_additional_model;
                 $m_resignation = $this->Emp_resignation_model;
 
                 $currentDate = date('Y-m-d H:i:s');
@@ -200,6 +209,16 @@ class EmployeeClearance extends CORE_Controller
                      $m_clearance_deduction->deduction_description = $deduction_description[$i];
                      $m_clearance_deduction->deduction_amount = $this->get_numeric_value($deduction_amount[$i]);
                      $m_clearance_deduction->save();
+                 } 
+
+                $additional_description = $this->input->post('additional_description', TRUE);
+                $additional_amount = $this->input->post('additional_amount', TRUE);
+
+                for ($i=0;$i<count($additional_description);$i++) { 
+                     $m_clearance_additional->employee_clearance_id = $employee_clearance_id;
+                     $m_clearance_additional->additional_description = $additional_description[$i];
+                     $m_clearance_additional->additional_amount = $this->get_numeric_value($additional_amount[$i]);
+                     $m_clearance_additional->save();
                  } 
 
                 $m_resignation->employee_id = $employee_id;
@@ -284,6 +303,7 @@ class EmployeeClearance extends CORE_Controller
             case 'update':
                 $m_clearance = $this->Employee_clearance_model;
                 $m_clearance_deduction = $this->Employee_clearance_deduction_model;
+                $m_clearance_additional = $this->Employee_clearance_additional_model;
 
                 $employee_clearance_id = $this->input->post('employee_clearance_id', TRUE);
                 $currentDate = date('Y-m-d H:i:s');
@@ -332,6 +352,18 @@ class EmployeeClearance extends CORE_Controller
                      $m_clearance_deduction->deduction_description = $deduction_description[$i];
                      $m_clearance_deduction->deduction_amount = $this->get_numeric_value($deduction_amount[$i]);
                      $m_clearance_deduction->save();
+                 } 
+
+                $m_clearance_additional->delete_via_fk($employee_clearance_id);
+
+                $additional_description = $this->input->post('additional_description', TRUE);
+                $additional_amount = $this->input->post('additional_amount', TRUE);
+
+                for ($i=0;$i<count($additional_description);$i++) { 
+                     $m_clearance_additional->employee_clearance_id = $employee_clearance_id;
+                     $m_clearance_additional->additional_description = $additional_description[$i];
+                     $m_clearance_additional->additional_amount = $this->get_numeric_value($additional_amount[$i]);
+                     $m_clearance_additional->save();
                  } 
 
                 $response['title']='Success';
