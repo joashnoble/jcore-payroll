@@ -463,9 +463,10 @@ class PayrollReports_model extends CORE_Model {
         return $query->result();
     }
 
-     function get_monthly_employee_loan($year,$month,$employee_id){
+     function get_monthly_employee_loan($year,$employee_id){
         $query = $this->db->query("SELECT 
-                el.employee_id,
+                rpp.month_id,
+                rd.deduction_id,
                 rd.deduction_desc,
                 SUM(psd.deduction_amount) as loan_deduction
             FROM
@@ -478,12 +479,42 @@ class PayrollReports_model extends CORE_Model {
 
                 WHERE 
                     el.employee_id = $employee_id
-                    ".($month==0?"":" AND rpp.month_id='".$month."'")."
-                    AND rpp.pay_period_year = $year 
+                    AND rpp.pay_period_year = $year
                     AND rd.deduction_id > 4
                     AND (rd.deduction_type_id=1 OR rd.deduction_type_id=2 OR rd.deduction_type_id=4)
-                    GROUP BY psd.deduction_id");
+                    GROUP BY psd.deduction_id, rpp.month_id
+                    ORDER BY rd.deduction_id ASC, rpp.month_id ASC");
         return $query->result();
+    }
+
+     function get_employee_loan_desc($year,$employee_id){
+        $query = $this->db->query("SELECT 
+                DISTINCT 
+                el.employee_id,
+                rpp.pay_period_year,
+                rd.deduction_id,
+                rd.deduction_desc
+            FROM
+                pay_slip ps
+                LEFT JOIN daily_time_record dtr ON dtr.dtr_id = ps.dtr_id
+                LEFT JOIN employee_list el ON el.employee_id = dtr.employee_id
+                LEFT JOIN refpayperiod rpp ON rpp.pay_period_id = dtr.pay_period_id
+                LEFT JOIN pay_slip_deductions psd ON psd.pay_slip_id = ps.pay_slip_id
+                LEFT JOIN refdeduction rd ON rd.deduction_id = psd.deduction_id
+                WHERE 
+                    el.employee_id = $employee_id
+                    AND rpp.pay_period_year = $year
+                    AND rd.deduction_id > 4
+                    AND (rd.deduction_type_id=1 OR rd.deduction_type_id=2 OR rd.deduction_type_id=4)
+                    GROUP BY psd.deduction_id, rpp.month_id
+                    ORDER BY rd.deduction_id");
+        return $query->result();
+    }
+
+    function employee_loan($employee_id,$year) 
+    {
+        $query = $this->db->query("CALL employee_loans('$employee_id', '$year')");
+        return $query->result();        
     }
 
     function get_payroll_register($department,$branch,$pay_period,$type){

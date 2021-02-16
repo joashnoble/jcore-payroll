@@ -557,46 +557,17 @@ class PayrollReports extends CORE_Controller
 
             case 'monthly-employee-loan':
                 
-                $year = $filter_value;        
-                $month = $filter_value2;
-                $employee_id = $filter_value3;
+                $year = $filter_value;     
+                $employee_id = $filter_value2;
 
                 $getcompany=$this->GeneralSettings_model->get_list(
                     null,
                     'company_setup.*'
                 );
                 $data['company']=$getcompany[0];
-                $data['items']=$this->PayrollReports_model->get_monthly_employee_loan($year,$month,$employee_id);
+                $data['loans']=$this->PayrollReports_model->get_employee_loan_desc($year,$employee_id);
                 $data['year']=$year;
                 $data['employee'] = $this->Employee_model->get_list($employee_id)[0];
-
-                if ($month == 1){
-                    $data['month']='January';
-                }else if ($month == 2){
-                    $data['month']='February'; 
-                }else if ($month == 3){
-                    $data['month']='March';
-                }else if ($month == 4){
-                    $data['month']='April';
-                }else if ($month == 5){
-                    $data['month']='May';
-                }else if ($month == 6){
-                    $data['month']='June';
-                }else if ($month == 7){
-                    $data['month']='July';
-                }else if ($month == 8){
-                    $data['month']='August';
-                }else if ($month == 9){
-                    $data['month']='September';
-                }else if ($month == 10){
-                    $data['month']='October';
-                }else if ($month == 11){
-                    $data['month']='November';
-                }else if ($month == 12){
-                    $data['month']='December';
-                }else{
-                    $data['month']='All Months';
-                }
 
                 echo $this->load->view('template/monthly_employee_loan_html',$data,TRUE);
 

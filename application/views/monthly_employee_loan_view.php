@@ -85,25 +85,7 @@
                                                 ?>
                                               </select>
                                           </div>
-                                          <div class="col-md-3">
-                                              <label  style="font-weight: bold;" for="inputEmail1">Month :</label>
-                                              <select class="form-control" name="month_filter" id="month_filter" data-error-msg="Month Filter is required" required>
-                                                <option value="0">All Months</option>
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">May</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">September</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">December</option>
-                                              </select>
-                                          </div>
-                                          <div class="col-md-3">
+                                          <div class="col-md-3 col-md-offset-3">
                                                <button type="button" class="btn col-sm-6 form-control" id="print_monthly_loan" style="background-color:#27ae60; color:white;"><i class="fa fa-print"></i> Print</button>
                                                <button type="button" class="btn btn-primary col-sm-6 form-control" id="export_monthly_loan" style="background-color:#27ae60; color:white;margin-top: 5px;"><i class="fa fa-file-excel-o"></i> Export Excel</button>
                                           </div>
@@ -129,7 +111,6 @@
 <script>
 $(document).ready(function(){
     var _payperiod;
-    var _monthfilter;
     var _loanfilter;
 
     var d = new Date();
@@ -142,14 +123,6 @@ $(document).ready(function(){
 
     _payperiod.select2('val', '');
     $('#payperiod_filter').val(d.getFullYear()).trigger("change")
-
-    _monthfilter=$("#month_filter").select2({
-        placeholder: "Select Month",
-        allowClear: false
-    });
-
-    _monthfilter.select2('val', '');
-     $('#month_filter').val(n+1).trigger("change")
 
     _loanfilter=$("#cbo_employee").select2({
         placeholder: "Select an Employee",
@@ -172,13 +145,12 @@ $(document).ready(function(){
 
     var process_employee_monthly_worked_hours = function(){
         filter_pay_period = $('#payperiod_filter').val();
-        filter_month = $('#month_filter').val();
         filter_employee = $('#cbo_employee').val();
 
         $.ajax({
         "dataType":"html",
         "type":"POST",
-        "url":"PayrollReports/payrollreports/monthly-employee-loan/"+filter_pay_period+"/"+filter_month+"/"+filter_employee+"",
+        "url":"PayrollReports/payrollreports/monthly-employee-loan/"+filter_pay_period+"/"+filter_employee+"",
         beforeSend : function(){
                     $('#p_preview').html("<center><img src='assets/img/loader/preloaderimg.gif'><h3>Loading...</h3></center>");
                 },
@@ -193,20 +165,15 @@ $(document).ready(function(){
         process_employee_monthly_worked_hours();
     });
 
-    $("#month_filter").change(function(){
-        process_employee_monthly_worked_hours();
-    });
-
     $("#cbo_employee").change(function(){
         process_employee_monthly_worked_hours();
     });
 
     $('#export_monthly_loan').click(function(){
         filter_pay_period = $('#payperiod_filter').val();
-        filter_month = $('#month_filter').val();
         filter_employee = $('#cbo_employee').val();
         
-        window.open("monthly_employee_loan/layout/export_employee_monthly_loan/"+filter_pay_period+"/"+filter_month+"/"+filter_employee+"","_self");
+        window.open("monthly_employee_loan/layout/export_employee_monthly_loan/"+filter_pay_period+"/"+filter_employee+"","_self");
     });
 
     $('#print_monthly_loan').click(function(event){

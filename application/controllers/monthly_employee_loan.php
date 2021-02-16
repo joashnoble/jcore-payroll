@@ -46,143 +46,114 @@ class monthly_employee_loan extends CORE_Controller
             case 'export_employee_monthly_loan':
 
             $year = $filter_value;        
-            $month_temp = $filter_value2;
-            $employee_id = $filter_value3;
+            $employee_id = $filter_value2;
 
-            $items=$this->PayrollReports_model->get_monthly_employee_loan($year,$month_temp,$employee_id);
             $employee = $this->Employee_model->get_list($employee_id)[0];
+            $items=$this->PayrollReports_model->employee_loan($employee_id,$year);
             
             $excel=$this->excel;
 
             $excel->setActiveSheetIndex(0);
-            $month = "";
 
-            if ($month_temp == 1){
-                $month='January';
-            }else if ($month_temp == 2){
-                $month='February'; 
-            }else if ($month_temp == 3){
-                $month='March';
-            }else if ($month_temp == 4){
-                $month='April';
-            }else if ($month_temp == 5){
-                $month='May';
-            }else if ($month_temp == 6){
-                $month='June';
-            }else if ($month_temp == 7){
-                $month='July';
-            }else if ($month_temp == 8){
-                $month='August';
-            }else if ($month_temp == 9){
-                $month='September';
-            }else if ($month_temp == 10){
-                $month='October';
-            }else if ($month_temp == 11){
-                $month='November';
-            }else if ($month_temp == 12){
-                $month='December';
-            }else{
-                $month='All Months';
+            $employee_name = $employee->last_name.', '.$employee->first_name.' '.$employee->middle_name;
+
+            $excel->getActiveSheet()->setTitle($year);
+            $excel->getActiveSheet()->getStyle('A1:A2')->getFont()->setBold(TRUE);
+            $excel->getActiveSheet()->setCellValue('A1',$employee_name)
+                                    ->setCellValue('A2','FOR THE YEAR '.$year);
+     
+
+            $bouble_bottom = array(
+              'borders' => array(               
+                'bottom' => array(
+                  'style' => PHPExcel_Style_Border::BORDER_DOUBLE
+                )
+              )
+            );                                                                        
+
+            $rowCount1 = 3;
+            $column1 = 'A';
+
+            $excel->getActiveSheet()->getColumnDimension('A')->setWidth('30');
+            $excel->getActiveSheet()->getColumnDimension('B')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('C')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('D')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('E')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('F')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('G')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('H')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('I')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('K')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('L')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('M')->setWidth('12');
+            $excel->getActiveSheet()->getColumnDimension('N')->setWidth('12');
+
+            foreach($items[0] as $key => $value)
+            {
+
+                $excel->getActiveSheet()->setCellValue($column1.$rowCount1, $key); 
+                $excel->getActiveSheet()->getStyle($column1.$rowCount1)->getFont()->setBold(TRUE);
+
+                $excel->getActiveSheet()
+                        ->getStyle($column1.$rowCount1)
+                        ->getAlignment()
+                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+                $column1++;
+            }
+                                                              
+            //end of adding column names 
+            //start foreach loop to get data
+
+            $rowCount = 4;
+
+            foreach($items as $key => $values) 
+            {
+             //start of printing column names as names of MySQL fields 
+             $column = 'A';
+
+             foreach($values as $value) 
+             {
+
+                $excel->getActiveSheet()->setCellValue($column.$rowCount, $value);
+                $excel->getActiveSheet()->getStyle($column.$rowCount)->getNumberFormat()->setFormatCode('_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)'); 
+
+             $column++; 
+
+             } 
+
+             $rowCount++;
+
             }
 
-            $employee_name = $employee->ecode.' - '.$employee->last_name.', '.$employee->first_name.' '.$employee->middle_name;
+            // $rowCount2 = $rowCount;
+            // $column2 = 'A';
+            // $lastrow = count($items) + 5;
 
-            //name the worksheet
-            // $excel->getActiveSheet()->setTitle("Monthly Worked Hours (".$month."-".$filter_value.")");
-            $excel->getActiveSheet()->setTitle($month." ".$year);
+            // $excel->getActiveSheet()->getStyle($column.$rowCount.':'.$column.$lastrow)->getFont()->setBold(TRUE);
 
-            $excel->getActiveSheet()->getStyle('A1:A3')->getFont()->setBold(TRUE);
-            $excel->getActiveSheet()->setCellValue('A1',"Monthly Employee Loan")
-                                    ->setCellValue('A2',$employee_name)
-                                    ->setCellValue('A3',$month.' - '.$year);
+            // $excel->getActiveSheet()->setCellValue('AH31', $column.$rowCount); 
 
-            $excel->getActiveSheet()->mergeCells('A1:D1');
-            $excel->getActiveSheet()->mergeCells('A2:D2');
-            $excel->getActiveSheet()->mergeCells('A3:D3');
+            // foreach($items[0] as $key => $value)
+            // {
 
-            $excel->getActiveSheet()->getColumnDimension('A')->setWidth('5');
-            $excel->getActiveSheet()->getColumnDimension('B')->setWidth('30');
-            $excel->getActiveSheet()->getColumnDimension('C')->setWidth('20');
+            //     if($column2 == "M"){
+            //         $excel->getActiveSheet()->setCellValue($column2.$rowCount2, 'Total'); 
+            //     }else if($column2 == "N"){
+            //         $excel->getActiveSheet()->setCellValue($column2.$rowCount2, "=SUM(".$column2."6:".$column2.$lastrow.")"); 
 
+            //     $excel->getActiveSheet()->getStyle($column2.$rowCount2)->getNumberFormat()->setFormatCode('_(* #,##0.00_);_(* (#,##0.00);_(* "-"??_);_(@_)'); 
+            //     }
 
-            $excel->getActiveSheet()
-                ->getStyle('A5')
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-            $excel->getActiveSheet()
-                ->getStyle('B5')
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-            $excel->getActiveSheet()
-                ->getStyle('C5')
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+            //     $excel->getActiveSheet()->getStyle($column2.$rowCount2)->getFont()->setBold(TRUE);
+                
+            //     $column2++;
+            // }
 
 
-            //create headers
-            $excel->getActiveSheet()->getStyle('A5:C5')->getFont()->setBold(TRUE);
-            $excel->getActiveSheet()->setCellValue('A5', '#')
-                                    ->setCellValue('B5', 'Loan')
-                                    ->setCellValue('C5', 'Deduction');
 
-            $rows=array();
-            $i=6;
-            $a=1;
-            $total_deduction = 0;
-
-            if(count($items) > 0){
-            foreach($items as $x){
-
-                $total_deduction += $x->loan_deduction;
-                $excel->getActiveSheet()->getStyle('C'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
-                $excel->getActiveSheet()
-                    ->getStyle('A'.$i)
-                    ->getAlignment()
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                $excel->getActiveSheet()
-                    ->getStyle('B'.$i)
-                    ->getAlignment()
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-                $excel->getActiveSheet()
-                    ->getStyle('C'.$i)
-                    ->getAlignment()
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                $excel->getActiveSheet()->setCellValue('A'.$i,$a);
-                $excel->getActiveSheet()->setCellValue('B'.$i,$x->deduction_desc);
-                $excel->getActiveSheet()->setCellValue('C'.$i,number_format($x->loan_deduction,2));
-
-                $i++; 
-                $a++;
-
-            }
-            $excel->getActiveSheet()->mergeCells('A'.$i.':'.'B'.$i);
-            $excel->getActiveSheet()->setCellValue('A'.$i,'Total');
-            $excel->getActiveSheet()->getStyle('A'.$i.':C'.$i)->getFont()->setBold(TRUE);
-            $excel->getActiveSheet()->getStyle('C'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
-
-            $excel->getActiveSheet()
-                ->getStyle('A'.$i)
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-            $excel->getActiveSheet()->setCellValue('C'.$i,number_format($total_deduction,2));
-            $excel->getActiveSheet()
-                ->getStyle('C'.$i)
-                ->getAlignment()
-                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-            }else{
-                $excel->getActiveSheet()->mergeCells('A'.$i.':'.'C'.$i);
-                $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
-                $excel->getActiveSheet()
-                    ->getStyle('A'.$i)
-                    ->getAlignment()
-                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-            }
-
-
-            $filename = $employee->first_name.' '.$employee->middle_name.' '.$employee->last_name." Loans -  (".$month.' '.$year.")";
+            $filename = $employee->first_name.' '.$employee->middle_name.' '.$employee->last_name." Loans -  (".$year.")";
 
 
             // Redirect output to a client’s web browser (Excel2007)
