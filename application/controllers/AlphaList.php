@@ -137,20 +137,33 @@ class AlphaList extends CORE_Controller
                                     ->setCellValue('F6', 'Accumulated(13th Month Pay)')
                                     ->setCellValue('G6', 'Exemption')
                                     ->setCellValue('H6', 'Gross Pay')
-                                    ->setCellValue('I6', 'Deductions (Tax Shield)')
-                                    ->mergeCells('I6:K6')
-                                    ->setCellValue('I7','SSS')
-                                    ->setCellValue('J7','PhilHealth')
-                                    ->setCellValue('K7','Pag-Ibig')
-                                    ->setCellValue('L6', 'Taxable Income')
-                                    ->setCellValue('M6', 'Tax Due December');
+                                    ->setCellValue('I6', 'Deductions')
+                                    ->mergeCells('I6:O6')
+                                    ->setCellValue('I7','SSSeE')
+                                    ->setCellValue('J7','SSSeC')
+                                    ->setCellValue('K7','SSSeR')
+                                    ->setCellValue('L7','PHICeE')
+                                    ->setCellValue('M7','PHICeR')
+                                    ->setCellValue('N7','HDMFeE')
+                                    ->setCellValue('O7','HDMFeR')
+                                    ->setCellValue('P6', 'Taxable Income')
+                                    ->setCellValue('Q6', 'Tax Due December');
+
+
+                $excel->getActiveSheet()->getStyle('I6:O6')
+                            ->getAlignment()
+                            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+                $excel->getActiveSheet()->getStyle('I7:O7')
+                            ->getAlignment()
+                            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);                            
 
             $i=8;
             foreach($transaction as $x){
 
-                $excel->getActiveSheet()->getStyle('E'.$i.':'.'L'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+                $excel->getActiveSheet()->getStyle('E'.$i.':'.'Q'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
 
-                $excel->getActiveSheet()->getStyle('E'.$i.':L'.$i)
+                $excel->getActiveSheet()->getStyle('E'.$i.':Q'.$i)
                             ->getAlignment()
                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
@@ -158,24 +171,28 @@ class AlphaList extends CORE_Controller
                 $excel->getActiveSheet()->setCellValue('B'.$i,$x->first_name);
                 $excel->getActiveSheet()->setCellValue('C'.$i,$x->middle_name);
                 $excel->getActiveSheet()->setCellValue('D'.$i,$x->tin);
-                $excel->getActiveSheet()->setCellValue('E'.$i,number_format($x->wtax,2));
-                $excel->getActiveSheet()->setCellValue('F'.$i,number_format($x->acc_13thmonth_pay,2));
-                $excel->getActiveSheet()->setCellValue('G'.$i,number_format($x->tax_name,2));
-                $excel->getActiveSheet()->setCellValue('H'.$i,number_format($x->yearly_gross,2));
-                $excel->getActiveSheet()->setCellValue('I'.$i,number_format($x->yearly_sss,2));
-                $excel->getActiveSheet()->setCellValue('J'.$i,number_format($x->yearly_phil,2));
-                $excel->getActiveSheet()->setCellValue('K'.$i,number_format($x->yearly_pagibig,2));
-                $excel->getActiveSheet()->setCellValue('L'.$i,number_format($x->taxable_income,2));
+                $excel->getActiveSheet()->setCellValue('E'.$i,$x->wtax);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$x->acc_13thmonth_pay);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$x->tax_name);
+                $excel->getActiveSheet()->setCellValue('H'.$i,$x->yearly_gross);
+                $excel->getActiveSheet()->setCellValue('I'.$i,$x->yearly_sss);
+                $excel->getActiveSheet()->setCellValue('J'.$i,$x->sss_deduction_ec);
+                $excel->getActiveSheet()->setCellValue('K'.$i,$x->sss_deduction_employer);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$x->yearly_phil);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$x->yearly_phil);
+                $excel->getActiveSheet()->setCellValue('N'.$i,$x->yearly_pagibig);
+                $excel->getActiveSheet()->setCellValue('O'.$i,$x->yearly_pagibig);
+                $excel->getActiveSheet()->setCellValue('P'.$i,$x->taxable_income);
                 $i++;
 
             }
 
 
-            $excel->getActiveSheet()->getStyle('A6:M6')->getFill()
+            $excel->getActiveSheet()->getStyle('A6:Q6')->getFill()
                 ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('27ae60');
 
-            $excel->getActiveSheet()->getStyle('A7:M7')->getFill()
+            $excel->getActiveSheet()->getStyle('A7:Q7')->getFill()
                 ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
                 ->getStartColor()->setARGB('3CB371');
 
@@ -187,10 +204,10 @@ class AlphaList extends CORE_Controller
                     'name'  => 'Tahoma'
                 ));
 
-            $excel->getActiveSheet()->getStyle('A6:M7')->applyFromArray($styleArray);
+            $excel->getActiveSheet()->getStyle('A6:Q7')->applyFromArray($styleArray);
 
             //autofit column
-            foreach(range('A','M') as $columnID)
+            foreach(range('A','Q') as $columnID)
             {
                 $excel->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(TRUE);
             }

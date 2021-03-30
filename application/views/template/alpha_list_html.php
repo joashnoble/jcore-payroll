@@ -48,15 +48,19 @@
 				<th style="text-align: right;">13th Month Pay</th>
 				<!-- <th style="text-align: right;">Exemption</th> -->
 				<th style="text-align: right;">Gross Pay</th>
-				<th style="text-align: right;" colspan="3">Deduction (Tax Shield)</th>
+				<th style="text-align: center;" colspan="7">Deductions</th>
 				<th style="text-align: right;">Taxable Income</th>
 				<th style="text-align: right;">Tax Due December</th>
 			</tr>
 			<tr>
 				<th style="text-align: right;" colspan="8"></th>
-				<th style="text-align: right;">SSS</th>
-				<th style="text-align: right;">Pilhealth</th>
-				<th style="text-align: right;">Pagibig</th>
+				<th><center>SSSeE</center></th>
+				<th><center>SSSeC</center></th>
+				<th><center>SSSeR</center></th>
+				<th><center>PHICeE</center></th>
+				<th><center>PHICeR</center></th>
+				<th><center>HDMFeE</center></th>
+				<th><center>HDMFeR</center></th>
 				<th style="text-align: right;" colspan="2"></th>
 			</tr>
 		</thead>
@@ -75,7 +79,11 @@
 					<!-- <td align="right"><?php echo $row->tax_name; ?></td> -->
 					<td align="right"><?php echo number_format($row->yearly_gross,2); ?></td>
 					<td align="right"><?php echo number_format($row->yearly_sss,2); ?></td>
+					<td align="right"><?php echo number_format($row->sss_deduction_ec,2); ?></td>
+					<td align="right"><?php echo number_format($row->sss_deduction_employer,2); ?></td>
 					<td align="right"><?php echo number_format($row->yearly_phil,2); ?></td>
+					<td align="right"><?php echo number_format($row->yearly_phil,2); ?></td>
+					<td align="right"><?php echo number_format($row->yearly_pagibig,2); ?></td>
 					<td align="right"><?php echo number_format($row->yearly_pagibig,2); ?></td>
 					<td align="right"><?php echo number_format($row->taxable_income,2); ?></td>
 					<td align="right"></td>

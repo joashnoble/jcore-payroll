@@ -1680,6 +1680,8 @@ class PayrollReports_model extends CORE_Model {
                                         reftaxcode.tax_code as tax_name,
                                         ROUND(yearly_gross,2) as yearly_gross,
                                         yearly_sss,
+                                        sss_deduction_employer,
+                                        sss_deduction_ec,
                                         yearly_phil,
                                         yearly_pagibig,
                                         ROUND(yearly_gross - (yearly_sss + yearly_phil + yearly_pagibig),
@@ -1701,7 +1703,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 4
-                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
+                                                AND refpayperiod.pay_period_year = '".$filter_value."'
                                         GROUP BY employee_id) AS getwtax ON getwtax.employee_id = employee_list.employee_id
 
 
@@ -1716,12 +1718,14 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
                                         LEFT JOIN pay_slip ON pay_slip.dtr_id = daily_time_record.dtr_id
                                         WHERE
-                                            refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
+                                            refpayperiod.pay_period_year = '".$filter_value."'
                                         GROUP BY employee_id) AS gross ON gross.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
                                             daily_time_record.employee_id,
-                                                ROUND(SUM(pay_slip_deductions.deduction_amount), 2) AS yearly_sss
+                                                ROUND(SUM(pay_slip_deductions.deduction_amount), 2) AS yearly_sss,
+                                                ROUND(SUM(pay_slip_deductions.sss_deduction_employer),2) as sss_deduction_employer,
+                                                ROUND(SUM(pay_slip_deductions.sss_deduction_ec),2) as sss_deduction_ec
                                         FROM
                                             daily_time_record
                                         LEFT JOIN refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
@@ -1729,7 +1733,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 1
-                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
+                                                AND refpayperiod.pay_period_year = '".$filter_value."'
                                         GROUP BY employee_id) AS getsss ON getsss.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
@@ -1742,7 +1746,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 2
-                                                AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
+                                                AND refpayperiod.pay_period_year = '".$filter_value."'
                                         GROUP BY employee_id) AS getphil ON getphil.employee_id = employee_list.employee_id
                                             LEFT JOIN
                                         (SELECT
@@ -1755,7 +1759,7 @@ class PayrollReports_model extends CORE_Model {
                                         LEFT JOIN pay_slip_deductions ON pay_slip_deductions.pay_slip_id = pay_slip.pay_slip_id
                                         WHERE
                                             pay_slip_deductions.deduction_id = 3
-                                            AND refpayperiod.pay_period_end BETWEEN '".$start_date."' AND '".$end_date."'
+                                            AND refpayperiod.pay_period_year = '".$filter_value."'
                                         GROUP BY employee_id) AS getpagibig ON getpagibig.employee_id = employee_list.employee_id
                                         WHERE 
                                             employee_list.is_deleted = FALSE
