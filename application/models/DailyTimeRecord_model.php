@@ -814,7 +814,7 @@ class DailyTimeRecord_model extends CORE_Model {
                             ref_philhealth_contribution_id, 
                             (CASE
                                 WHEN '.$salary_reg_rates.' <= 10000 THEN employee
-                                WHEN '.$salary_reg_rates.' <= 69999.99 THEN (('.$salary_reg_rates.'*percentage)/2)
+                                WHEN '.$salary_reg_rates.' <= 59999.99 THEN (('.$salary_reg_rates.'*percentage)/2)
                                 ELSE employee
                             END) as employee
                         FROM
