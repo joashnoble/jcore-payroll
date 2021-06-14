@@ -38,6 +38,8 @@
 				<th style="text-align: right;">SSSeR</th>
 				<th style="text-align: right;">SSSeC</th>
 				<th style="text-align: right;">SSSeE</th>
+				<th style="text-align: right;">ER (MPF)</th>
+				<th style="text-align: right;">EE (MPF)</th>
 				<th style="text-align: right;">PHICeR</th>
 				<th style="text-align: right;">PHICeE</th>
 				<th style="text-align: right;">Compensation</th>
@@ -66,14 +68,16 @@
 					<td align="right"><?php echo number_format($row->sss_employer,2); ?></td>
 					<td align="right"><?php echo number_format($row->sss_employer_contribution,2); ?></td>
 					<td align="right"><?php echo number_format($row->sss_employee,2); ?></td>
+					<td align="right"><?php echo number_format($row->er_provident_fund,2); ?></td>
+					<td align="right"><?php echo number_format($row->ee_provident_fund,2); ?></td>
 					<td align="right"><?php echo number_format($row->phic,2); ?></td>
 					<td align="right"><?php echo number_format($row->phic,2); ?></td>
-					<td align="right"><?php echo number_format(($row->sss_employee+$row->phic+$row->hdmf),2); ?></td>
-					<td align="right"><?php echo number_format(($row->gross_pay-($row->sss_employee+$row->phic+$row->hdmf)),2); ?></td>
+					<td align="right"><?php echo number_format((($row->sss_employee+$row->ee_provident_fund)+$row->phic+$row->hdmf),2); ?></td>
+					<td align="right"><?php echo number_format(($row->gross_pay-(($row->sss_employee+$row->ee_provident_fund)+$row->phic+$row->hdmf)),2); ?></td>
 					<td align="right"><?php echo number_format($row->wtax,2);?></td>
 				</tr>
 			<?php }}else{ ?>
-					<td colspan="20">
+					<td colspan="22">
 						<center>
 							<span style="font-size: 12pt;">No Result</span>
 						</center>

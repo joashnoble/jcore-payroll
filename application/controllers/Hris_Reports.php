@@ -1309,9 +1309,9 @@ class Hris_Reports extends CORE_Controller
 
                         $end = "";
                         if ($month == "All"){
-                            $end = 'I';
+                            $end = 'K';
                         }else{
-                            $end = 'H';
+                            $end = 'K';
                         }
 
                             $excel->getActiveSheet()->mergeCells('A1:'.$end.'1');
@@ -1356,6 +1356,8 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->getColumnDimension('G')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('H')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('I')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('K')->setWidth('15');
                         }else{
                             $excel->getActiveSheet()->getColumnDimension('A')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('B')->setWidth('10');
@@ -1365,6 +1367,8 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->getColumnDimension('F')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('G')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('H')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('I')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('15');
                         }
 
                         $excel->getActiveSheet()
@@ -1372,24 +1376,13 @@ class Hris_Reports extends CORE_Controller
                                 ->getAlignment()
                                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-                        $excel->getActiveSheet()
-                                ->getStyle('F10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('G10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('H10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('I10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
                         if ($month == "All"){
+
+                            $excel->getActiveSheet()
+                                    ->getStyle('F10:K10')
+                                    ->getAlignment()
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Month');
                             $excel->getActiveSheet()->setCellValue('C10','Ecode');
@@ -1398,8 +1391,17 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('F10','Employee');
                             $excel->getActiveSheet()->setCellValue('G10','Employer');
                             $excel->getActiveSheet()->setCellValue('H10','EC');
-                            $excel->getActiveSheet()->setCellValue('I10','Total');
+                            $excel->getActiveSheet()->setCellValue('I10','ER (MPF)');
+                            $excel->getActiveSheet()->setCellValue('J10','EE (MPF)');
+                            $excel->getActiveSheet()->setCellValue('K10','Total');
                         }else{
+
+
+                            $excel->getActiveSheet()
+                                    ->getStyle('E10:K10')
+                                    ->getAlignment()
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Ecode');
                             $excel->getActiveSheet()->setCellValue('C10','Name');
@@ -1407,23 +1409,30 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('E10','Employee');
                             $excel->getActiveSheet()->setCellValue('F10','Employer');
                             $excel->getActiveSheet()->setCellValue('G10','EC');
-                            $excel->getActiveSheet()->setCellValue('H10','Total');
+                            $excel->getActiveSheet()->setCellValue('H10','ER (MPF)');
+                            $excel->getActiveSheet()->setCellValue('I10','EE (MPF)');
+                            $excel->getActiveSheet()->setCellValue('J10','Total');
                         }
 
                         $i = 11;
                         $total_sss=0;
                         $total_employer=0;
                         $total_ec=0;
+                        $total_er_mpf=0;
+                        $total_ee_mpf=0;
                         $grand_total = 0;
                         $row_total = 0;
                         $count=1;             
                         
                         if(count($sss_report)!=0 || count($sss_report)!=null){
                             foreach($sss_report as $row){
-                                $total_sss+=$row->employee;
                                 if ($row->employee != 0){
 
-                                $row_total = $row->employee + $row->employer + $row->employer_contribution;
+                                $row_total =  $row->employee + 
+                                              $row->employer + 
+                                              $row->employer_contribution +
+                                              $row->er_provident_fund +
+                                              $row->ee_provident_fund;
                                
                                 $excel->getActiveSheet()
                                         ->getStyle('A'.$i)
@@ -1436,52 +1445,48 @@ class Hris_Reports extends CORE_Controller
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);  
 
                                 $excel->getActiveSheet()
-                                        ->getStyle('F'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('G'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('H'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('I'.$i)
+                                        ->getStyle('F'.$i.':K'.$i)
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                                 $excel->getActiveSheet()->setCellValue('A'.$i,$count);
 
                                 if ($month == "All"){
+
+                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');               
+
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->periodmonth);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->full_name);
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);
-                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);     
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$row->employee);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$row->employer);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$row->employer_contribution);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$row->er_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$row->ee_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('K'.$i,$row_total);
                                 }else{
+
+                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');          
+
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->full_name);
-                                    $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);
-                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+                                    $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);          
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->employee);
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$row->employer);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$row->employer_contribution);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$row->er_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$row->ee_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$row_total);
                                 }
-                                    
-                                    
+                                
+                                    $total_sss+=$row->employee;
                                     $total_employer+=$row->employer;
                                     $total_ec+=$row->employer_contribution;
+                                    $total_er_mpf+=$row->er_provident_fund;
+                                    $total_ee_mpf+=$row->ee_provident_fund;
                                     $grand_total+=$row_total;
+
                                     $count++;
                                     $i++;
                             }}}
@@ -1493,10 +1498,10 @@ class Hris_Reports extends CORE_Controller
                                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);  
 
                                     if ($month == "All"){
-                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'I'.$i);
+                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'K'.$i);
                                         $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                     }else{
-                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'H'.$i);
+                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'I'.$i);
                                         $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                     }
 
@@ -1504,54 +1509,38 @@ class Hris_Reports extends CORE_Controller
                             }
 
                                 $excel->getActiveSheet()
-                                        ->getStyle('A'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('F'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('G'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('H'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('I'.$i)
+                                        ->getStyle('A'.$i.':K'.$i)
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                                 if ($month == "All"){
-                                    $excel->getActiveSheet()->mergeCells('A'.$i.':'.'E'.$i);
-                                    $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
                                     
-                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
+                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'K'.$i)
+                                            ->getNumberFormat()
+                                            ->setFormatCode('###,##0.00;(###,##0.00)');      
 
-                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'I'.$i)->getFont()->setBold(TRUE);
+                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'K'.$i)->getFont()->setBold(TRUE);
+                                    $excel->getActiveSheet()->mergeCells('A'.$i.':'.'E'.$i);
 
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$total_sss);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$total_employer);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$total_ec);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$total_er_mpf);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$total_ee_mpf);
+                                    $excel->getActiveSheet()->setCellValue('K'.$i,$grand_total);
                                 }else{
                                     $excel->getActiveSheet()->mergeCells('A'.$i.':'.'D'.$i);
+                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
+                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'K'.$i)->getFont()->setBold(TRUE);
+
                                     $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
-                                    
-                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-
-                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'H'.$i)->getFont()->setBold(TRUE);
-
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$total_sss);
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$total_employer);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$total_ec);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$total_er_mpf);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$total_ee_mpf);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$grand_total);
                                 }
 
                         if ($month == "All"){
@@ -1665,9 +1654,9 @@ class Hris_Reports extends CORE_Controller
 
                         $end = "";
                         if ($month == "All"){
-                            $end = 'I';
+                            $end = 'K';
                         }else{
-                            $end = 'H';
+                            $end = 'K';
                         }
 
                             $excel->getActiveSheet()->mergeCells('A1:'.$end.'1');
@@ -1712,6 +1701,8 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->getColumnDimension('G')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('H')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('I')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('K')->setWidth('15');
                         }else{
                             $excel->getActiveSheet()->getColumnDimension('A')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('B')->setWidth('10');
@@ -1721,6 +1712,8 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->getColumnDimension('F')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('G')->setWidth('15');
                             $excel->getActiveSheet()->getColumnDimension('H')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('I')->setWidth('15');
+                            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('15');
                         }
 
                         $excel->getActiveSheet()
@@ -1728,24 +1721,13 @@ class Hris_Reports extends CORE_Controller
                                 ->getAlignment()
                                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
-                        $excel->getActiveSheet()
-                                ->getStyle('F10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('G10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('H10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-                        $excel->getActiveSheet()
-                                ->getStyle('I10')
-                                ->getAlignment()
-                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
                         if ($month == "All"){
+
+                            $excel->getActiveSheet()
+                                    ->getStyle('F10:K10')
+                                    ->getAlignment()
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Month');
                             $excel->getActiveSheet()->setCellValue('C10','Ecode');
@@ -1754,8 +1736,17 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('F10','Employee');
                             $excel->getActiveSheet()->setCellValue('G10','Employer');
                             $excel->getActiveSheet()->setCellValue('H10','EC');
-                            $excel->getActiveSheet()->setCellValue('I10','Total');
+                            $excel->getActiveSheet()->setCellValue('I10','ER (MPF)');
+                            $excel->getActiveSheet()->setCellValue('J10','EE (MPF)');
+                            $excel->getActiveSheet()->setCellValue('K10','Total');
                         }else{
+
+
+                            $excel->getActiveSheet()
+                                    ->getStyle('E10:K10')
+                                    ->getAlignment()
+                                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
                             $excel->getActiveSheet()->setCellValue('A10','#');
                             $excel->getActiveSheet()->setCellValue('B10','Ecode');
                             $excel->getActiveSheet()->setCellValue('C10','Name');
@@ -1763,23 +1754,30 @@ class Hris_Reports extends CORE_Controller
                             $excel->getActiveSheet()->setCellValue('E10','Employee');
                             $excel->getActiveSheet()->setCellValue('F10','Employer');
                             $excel->getActiveSheet()->setCellValue('G10','EC');
-                            $excel->getActiveSheet()->setCellValue('H10','Total');
+                            $excel->getActiveSheet()->setCellValue('H10','ER (MPF)');
+                            $excel->getActiveSheet()->setCellValue('I10','EE (MPF)');
+                            $excel->getActiveSheet()->setCellValue('J10','Total');
                         }
 
                         $i = 11;
                         $total_sss=0;
                         $total_employer=0;
                         $total_ec=0;
+                        $total_er_mpf=0;
+                        $total_ee_mpf=0;
                         $grand_total = 0;
                         $row_total = 0;
                         $count=1;             
                         
                         if(count($sss_report)!=0 || count($sss_report)!=null){
                             foreach($sss_report as $row){
-                                $total_sss+=$row->employee;
                                 if ($row->employee != 0){
 
-                                $row_total = $row->employee + $row->employer + $row->employer_contribution;
+                                $row_total =  $row->employee + 
+                                              $row->employer + 
+                                              $row->employer_contribution +
+                                              $row->er_provident_fund +
+                                              $row->ee_provident_fund;
                                
                                 $excel->getActiveSheet()
                                         ->getStyle('A'.$i)
@@ -1792,52 +1790,48 @@ class Hris_Reports extends CORE_Controller
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);  
 
                                 $excel->getActiveSheet()
-                                        ->getStyle('F'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('G'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('H'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('I'.$i)
+                                        ->getStyle('F'.$i.':K'.$i)
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                                 $excel->getActiveSheet()->setCellValue('A'.$i,$count);
 
                                 if ($month == "All"){
+
+                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');               
+
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->periodmonth);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('D'.$i,$row->full_name);
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);
-                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($row_total,2));
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->sss);     
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$row->employee);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$row->employer);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$row->employer_contribution);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$row->er_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$row->ee_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('K'.$i,$row_total);
                                 }else{
+
+                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');          
+
                                     $excel->getActiveSheet()->setCellValue('B'.$i,$row->ecode);
                                     $excel->getActiveSheet()->setCellValue('C'.$i,$row->full_name);
-                                    $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);
-                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($row->employee,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($row->employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($row->employer_contribution,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($row_total,2));
+                                    $excel->getActiveSheet()->setCellValue('D'.$i,$row->sss);          
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$row->employee);
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$row->employer);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$row->employer_contribution);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$row->er_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$row->ee_provident_fund);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$row_total);
                                 }
-                                    
-                                    
+                                
+                                    $total_sss+=$row->employee;
                                     $total_employer+=$row->employer;
                                     $total_ec+=$row->employer_contribution;
+                                    $total_er_mpf+=$row->er_provident_fund;
+                                    $total_ee_mpf+=$row->ee_provident_fund;
                                     $grand_total+=$row_total;
+
                                     $count++;
                                     $i++;
                             }}}
@@ -1849,10 +1843,10 @@ class Hris_Reports extends CORE_Controller
                                             ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);  
 
                                     if ($month == "All"){
-                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'I'.$i);
+                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'K'.$i);
                                         $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                     }else{
-                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'H'.$i);
+                                        $excel->getActiveSheet()->mergeCells('A'.$i.':'.'I'.$i);
                                         $excel->getActiveSheet()->setCellValue('A'.$i,'No Result');
                                     }
 
@@ -1860,56 +1854,39 @@ class Hris_Reports extends CORE_Controller
                             }
 
                                 $excel->getActiveSheet()
-                                        ->getStyle('A'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('F'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('G'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('H'.$i)
-                                        ->getAlignment()
-                                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
-
-                                $excel->getActiveSheet()
-                                        ->getStyle('I'.$i)
+                                        ->getStyle('A'.$i.':K'.$i)
                                         ->getAlignment()
                                         ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
 
                                 if ($month == "All"){
-                                    $excel->getActiveSheet()->mergeCells('A'.$i.':'.'E'.$i);
-                                    $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
                                     
-                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
+                                    $excel->getActiveSheet()->getStyle('F'.$i.':'.'K'.$i)
+                                            ->getNumberFormat()
+                                            ->setFormatCode('###,##0.00;(###,##0.00)');      
 
-                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'I'.$i)->getFont()->setBold(TRUE);
+                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'K'.$i)->getFont()->setBold(TRUE);
+                                    $excel->getActiveSheet()->mergeCells('A'.$i.':'.'E'.$i);
 
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('I'.$i,number_format($grand_total,2));
+                                    $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$total_sss);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$total_employer);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$total_ec);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$total_er_mpf);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$total_ee_mpf);
+                                    $excel->getActiveSheet()->setCellValue('K'.$i,$grand_total);
                                 }else{
                                     $excel->getActiveSheet()->mergeCells('A'.$i.':'.'D'.$i);
+                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'K'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
+                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'K'.$i)->getFont()->setBold(TRUE);
+
                                     $excel->getActiveSheet()->setCellValue('A'.$i,'Total:');
-                                    
-                                    $excel->getActiveSheet()->getStyle('E'.$i.':'.'H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');                    
-
-                                    $excel->getActiveSheet()->getStyle('A'.$i.':'.'H'.$i)->getFont()->setBold(TRUE);
-
-                                    $excel->getActiveSheet()->setCellValue('E'.$i,number_format($total_sss,2));
-                                    $excel->getActiveSheet()->setCellValue('F'.$i,number_format($total_employer,2));
-                                    $excel->getActiveSheet()->setCellValue('G'.$i,number_format($total_ec,2));
-                                    $excel->getActiveSheet()->setCellValue('H'.$i,number_format($grand_total,2));
+                                    $excel->getActiveSheet()->setCellValue('E'.$i,$total_sss);
+                                    $excel->getActiveSheet()->setCellValue('F'.$i,$total_employer);
+                                    $excel->getActiveSheet()->setCellValue('G'.$i,$total_ec);
+                                    $excel->getActiveSheet()->setCellValue('H'.$i,$total_er_mpf);
+                                    $excel->getActiveSheet()->setCellValue('I'.$i,$total_ee_mpf);
+                                    $excel->getActiveSheet()->setCellValue('J'.$i,$grand_total);
                                 }
-
 
                         if ($month == "All"){
                             $filename = "SSS REPORT - ".$year;

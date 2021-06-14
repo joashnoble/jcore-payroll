@@ -95,7 +95,61 @@ class PayrollReports_model extends CORE_Model {
                             (ps.reg_hol_pay + ps.spe_hol_pay) AS holiday_pay,
                             rates.per_day_pay,
                             SUM(ps.reg_pay) AS reg_pay,
-                            rates.tax_shield AS gross_pay,
+                            (CASE
+                                WHEN rates.tax_shield > 0
+                                THEN rates.tax_shield
+                                ELSE SUM(ps.reg_pay)
+                            END) as gross_pay,
+
+                            (SELECT 
+                                    er_provident_fund
+                                FROM
+                                    ref_sss_contribution
+                                WHERE
+                                    ref_sss_contribution_id = (SELECT 
+                                            sss_id
+                                        FROM
+                                            pay_slip_deductions
+                                                LEFT JOIN
+                                            pay_slip ON pay_slip.pay_slip_id = pay_slip_deductions.pay_slip_id
+                                                LEFT JOIN
+                                            daily_time_record ON daily_time_record.dtr_id = pay_slip.dtr_id
+                                                LEFT JOIN
+                                            refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
+                                                LEFT JOIN
+                                            employee_list ON employee_list.employee_id = daily_time_record.employee_id
+                                        WHERE
+                                            refpayperiod.month_id = $month
+                                                AND refpayperiod.pay_period_year = $year
+                                                AND deduction_id = 1
+                                                AND employee_list.employee_id = emp.employee_id
+                                        LIMIT 1)) AS er_provident_fund,
+
+
+                            (SELECT 
+                                    ee_provident_fund
+                                FROM
+                                    ref_sss_contribution
+                                WHERE
+                                    ref_sss_contribution_id = (SELECT 
+                                            sss_id
+                                        FROM
+                                            pay_slip_deductions
+                                                LEFT JOIN
+                                            pay_slip ON pay_slip.pay_slip_id = pay_slip_deductions.pay_slip_id
+                                                LEFT JOIN
+                                            daily_time_record ON daily_time_record.dtr_id = pay_slip.dtr_id
+                                                LEFT JOIN
+                                            refpayperiod ON refpayperiod.pay_period_id = daily_time_record.pay_period_id
+                                                LEFT JOIN
+                                            employee_list ON employee_list.employee_id = daily_time_record.employee_id
+                                        WHERE
+                                            refpayperiod.month_id = $month
+                                                AND refpayperiod.pay_period_year = $year
+                                                AND deduction_id = 1
+                                                AND employee_list.employee_id = emp.employee_id
+                                        LIMIT 1)) AS ee_provident_fund,
+
                             (SELECT 
                                     employee
                                 FROM
@@ -819,21 +873,22 @@ class PayrollReports_model extends CORE_Model {
                                             CONCAT(el.last_name,', ',el.first_name,' ',el.middle_name) AS fullname,
                                             rpp.pay_period_start,
                                             rpp.pay_period_end,
-                                            psdsss.sss_deduction,
-                                            psdphil.philhealth_deduction,
-                                            psdpagibig.pagibig_deduction,
-                                            psdwtax.wtax_deduction,
-                                            psdsssloan.sssloan_deduction,
-                                            psdpagibigloan.pagibigloan_deduction,
-                                            psdcooploan.cooploan_deduction,
-                                            psdcoopcontrib.coopcontribution_deduction,
-                                            psdcashadvance.cashadvance_deduction,
+                                            COALESCE(psdsss.sss_deduction,0) as sss_deduction,
+                                            COALESCE(psdsss.sss_ee_mpf,0) as sss_ee_mpf,
+                                            COALESCE(psdphil.philhealth_deduction,0) as philhealth_deduction,
+                                            COALESCE(psdpagibig.pagibig_deduction,0) as pagibig_deduction,
+                                            COALESCE(psdwtax.wtax_deduction,0) as wtax_deduction,
+                                            COALESCE(psdsssloan.sssloan_deduction,0) as sssloan_deduction,
+                                            COALESCE(psdpagibigloan.pagibigloan_deduction,0) as pagibigloan_deduction,
+                                            COALESCE(psdcooploan.cooploan_deduction,0) as cooploan_deduction,
+                                            COALESCE(psdcoopcontrib.coopcontribution_deduction,0) as coopcontribution_deduction,
+                                            COALESCE(psdcashadvance.cashadvance_deduction,0) as cashadvance_deduction,
                                             COALESCE(ROUND(psoeall.allowance, 2), 0) AS allowance,
                                             COALESCE(ROUND(psoea.adjustment, 2), 0) AS adjustment,
                                             COALESCE(ROUND(psoec.other_earnings, 2), 0) AS other_earnings,
-                                            psdcalamityloan.calamityloan_deduction,
-                                            psdhdmfloan.hdmfloan_deduction,
-                                            psod.other_deductions
+                                            COALESCE(psdcalamityloan.calamityloan_deduction,0) as calamityloan_deduction,
+                                            COALESCE(psdhdmfloan.hdmfloan_deduction,0) as hdmfloan_deduction,
+                                            COALESCE(psod.other_deductions,0) as other_deductions
                                         FROM
                                             pay_slip AS ps
                                                 LEFT JOIN
@@ -854,7 +909,11 @@ class PayrollReports_model extends CORE_Model {
                                             (SELECT pay_slip_id, SUM(earnings_amount) AS other_earnings FROM pay_slip_other_earnings WHERE earnings_id != 1 AND earnings_id != 2
                                             GROUP BY pay_slip_id) AS psoec ON ps.pay_slip_id = psoec.pay_slip_id
                                                 LEFT JOIN
-                                            (SELECT pay_slip_id, (deduction_amount) AS sss_deduction FROM pay_slip_deductions WHERE deduction_id = 1) AS psdsss 
+                                            (SELECT 
+                                                psd.pay_slip_id, 
+                                                COALESCE(psd.sss_deduction_employee) AS sss_deduction,
+                                                COALESCE(psd.sss_ee_mpf,0) as sss_ee_mpf
+                                            FROM pay_slip_deductions psd WHERE deduction_id = 1) AS psdsss 
                                             ON ps.pay_slip_id = psdsss.pay_slip_id
                                                 LEFT JOIN
                                             (SELECT pay_slip_id, (deduction_amount) AS philhealth_deduction FROM pay_slip_deductions WHERE deduction_id = 2) AS psdphil 

@@ -393,10 +393,17 @@ class DailyTimeRecord_model extends CORE_Model {
                     FROM
                         (SELECT 
                             y.*,
-                                y.total_sss_deduction AS employee,
-                                (SELECT rsc.employer FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS employer,
+                                /*y.total_sss_deduction AS employee,*/
+                                (SELECT rsc.employee FROM ref_sss_contribution rsc 
+                                    WHERE rsc.ref_sss_contribution_id = y.sss_id) AS employee,
+                                (SELECT rsc.employer FROM ref_sss_contribution rsc 
+                                    WHERE rsc.ref_sss_contribution_id = y.sss_id) AS employer,
                                 (SELECT rsc.employer_contribution FROM ref_sss_contribution rsc
                                     WHERE rsc.ref_sss_contribution_id = y.sss_id) AS employer_contribution,
+                                (SELECT rsc.er_provident_fund FROM ref_sss_contribution rsc
+                                    WHERE rsc.ref_sss_contribution_id = y.sss_id) AS er_provident_fund,
+                                (SELECT rsc.ee_provident_fund FROM ref_sss_contribution rsc
+                                    WHERE rsc.ref_sss_contribution_id = y.sss_id) AS ee_provident_fund,
                                 (SELECT rsc.sub_total FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS sub_total,
                                 (SELECT rsc.total FROM ref_sss_contribution rsc WHERE rsc.ref_sss_contribution_id = y.sss_id) AS total
                         FROM
@@ -744,15 +751,32 @@ class DailyTimeRecord_model extends CORE_Model {
     }
 
     function SSS_lookup_default($salary_reg_rates) {
-      $tempsss = $this->db->query('SELECT ref_sss_contribution_id, total, employer as sss_deduction_employer, employer_contribution as sss_deduction_ec, employee as sss_deduction_employee FROM ref_sss_contribution WHERE '.$salary_reg_rates.' BETWEEN salary_range_from AND salary_range_to AND is_deleted = 0');
-                                    return $tempsss->result();
+      $tempsss = $this->db->query('SELECT 
+            ref_sss_contribution_id, 
+            total, 
+            employer as sss_deduction_employer, 
+            employee as sss_deduction_employee,
+            employer_contribution as sss_deduction_ec,
+            er_provident_fund as sss_er_mpf,
+            ee_provident_fund as sss_ee_mpf
+
+            FROM ref_sss_contribution 
+            WHERE '.$salary_reg_rates.' 
+                BETWEEN salary_range_from AND salary_range_to AND 
+                    is_deleted = 0');
+        
+        return $tempsss->result();
     }
 
     function get_current_deduction($month_id,$pay_period_year,$deduction_id,$employee_id){
         $query = $this->db->query("SELECT 
                         COALESCE(SUM(deduction_amount),0) as deduction,
+                        COALESCE(SUM(psd.sss_deduction_employee),0) as sss_deduction_employee,
                         COALESCE(SUM(psd.sss_deduction_employer),0) as sss_deduction_employer,
-                        COALESCE(SUM(psd.sss_deduction_ec),0) as sss_deduction_ec
+                        COALESCE(SUM(psd.sss_deduction_ec),0) as sss_deduction_ec,
+                        COALESCE(SUM(psd.sss_er_mpf),0) as sss_er_mpf,
+                        COALESCE(SUM(psd.sss_ee_mpf),0) as sss_ee_mpf
+
                     FROM
                         pay_slip ps 
                         LEFT JOIN daily_time_record dtr ON dtr.dtr_id = ps.dtr_id 
@@ -975,15 +999,22 @@ class DailyTimeRecord_model extends CORE_Model {
                                 $sun_nsd_pay = $processtemp[0]->nsd_sun_amt + $processtemp[0]->nsd_sun_reg_hol_amt + $processtemp[0]->nsd_sun_spe_hol_amt;
                                 //TOTAL DTR AMOUNT
                                 $total_dtr_amount=$reg_pay+$sun_pay+$day_off_pay+$reg_hol_pay+$spe_hol_pay+$reg_ot_pay+$sun_ot_pay+$reg_nsd_pay+$sun_nsd_pay;
+
                                 $total_deductions=0;
-                                $sssdeduct=0;
+
+                                // SSS Deductions
+                                $sssdeduct = 0;
+                                $sss_deduction_employee = 0;
                                 $sss_deduction_employer = 0;
                                 $sss_deduction_ec = 0;
+                                $sss_deduction_er_mpf = 0;
+                                $sss_deduction_ee_mpf = 0;
+
+                                // Philhealth Deductions
                                 $philhealthdeduct=0;
-                                $sss_deduction_employee = 0;
                                 $ref_payment_type_id_lookup=$processtemp[0]->ref_payment_type_id;
+
                                 $reg_amt = $processtemp[0]->reg_amt;
-                                //echo $total_dtr_amount;
 
                                 //GET FACTOR FILE
                                 $reffactorfile = $this->db->query('SELECT * FROM reffactorfile');
@@ -1019,13 +1050,10 @@ class DailyTimeRecord_model extends CORE_Model {
                                 if($sss_is_deduct==1){
 
                                     $sss_stat="true";
-                                    $sss = 0;
-                                    $refsss = 0;
-                                    $sssdeduct = 0;
-                                    $sss_deduction_employee = 0;
-                                    $sss_deduction_employer = 0;
-                                    $sss_deduction_ec = 0;
+
                                     $sss_amount= 0;
+                                    $sss = 0;
+                                    $sss_er = 0;
 
                                     if($processtemp[0]->sss_phic_salary_credit == 0.00 || $processtemp[0]->sss_phic_salary_credit == null){
                                         $sss_amount = $monthly_based_salary;
@@ -1034,52 +1062,82 @@ class DailyTimeRecord_model extends CORE_Model {
                                     }
 
                                     $refsss = $this->SSS_lookup_default($sss_amount);
-                                    $sss_id=$refsss[0]->ref_sss_contribution_id;
-                                    $sss = $refsss[0]->sss_deduction_employee;
 
+                                    // Get Data in SSS Table
+                                    $sss_id = $refsss[0]->ref_sss_contribution_id;
+                                    $sss = $refsss[0]->sss_deduction_employee + $refsss[0]->sss_ee_mpf;
+                                    $sss_er = $refsss[0]->sss_deduction_employer + $refsss[0]->sss_er_mpf;
+                                    $sssdeduct_employee = $refsss[0]->sss_deduction_employee;
+                                    $sssdeduct_employer = $refsss[0]->sss_deduction_employer;
+                                    $sssdeduct_ec = $refsss[0]->sss_deduction_ec;
+                                    $sssdeduct_er_mpf = $refsss[0]->sss_er_mpf;
+                                    $sssdeduct_ee_mpf = $refsss[0]->sss_ee_mpf;
+
+                                    // Get Current SSS Deduction
                                     $sss_current_deduction = $this->get_current_deduction($month_id,$pay_period_year,1,$processtemp[0]->employee_id);
 
-                                    $sss_c_deduction_amt = $sss_current_deduction[0]->deduction;
+                                    $sssdeduct_sss_amt = $sss_current_deduction[0]->sss_deduction_employee + 
+                                                         $sss_current_deduction[0]->sss_ee_mpf;
+
+                                    $sssdeduct_sss_er_amt = $sss_current_deduction[0]->sss_deduction_employer + 
+                                                         $sss_current_deduction[0]->sss_er_mpf;
+
+                                    $sss_deduction_employee_amt = $sss_current_deduction[0]->sss_deduction_employee;              
                                     $sss_deduction_employer_amt = $sss_current_deduction[0]->sss_deduction_employer;
                                     $sss_deduction_ec_amt = $sss_current_deduction[0]->sss_deduction_ec;
+                                    $sss_er_mpf_amt = $sss_current_deduction[0]->sss_er_mpf;
+                                    $sss_ee_mpf_amt = $sss_current_deduction[0]->sss_ee_mpf;
 
-                                    $sss_deduction_complete = $refsss[0]->sss_deduction_employee - $sss_c_deduction_amt;
+                                    $sss_deduction_complete = $sss - $sssdeduct_sss_er_amt;
 
                                     if ($sss_deduction_complete <= 0){
                                         $sss=0;
-                                        $sssdeduct=0;
+                                        $sssdeduct = 0;
+                                        $sss_deduction_employee = 0;
+                                        $sss_deduction_employer = 0;
+                                        $sss_deduction_ec = 0;
+                                        $sss_deduction_er_mpf = 0;
+                                        $sss_deduction_ee_mpf = 0;
                                         $sss_stat="false";
                                     }else{
 
                                         if($sss_full_deduct == 1){
-                                            $sssdeduct = ($refsss[0]->sss_deduction_employee - $sss_c_deduction_amt);
-                                            $sss_deduction_employee = ($refsss[0]->sss_deduction_employee - $sss_c_deduction_amt);
-                                            $sss_deduction_employer = ($refsss[0]->sss_deduction_employer - $sss_deduction_employer_amt);
-                                            $sss_deduction_ec = ($refsss[0]->sss_deduction_ec - $sss_deduction_ec_amt);
 
+                                            $sssdeduct = ($sss - $sssdeduct_sss_amt);
+                                            $sss_deduction_employee = ($sssdeduct_employee - $sss_deduction_employee_amt);
+                                            $sss_deduction_employer = ($sssdeduct_employer - $sss_deduction_employer_amt);
+                                            $sss_deduction_ec = ($sssdeduct_ec - $sss_deduction_ec_amt);
+                                            $sss_deduction_er_mpf = ($sssdeduct_er_mpf - $sss_er_mpf_amt);
+                                            $sss_deduction_ee_mpf = ($sssdeduct_ee_mpf - $sss_ee_mpf_amt);
+                                            
                                         }else{
 
                                             if ($ref_payment_type_id == 1){ // Semi-Monthly
 
-                                                $sssdeduct = $refsss[0]->sss_deduction_employee / 2;
-                                                $sss_deduction_employee = ($refsss[0]->sss_deduction_employee) / 2;
-                                                $sss_deduction_employer = ($refsss[0]->sss_deduction_employer) / 2;
-                                                $sss_deduction_ec = ($refsss[0]->sss_deduction_ec) / 2;
+                                                $sssdeduct = $sss / 2;
+                                                $sss_deduction_employee = ($sssdeduct_employee) / 2;
+                                                $sss_deduction_employer = ($sssdeduct_employer) / 2;
+                                                $sss_deduction_ec = ($sssdeduct_ec) / 2;
+                                                $sss_deduction_er_mpf = ($sssdeduct_er_mpf) / 2;
+                                                $sss_deduction_ee_mpf = ($sssdeduct_ee_mpf) / 2;
 
                                             }else if ($ref_payment_type_id == 2){ // Monthly
 
-                                                $sssdeduct = $refsss[0]->sss_deduction_employee;
-                                                $sss_deduction_employee = $refsss[0]->sss_deduction_employee;
-                                                $sss_deduction_employer = $refsss[0]->sss_deduction_employer;
-                                                $sss_deduction_ec = $refsss[0]->sss_deduction_ec;
+                                                $sssdeduct = $sss;
+                                                $sss_deduction_employee = $sssdeduct_employee;
+                                                $sss_deduction_employer = $sssdeduct_employer;
+                                                $sss_deduction_ec = $sssdeduct_ec;
+                                                $sss_deduction_er_mpf = $sssdeduct_er_mpf;
+                                                $sss_deduction_ee_mpf = $sssdeduct_ee_mpf;
 
                                             }else if ($ref_payment_type_id == 4){ // Weekly
 
-                                                $sssdeduct = $refsss[0]->sss_deduction_employee / $pcount;
-                                                $sss_deduction_employee = ($refsss[0]->sss_deduction_employee) / $pcount;
-                                                $sss_deduction_employer = ($refsss[0]->sss_deduction_employer) / $pcount;
-                                                $sss_deduction_ec = ($refsss[0]->sss_deduction_ec) / $pcount;
-
+                                                $sssdeduct = $sss / $pcount;
+                                                $sss_deduction_employee = ($sssdeduct_employee) / $pcount;
+                                                $sss_deduction_employer = ($sssdeduct_employer) / $pcount;
+                                                $sss_deduction_ec = ($sssdeduct_ec) / $pcount;
+                                                $sss_deduction_er_mpf = ($sssdeduct_er_mpf) / $pcount;
+                                                $sss_deduction_ee_mpf = ($sssdeduct_ee_mpf) / $pcount;
                                             }
                                         }
 
@@ -1087,7 +1145,12 @@ class DailyTimeRecord_model extends CORE_Model {
 
                                 }else{
                                     $sss=0;
-                                    $sssdeduct=0;
+                                    $sssdeduct = 0;
+                                    $sss_deduction_employee = 0;
+                                    $sss_deduction_employer = 0;
+                                    $sss_deduction_ec = 0;
+                                    $sss_deduction_er_mpf = 0;
+                                    $sss_deduction_ee_mpf = 0;
                                     $sss_stat="false";
                                 }
 
@@ -1589,9 +1652,11 @@ class DailyTimeRecord_model extends CORE_Model {
                                         'pay_slip_id' => $pay_slip_id,
                                         'deduction_id' => 1,
                                         'deduction_amount' => $sssdeduct,
+                                        'sss_deduction_employee' => $sss_deduction_employee,
                                         'sss_deduction_employer' => $sss_deduction_employer,
                                         'sss_deduction_ec' => $sss_deduction_ec,
-                                        'sss_deduction_employee' => $sss_deduction_employee,
+                                        'sss_er_mpf' => $sss_deduction_er_mpf,
+                                        'sss_ee_mpf' => $sss_deduction_ee_mpf,
                                         'sss_id' => $sss_id,
                                         'active_deduct' => TRUE,
                                      );
@@ -1604,9 +1669,11 @@ class DailyTimeRecord_model extends CORE_Model {
                                         'pay_slip_id' => $pay_slip_id,
                                         'deduction_id' => 1,
                                         'deduction_amount' => $sssdeduct,
-                                        'sss_deduction_employer' => $sss_deduction_employer,
-                                        'sss_deduction_ec' => $sss_deduction_ec,    
                                         'sss_deduction_employee' => $sss_deduction_employee,
+                                        'sss_deduction_employer' => $sss_deduction_employer,
+                                        'sss_deduction_ec' => $sss_deduction_ec,
+                                        'sss_er_mpf' => $sss_deduction_er_mpf,
+                                        'sss_ee_mpf' => $sss_deduction_ee_mpf,
                                         'active_deduct' => FALSE,
                                      );
                                     $this->db->insert_batch('pay_slip_deductions', $data_deductions);

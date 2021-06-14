@@ -39,6 +39,7 @@
 					<th>Absences</th>
 					<th width="7%">Grosspay</th>
 					<th width="6%">SSS Prem</th>
+					<th>EE (MPF)</th>
 					<th>SSS Loan</th>
 					<th>COOP Loan</th>
 					<th>COOP Contribution</th>
@@ -55,6 +56,7 @@
 					<th>Excess Break</th>
 					<th></th>
 					<th>Philhealth</th>
+					<th></th>
 					<th>Pagibig Loan</th>
 					<th>Calamity Loan</th>
 					<th>Advances</th>
@@ -70,6 +72,7 @@
 					<th class="border-bottom">Undertime</th>
 					<th class="border-bottom"></th>
 					<th class="border-bottom">Pagibig</th>
+					<th class="border-bottom"></th>
 					<th class="border-bottom">Wtax</th>
 					<th class="border-bottom">HDMF Loan</th>
 					<th class="border-bottom">Other Deduct</th>
@@ -88,6 +91,7 @@
 					$grand_days_wout_pay_amt=0;
 					$grand_gross_pay=0;
 					$grand_sss_deduction=0;
+					$grand_sss_ee_mpf=0;
 					$grand_sssloan_deduction=0;
 					$grand_cooploan_deduction=0;
 					$grand_coopcontribution_deduction=0;
@@ -117,7 +121,7 @@
 						if ($transaction->count > 0){
 						?>
 							<tr>
-								<td colspan="14" style="text-align: left;font-size: 9pt!important;background: lightgray!important;">
+								<td colspan="15" style="text-align: left;font-size: 9pt!important;background: lightgray!important;">
 									<center>
 										<b><?php echo $transaction->transaction_type; ?></b>
 									</center>
@@ -132,6 +136,7 @@
 					$sub_days_wout_pay_amt=0;
 					$sub_gross_pay=0;
 					$sub_sss_deduction=0;
+					$sub_sss_ee_mpf=0;
 					$sub_sssloan_deduction=0;
 					$sub_cooploan_deduction=0;
 					$sub_coopcontribution_deduction=0;
@@ -174,6 +179,7 @@
 						$days_wout_pay_amt=0;
 						$gross_pay=0;
 						$sss_deduction=0;
+						$sss_ee_mpf=0;
 						$sssloan_deduction=0;
 						$cooploan_deduction=0;
 						$coopcontribution_deduction=0;
@@ -212,6 +218,7 @@
 								$days_wout_pay_amt += $row->days_wout_pay_amt;
 								$gross_pay += $row->gross_pay;
 								$sss_deduction += $row->sss_deduction;
+								$sss_ee_mpf += $row->sss_ee_mpf;
 								$sssloan_deduction += $row->sssloan_deduction;
 								$cooploan_deduction += $row->cooploan_deduction;
 								$coopcontribution_deduction += $row->coopcontribution_deduction;
@@ -249,6 +256,7 @@
 							<td><?php echo number_format($row->days_wout_pay_amt,2);?></td>
 							<td><?php echo number_format($row->gross_pay,2);?></td>
 							<td><?php echo number_format($row->sss_deduction,2);?></td>
+							<td><?php echo number_format($row->sss_ee_mpf,2);?></td>
 							<td><?php echo number_format($row->sssloan_deduction,2);?></td>
 							<td><?php echo number_format($row->cooploan_deduction,2);?></td>
 							<td><?php echo number_format($row->coopcontribution_deduction,2);?></td>
@@ -264,6 +272,7 @@
 							<td><?php echo number_format($row->minutes_excess_break_amt,2);?></td>
 							<td></td>
 							<td><?php echo number_format($row->philhealth_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($row->pagibigloan_deduction,2); ?></td>
 							<td><?php echo number_format($row->calamityloan_deduction,2); ?></td>
 							<td><?php echo number_format($row->cashadvance_deduction,2); ?></td>
@@ -278,6 +287,7 @@
 							<td><?php echo number_format($row->minutes_undertime_amt,2); ?></td>
 							<td></td>
 							<td><?php echo number_format($row->pagibig_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($row->wtax_deduction,2); ?></td>
 							<td><?php echo number_format($row->hdmfloan_deduction,2); ?></td>
 							<td><?php echo number_format($row->other_deductions,2); ?></td>
@@ -298,6 +308,7 @@
 					$sub_days_wout_pay_amt += $days_wout_pay_amt;
 					$sub_gross_pay += $gross_pay;
 					$sub_sss_deduction += $sss_deduction;
+					$sub_sss_ee_mpf += $sss_ee_mpf;
 					$sub_sssloan_deduction += $sssloan_deduction;
 					$sub_cooploan_deduction += $cooploan_deduction;
 					$sub_coopcontribution_deduction += $coopcontribution_deduction;
@@ -327,7 +338,7 @@
 
  						<tr>
 							<td></td>
-							<td colspan="13"><hr style="border-top: 1px solid black; "></td>
+							<td colspan="14"><hr style="border-top: 1px solid black; "></td>
 						</tr>
 						<tr>
 							<td style="text-align: left;font-size: 9pt!important;">DEPT TOTAL</td>
@@ -339,6 +350,7 @@
 							<td><?php echo number_format($days_wout_pay_amt,2);?></td>
 							<td><?php echo number_format($gross_pay,2);?></td>
 							<td><?php echo number_format($sss_deduction,2);?></td>
+							<td><?php echo number_format($sss_ee_mpf,2);?></td>
 							<td><?php echo number_format($sssloan_deduction,2);?></td>
 							<td><?php echo number_format($cooploan_deduction,2);?></td>
 							<td><?php echo number_format($coopcontribution_deduction,2);?></td>
@@ -355,6 +367,7 @@
 							<td><?php echo number_format($minutes_excess_break_amt,2);?></td>
 							<td></td>
 							<td><?php echo number_format($philhealth_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($pagibigloan_deduction,2); ?></td>
 							<td><?php echo number_format($calamityloan_deduction,2); ?></td>
 							<td><?php echo number_format($cashadvance_deduction,2); ?></td>
@@ -369,6 +382,7 @@
 							<td><?php echo number_format($minutes_undertime_amt,2); ?></td>
 							<td></td>
 							<td><?php echo number_format($pagibig_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($wtax_deduction,2); ?></td>
 							<td><?php echo number_format($hdmfloan_deduction,2); ?></td>
 							<td><?php echo number_format($other_deductions,2); ?></td>
@@ -378,7 +392,7 @@
 
  						<tr>
 							<td></td>
-							<td colspan="13"><hr style="border-top: 2px solid black; "></td>
+							<td colspan="14"><hr style="border-top: 2px solid black; "></td>
 						</tr>
 						<tr style="font-weight: bold;">
 							<td style="text-align: left;font-size: 9pt!important;">TOTAL <?php echo $transaction->transaction_type; ?></td>
@@ -390,6 +404,7 @@
 							<td><?php echo number_format($sub_days_wout_pay_amt,2);?></td>
 							<td><?php echo number_format($sub_gross_pay,2);?></td>
 							<td><?php echo number_format($sub_sss_deduction,2);?></td>
+							<td><?php echo number_format($sub_sss_ee_mpf,2);?></td>
 							<td><?php echo number_format($sub_sssloan_deduction,2);?></td>
 							<td><?php echo number_format($sub_cooploan_deduction,2);?></td>
 							<td><?php echo number_format($sub_coopcontribution_deduction,2);?></td>
@@ -406,6 +421,7 @@
 							<td><?php echo number_format($sub_minutes_excess_break_amt,2);?></td>
 							<td></td>
 							<td><?php echo number_format($sub_philhealth_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($sub_pagibigloan_deduction,2); ?></td>
 							<td><?php echo number_format($sub_calamityloan_deduction,2); ?></td>
 							<td><?php echo number_format($sub_cashadvance_deduction,2); ?></td>
@@ -420,6 +436,7 @@
 							<td><?php echo number_format($sub_minutes_undertime_amt,2); ?></td>
 							<td></td>
 							<td><?php echo number_format($sub_pagibig_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($sub_wtax_deduction,2); ?></td>
 							<td><?php echo number_format($sub_hdmfloan_deduction,2); ?></td>
 							<td><?php echo number_format($sub_other_deductions,2); ?></td>
@@ -434,6 +451,7 @@
 								$grand_days_wout_pay_amt += $sub_days_wout_pay_amt;
 								$grand_gross_pay += $sub_gross_pay;
 								$grand_sss_deduction += $sub_sss_deduction;
+								$grand_sss_ee_mpf += $sub_sss_ee_mpf;
 								$grand_sssloan_deduction += $sub_sssloan_deduction;
 								$grand_cooploan_deduction += $sub_cooploan_deduction;
 								$grand_coopcontribution_deduction += $sub_coopcontribution_deduction;
@@ -461,10 +479,10 @@
 						} ?>
 						<?php if(count($payroll)>0){ ?>
 						<tr>
-							<td colspan="14">&nbsp;</td>
+							<td colspan="15">&nbsp;</td>
 						</tr>
 						<tr>
-							<td colspan="14" style="text-align: left;font-size: 9pt!important;background: lightgray!important;"><center><b>GRAND TOTAL</b></center></td>
+							<td colspan="15" style="text-align: left;font-size: 9pt!important;background: lightgray!important;"><center><b>GRAND TOTAL</b></center></td>
 						</tr>
 						<tr style="font-weight: bold;">
 							<td></td>
@@ -476,6 +494,7 @@
 							<td><?php echo number_format($grand_days_wout_pay_amt,2);?></td>
 							<td><?php echo number_format($grand_gross_pay,2);?></td>
 							<td><?php echo number_format($grand_sss_deduction,2);?></td>
+							<td><?php echo number_format($grand_sss_ee_mpf,2);?></td>
 							<td><?php echo number_format($grand_sssloan_deduction,2);?></td>
 							<td><?php echo number_format($grand_cooploan_deduction,2);?></td>
 							<td><?php echo number_format($grand_coopcontribution_deduction,2);?></td>
@@ -492,6 +511,7 @@
 							<td><?php echo number_format($grand_minutes_excess_break_amt,2);?></td>
 							<td></td>
 							<td><?php echo number_format($grand_philhealth_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($grand_pagibigloan_deduction,2); ?></td>
 							<td><?php echo number_format($grand_calamityloan_deduction,2); ?></td>
 							<td><?php echo number_format($grand_cashadvance_deduction,2); ?></td>
@@ -506,6 +526,7 @@
 							<td><?php echo number_format($grand_minutes_undertime_amt,2); ?></td>
 							<td></td>
 							<td><?php echo number_format($grand_pagibig_deduction,2); ?></td>
+							<td></td>
 							<td><?php echo number_format($grand_wtax_deduction,2); ?></td>
 							<td><?php echo number_format($grand_hdmfloan_deduction,2); ?></td>
 							<td><?php echo number_format($grand_other_deductions,2); ?></td>

@@ -85,7 +85,7 @@ class Report1601C extends CORE_Controller
             $excel->getActiveSheet()->mergeCells('A2:T2');
 
             //create headers
-            $excel->getActiveSheet()->getStyle('A4:T4')->getFont()->setBold(TRUE);
+            $excel->getActiveSheet()->getStyle('A4:V4')->getFont()->setBold(TRUE);
             $excel->getActiveSheet()->setCellValue('A4', '#')
                                     ->setCellValue('B4', 'ID No.')
                                     ->setCellValue('C4', 'Surname')
@@ -101,11 +101,13 @@ class Report1601C extends CORE_Controller
                                     ->setCellValue('M4', 'SSSeR')
                                     ->setCellValue('N4', 'SSSeC')
                                     ->setCellValue('O4', 'SSSeE')
-                                    ->setCellValue('P4', 'PHICeR')
-                                    ->setCellValue('Q4', 'PHICeE')
-                                    ->setCellValue('R4', 'Compensation')
-                                    ->setCellValue('S4', 'Salary')
-                                    ->setCellValue('T4', 'Withheld');
+                                    ->setCellValue('P4', 'EE (MPF)')
+                                    ->setCellValue('Q4', 'ER (MPF)')
+                                    ->setCellValue('R4', 'PHICeR')
+                                    ->setCellValue('S4', 'PHICeE')
+                                    ->setCellValue('T4', 'Compensation')
+                                    ->setCellValue('U4', 'Salary')
+                                    ->setCellValue('V4', 'Withheld');
             $rows=array();
             $i=1;
             foreach($transaction as $x){
@@ -128,10 +130,12 @@ class Report1601C extends CORE_Controller
                     $x->sss_employer,
                     $x->sss_employer_contribution,
                     $x->sss_employee,
+                    $x->er_provident_fund,
+                    $x->ee_provident_fund,
                     $x->phic,
                     $x->phic,
-                    ($x->sss_employee+$x->phic+$x->hdmf),
-                    ($x->gross_pay-($x->sss_employee+$x->phic+$x->hdmf)),
+                    ($x->sss_employee+$x->ee_provident_fund+$x->phic+$x->hdmf),
+                    ($x->gross_pay-($x->sss_employee+$x->ee_provident_fund+$x->phic+$x->hdmf)),
                     $x->wtax
                 );
 
@@ -149,7 +153,7 @@ class Report1601C extends CORE_Controller
 
             $excel->getActiveSheet()->fromArray($rows,NULL,'A5');
             //autofit column
-            foreach(range('A','T') as $columnID)
+            foreach(range('A','V') as $columnID)
             {
                 $excel->getActiveSheet()->getColumnDimension($columnID)->setAutoSize(TRUE);
             }

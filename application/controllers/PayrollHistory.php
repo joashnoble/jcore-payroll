@@ -616,6 +616,732 @@ class PayrollHistory extends CORE_Controller
                     echo $this->load->view('template/employee_payroll_summary_html',$data,TRUE);
                     break;
 
+    case 'export_employee_payroll_summary_detailed':
+
+            $ref_department_id = $filter_value;
+            $pay_period_id = $filter_value2;
+
+            $payroll=$this->PayrollReports_model->get_payroll_summary($pay_period_id,$ref_department_id);
+            $period=$this->RefPayPeriod_model->getperiod($pay_period_id);
+            $transactions=$this->RefPayPeriod_model->get_payroll_transaction($pay_period_id,$ref_department_id);
+            $departments = $this->RefDepartment_model->get_department_payslip($pay_period_id,$ref_department_id);
+            $company=$this->GeneralSettings_model->get_list()[0];
+            $factor=$this->RefFactorFile_model->get_list()[0];
+
+            if($filter_value!=="all"){
+                $getdepartment=$this->RefDepartment_model->get_list(
+                $filter_value,
+                'ref_department.department'
+                );
+                $get_department = $getdepartment[0]->department;
+            }
+            else{
+                $get_department = "All";
+            }
+
+            if($filter_value2!=0){
+                $period=$this->RefPayPeriod_model->getperiod($filter_value2);
+                $get_period = $period[0]->period;
+            }
+            else{
+                $get_period = "";
+            }
+
+            $excel = $this->excel;
+            $excel->setActiveSheetIndex(0);
+            $excel->getActiveSheet()->setTitle("PAYROLL SUMMARY");
+
+            $excel->getActiveSheet()->mergeCells('A1:O1');
+            $excel->getActiveSheet()->mergeCells('A2:O2');
+            $excel->getActiveSheet()->mergeCells('A3:O3');
+            $excel->getActiveSheet()->mergeCells('A4:O4');
+
+            $excel->getActiveSheet()->setCellValue('A1',$company->company_name)
+                                    ->setCellValue('A2',$company->address)
+                                    ->setCellValue('A3',$company->contact_no)
+                                    ->setCellValue('A4',$company->email_address);
+
+            $excel->getActiveSheet()->mergeCells('A5:O5');
+
+            $excel->getActiveSheet()->getStyle('A6'.':'.'O7')->getFont()->setBold(TRUE);
+            $excel->getActiveSheet()->mergeCells('A6:O6');
+            $excel->getActiveSheet()->mergeCells('A7:O7');
+
+            $excel->getActiveSheet()->setCellValue('A6','Pay Period : '.$get_period)
+                                    ->setCellValue('A7','Department : '.$get_department);
+
+            $excel->getActiveSheet()->getColumnDimension('A')->setWidth('40');
+            $excel->getActiveSheet()->getColumnDimension('B')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('C')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('D')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('E')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('F')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('G')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('H')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('I')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('J')->setWidth('20');
+            $excel->getActiveSheet()->getColumnDimension('K')->setWidth('15');
+            $excel->getActiveSheet()->getColumnDimension('L')->setWidth('15');
+            $excel->getActiveSheet()->getColumnDimension('M')->setWidth('15');
+            $excel->getActiveSheet()->getColumnDimension('N')->setWidth('15');
+            $excel->getActiveSheet()->getColumnDimension('O')->setWidth('15');
+
+            $excel->getActiveSheet()->getStyle('A9:O9')->getFont()->setBold(TRUE);
+            $excel->getActiveSheet()->getStyle('A10:O10')->getFont()->setBold(TRUE);
+            $excel->getActiveSheet()->getStyle('A11:O11')->getFont()->setBold(TRUE);
+
+            $excel->getActiveSheet()
+                    ->getStyle('B9:O9')
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+            $excel->getActiveSheet()
+                    ->getStyle('B10:O10')
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+            $excel->getActiveSheet()
+                    ->getStyle('A11')
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            $excel->getActiveSheet()
+                    ->getStyle('B11:O11')
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);                                                       
+
+            $excel->getActiveSheet()->setCellValue('A9','');
+            $excel->getActiveSheet()->setCellValue('B9','Basic Pay');
+            $excel->getActiveSheet()->setCellValue('C9','Legal Hol ('.number_format($factor->regular_holiday,2).')');
+            $excel->getActiveSheet()->setCellValue('D9','Spcl Hol ('.number_format($factor->spe_holiday,2).')');
+            $excel->getActiveSheet()->setCellValue('E9','Reg Hol OT ('.number_format($factor->regular_holiday_ot,2).')');
+            $excel->getActiveSheet()->setCellValue('F9','Days w/ Pay');
+            $excel->getActiveSheet()->setCellValue('G9','Absences');
+            $excel->getActiveSheet()->setCellValue('H9','Grosspay');
+            $excel->getActiveSheet()->setCellValue('I9','SSS Prem');
+            $excel->getActiveSheet()->setCellValue('J9','EE (MPF)');
+            $excel->getActiveSheet()->setCellValue('K9','SSS Loan');
+            $excel->getActiveSheet()->setCellValue('L9','COOP Loan');
+            $excel->getActiveSheet()->setCellValue('M9','COOP Contribution');
+            $excel->getActiveSheet()->setCellValue('N9','Total Deduction');
+            $excel->getActiveSheet()->setCellValue('O9','NetPay');
+
+            $excel->getActiveSheet()->setCellValue('A10','');
+            $excel->getActiveSheet()->setCellValue('B10','Basic Allowance');
+            $excel->getActiveSheet()->setCellValue('C10','Night Diff ('.number_format($factor->night_shift,2).')');
+            $excel->getActiveSheet()->setCellValue('D10','Rest Day ('.number_format($factor->day_off,2).')');
+            $excel->getActiveSheet()->setCellValue('E10','Spcl Hol OT ('.number_format($factor->spe_holiday_ot,2).')');
+            $excel->getActiveSheet()->setCellValue('F10','Other Earnings');
+            $excel->getActiveSheet()->setCellValue('G10','Excess Break');
+            $excel->getActiveSheet()->setCellValue('H10','');
+            $excel->getActiveSheet()->setCellValue('I10','Philhealth');
+            $excel->getActiveSheet()->setCellValue('J10','');
+            $excel->getActiveSheet()->setCellValue('K10','Pagibig Loan');
+            $excel->getActiveSheet()->setCellValue('L10','Calamity Loan');
+            $excel->getActiveSheet()->setCellValue('M10','Advances');
+            $excel->getActiveSheet()->setCellValue('N10','');
+            $excel->getActiveSheet()->setCellValue('O10','');
+
+            $excel->getActiveSheet()->setCellValue('A11','Name');
+            $excel->getActiveSheet()->setCellValue('B11','');
+            $excel->getActiveSheet()->setCellValue('C11','Sun Pay ('.number_format($factor->sunday,2).')');
+            $excel->getActiveSheet()->setCellValue('D11','Reg OT ('.number_format($factor->regular_ot,2).')');
+            $excel->getActiveSheet()->setCellValue('E11','Adjustment');
+            $excel->getActiveSheet()->setCellValue('F11','Tardiness');
+            $excel->getActiveSheet()->setCellValue('G11','Undertime');
+            $excel->getActiveSheet()->setCellValue('H11','');
+            $excel->getActiveSheet()->setCellValue('I11','Pagibig');
+            $excel->getActiveSheet()->setCellValue('J11','');
+            $excel->getActiveSheet()->setCellValue('K11','WTAX');
+            $excel->getActiveSheet()->setCellValue('L11','HDMF Loan');
+            $excel->getActiveSheet()->setCellValue('M11','Other Deduct');
+            $excel->getActiveSheet()->setCellValue('N11','');
+            $excel->getActiveSheet()->setCellValue('O11','');
+
+            $i = 12;
+            $count=1;
+            $grand_reg_pay=0;
+            $grand_reg_hol_pay=0;
+            $grand_spe_hol_pay=0;
+            $grand_ot_reg_hol_amt=0;
+            $grand_days_with_pay_amt=0;
+            $grand_days_wout_pay_amt=0;
+            $grand_gross_pay=0;
+            $grand_sss_deduction=0;
+            $grand_sss_ee_mpf=0;
+            $grand_sssloan_deduction=0;
+            $grand_cooploan_deduction=0;
+            $grand_coopcontribution_deduction=0;
+            $grand_total_deductions=0;
+            $grand_net_pay=0;
+            $grand_allowance=0;
+            $grand_nsd_pay=0;
+            $grand_day_off_pay=0;
+            $grand_ot_spe_hol_amt=0;
+            $grand_other_earnings=0;
+            $grand_minutes_excess_break_amt=0;
+            $grand_philhealth_deduction=0;
+            $grand_pagibigloan_deduction=0;
+            $grand_calamityloan_deduction=0;
+            $grand_cashadvance_deduction=0;
+            $grand_sun_pay=0;
+            $grand_ot_reg_amt=0;
+            $grand_adjustment=0;
+            $grand_minutes_late_amt=0;
+            $grand_minutes_undertime_amt=0;
+            $grand_pagibig_deduction=0;
+            $grand_wtax_deduction=0;
+            $grand_hdmfloan_deduction=0;
+            $grand_other_deductions=0;
+
+            foreach($transactions as $transaction){
+                if ($transaction->count > 0){
+                    $excel->getActiveSheet()->mergeCells('A'.$i.':O'.$i);
+                    $excel->getActiveSheet()
+                            ->getStyle('A'.$i)
+                            ->getAlignment()
+                            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                    $excel->getActiveSheet()->getStyle('A'.$i)->getFont()->setBold(TRUE);
+
+                    $excel->getActiveSheet()->getStyle('A'.$i)->applyFromArray(
+                        array(
+                            'fill' => array(
+                                'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                                'color' => array('rgb' => 'd3d3d3')
+                            )
+                        )
+                    );
+
+                    $excel->getActiveSheet()->setCellValue('A'.$i,$transaction->transaction_type);
+                    $i++;
+
+                    $sub_reg_pay=0;
+                    $sub_reg_hol_pay=0;
+                    $sub_spe_hol_pay=0;
+                    $sub_ot_reg_hol_amt=0;
+                    $sub_days_with_pay_amt=0;
+                    $sub_days_wout_pay_amt=0;
+                    $sub_gross_pay=0;
+                    $sub_sss_deduction=0;
+                    $sub_sss_ee_mpf=0;
+                    $sub_sssloan_deduction=0;
+                    $sub_cooploan_deduction=0;
+                    $sub_coopcontribution_deduction=0;
+                    $sub_total_deductions=0;
+                    $sub_net_pay=0;
+                    $sub_allowance=0;
+                    $sub_nsd_pay=0;
+                    $sub_day_off_pay=0;
+                    $sub_ot_spe_hol_amt=0;
+                    $sub_other_earnings=0;
+                    $sub_minutes_excess_break_amt=0;
+                    $sub_philhealth_deduction=0;
+                    $sub_pagibigloan_deduction=0;
+                    $sub_calamityloan_deduction=0;
+                    $sub_cashadvance_deduction=0;
+                    $sub_sun_pay=0;
+                    $sub_ot_reg_amt=0;
+                    $sub_adjustment=0;
+                    $sub_minutes_late_amt=0;
+                    $sub_minutes_undertime_amt=0;
+                    $sub_pagibig_deduction=0;
+                    $sub_wtax_deduction=0;
+                    $sub_hdmfloan_deduction=0;
+                    $sub_other_deductions=0;
+
+                    foreach($departments as $department){
+                        if ($department->type == $transaction->type){
+
+                        $excel->getActiveSheet()->mergeCells('A'.$i.':O'.$i);
+                        $excel->getActiveSheet()
+                                ->getStyle('A'.$i)
+                                ->getAlignment()
+                                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+                        $excel->getActiveSheet()->getStyle('A'.$i)->getFont()->setBold(TRUE);
+                        $excel->getActiveSheet()->setCellValue('A'.$i,$department->department);
+                        $i++;
+
+                        $reg_pay=0;
+                        $reg_hol_pay=0;
+                        $spe_hol_pay=0;
+                        $ot_reg_hol_amt=0;
+                        $days_with_pay_amt=0;
+                        $days_wout_pay_amt=0;
+                        $gross_pay=0;
+                        $sss_deduction=0;
+                        $sss_ee_mpf=0;
+                        $sssloan_deduction=0;
+                        $cooploan_deduction=0;
+                        $coopcontribution_deduction=0;
+                        $total_deductions=0;
+                        $net_pay=0;
+                        $allowance=0;
+                        $nsd_pay=0;
+                        $day_off_pay=0;
+                        $ot_spe_hol_amt=0;
+                        $other_earnings=0;
+                        $minutes_excess_break_amt=0;
+                        $philhealth_deduction=0;
+                        $pagibigloan_deduction=0;
+                        $calamityloan_deduction=0;
+                        $cashadvance_deduction=0;
+                        $sun_pay=0;
+                        $ot_reg_amt=0;
+                        $adjustment=0;
+                        $minutes_late_amt=0;
+                        $minutes_undertime_amt=0;
+                        $pagibig_deduction=0;
+                        $wtax_deduction=0;
+                        $hdmfloan_deduction=0;
+                        $other_deductions=0;
+
+                        foreach($payroll as $row){
+
+                            if(($row->ref_department_id == $department->ref_department_id) AND ($row->bank_account_isprocess == $transaction->type)){
+
+                                $reg_pay += $row->reg_pay;
+                                $reg_hol_pay += $row->reg_hol_pay;
+                                $spe_hol_pay += $row->spe_hol_pay;
+                                $ot_reg_hol_amt += $row->ot_reg_reg_hol_amt+$row->ot_sun_reg_hol_amt;
+                                $days_with_pay_amt += $row->days_with_pay_amt;
+                                $days_wout_pay_amt += $row->days_wout_pay_amt;
+                                $gross_pay += $row->gross_pay;
+                                $sss_deduction += $row->sss_deduction;
+                                $sss_ee_mpf += $row->sss_ee_mpf;
+                                $sssloan_deduction += $row->sssloan_deduction;
+                                $cooploan_deduction += $row->cooploan_deduction;
+                                $coopcontribution_deduction += $row->coopcontribution_deduction;
+                                $total_deductions += $row->total_deductions;
+                                $net_pay += $row->net_pay;  
+                                $allowance += $row->allowance;
+                                $nsd_pay += $row->reg_nsd_pay+$row->sun_nsd_pay;
+                                $day_off_pay += $row->day_off_pay;
+                                $ot_spe_hol_amt += $row->ot_reg_spe_hol_amt+$row->ot_sun_spe_hol_amt;
+                                $other_earnings += $row->other_earnings;
+                                $minutes_excess_break_amt += $row->minutes_excess_break_amt;
+                                $philhealth_deduction += $row->philhealth_deduction;
+                                $pagibigloan_deduction += $row->pagibigloan_deduction;
+                                $calamityloan_deduction += $row->calamityloan_deduction;
+                                $cashadvance_deduction += $row->cashadvance_deduction;
+                                $sun_pay += $row->sun_pay;
+                                $ot_reg_amt += $row->ot_reg_amt+$row->ot_sun_amt;
+                                $adjustment += $row->adjustment;
+                                $minutes_late_amt += $row->minutes_late_amt;
+                                $minutes_undertime_amt += $row->minutes_undertime_amt;
+                                $pagibig_deduction += $row->pagibig_deduction;
+                                $wtax_deduction += $row->wtax_deduction;
+                                $hdmfloan_deduction += $row->hdmfloan_deduction;
+                                $other_deductions += $row->other_deductions;
+
+                                $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+
+                                $excel->getActiveSheet()->setCellValue('A'.$i,$count.' '.$row->fullname);
+                                $excel->getActiveSheet()->setCellValue('B'.$i,$row->reg_pay);
+                                $excel->getActiveSheet()->setCellValue('C'.$i,$row->reg_hol_pay);
+                                $excel->getActiveSheet()->setCellValue('D'.$i,$row->spe_hol_pay);
+                                $excel->getActiveSheet()->setCellValue('E'.$i,$row->ot_reg_reg_hol_amt+$row->ot_sun_reg_hol_amt);
+                                $excel->getActiveSheet()->setCellValue('F'.$i,$row->days_with_pay_amt);
+                                $excel->getActiveSheet()->setCellValue('G'.$i,$row->days_wout_pay_amt);
+                                $excel->getActiveSheet()->setCellValue('H'.$i,$row->gross_pay);
+                                $excel->getActiveSheet()->setCellValue('I'.$i,$row->sss_deduction);
+                                $excel->getActiveSheet()->setCellValue('J'.$i,$row->sss_ee_mpf);
+                                $excel->getActiveSheet()->setCellValue('K'.$i,$row->sssloan_deduction);
+                                $excel->getActiveSheet()->setCellValue('L'.$i,$row->cooploan_deduction);
+                                $excel->getActiveSheet()->setCellValue('M'.$i,$row->coopcontribution_deduction);
+                                $excel->getActiveSheet()->setCellValue('N'.$i,$row->total_deductions);
+                                $excel->getActiveSheet()->setCellValue('O'.$i,$row->net_pay);
+
+                                $i++;
+
+                                $excel->getActiveSheet()->getStyle('B'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('B'.$i,$row->allowance);
+                                $excel->getActiveSheet()->setCellValue('C'.$i,$row->reg_nsd_pay+$row->sun_nsd_pay);
+                                $excel->getActiveSheet()->setCellValue('D'.$i,$row->day_off_pay);
+                                $excel->getActiveSheet()->setCellValue('E'.$i,$row->ot_reg_spe_hol_amt+$row->ot_sun_spe_hol_amt);
+                                $excel->getActiveSheet()->setCellValue('F'.$i,$row->other_earnings);
+                                $excel->getActiveSheet()->setCellValue('G'.$i,$row->minutes_excess_break_amt);
+                                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('I'.$i,$row->philhealth_deduction);
+                                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('K'.$i,$row->pagibigloan_deduction);
+                                $excel->getActiveSheet()->setCellValue('L'.$i,$row->calamityloan_deduction);
+                                $excel->getActiveSheet()->setCellValue('M'.$i,$row->cashadvance_deduction);
+                                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                                $i++;
+
+                                $excel->getActiveSheet()->getStyle('C'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('B'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('C'.$i,$row->sun_pay);
+                                $excel->getActiveSheet()->setCellValue('D'.$i,$row->ot_reg_amt+$row->ot_sun_amt);
+                                $excel->getActiveSheet()->setCellValue('E'.$i,$row->adjustment);
+                                $excel->getActiveSheet()->setCellValue('F'.$i,$row->minutes_late_amt);
+                                $excel->getActiveSheet()->setCellValue('G'.$i,$row->minutes_undertime_amt);
+                                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('I'.$i,$row->pagibig_deduction);
+                                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('K'.$i,$row->wtax_deduction);
+                                $excel->getActiveSheet()->setCellValue('L'.$i,$row->hdmfloan_deduction);
+                                $excel->getActiveSheet()->setCellValue('M'.$i,$row->other_deductions);
+                                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+                                $i++; $count++;
+                            }
+                        }
+
+                        $sub_reg_pay += $reg_pay;
+                        $sub_reg_hol_pay += $reg_hol_pay;
+                        $sub_spe_hol_pay += $spe_hol_pay;
+                        $sub_ot_reg_hol_amt += $ot_reg_hol_amt;
+                        $sub_days_with_pay_amt += $days_with_pay_amt;
+                        $sub_days_wout_pay_amt += $days_wout_pay_amt;
+                        $sub_gross_pay += $gross_pay;
+                        $sub_sss_deduction += $sss_deduction;
+                        $sub_sss_ee_mpf += $sss_ee_mpf;
+                        $sub_sssloan_deduction += $sssloan_deduction;
+                        $sub_cooploan_deduction += $cooploan_deduction;
+                        $sub_coopcontribution_deduction += $coopcontribution_deduction;
+                        $sub_total_deductions += $total_deductions;
+                        $sub_net_pay += $net_pay;
+                        $sub_allowance += $allowance;
+                        $sub_nsd_pay += $nsd_pay;
+                        $sub_day_off_pay += $day_off_pay;
+                        $sub_ot_spe_hol_amt += $ot_spe_hol_amt;
+                        $sub_other_earnings += $other_earnings;
+                        $sub_minutes_excess_break_amt += $minutes_excess_break_amt;
+                        $sub_philhealth_deduction += $philhealth_deduction;
+                        $sub_pagibigloan_deduction += $pagibigloan_deduction;
+                        $sub_calamityloan_deduction += $calamityloan_deduction;
+                        $sub_cashadvance_deduction += $cashadvance_deduction;
+                        $sub_sun_pay += $sun_pay;
+                        $sub_ot_reg_amt += $ot_reg_amt;
+                        $sub_adjustment += $adjustment;
+                        $sub_minutes_late_amt += $minutes_late_amt;
+                        $sub_minutes_undertime_amt += $minutes_undertime_amt;
+                        $sub_pagibig_deduction += $pagibig_deduction;
+                        $sub_wtax_deduction += $wtax_deduction;
+                        $sub_hdmfloan_deduction += $hdmfloan_deduction;
+                        $sub_other_deductions += $other_deductions;
+
+                        $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+
+                        $border_top_thin = array(
+                          'borders' => array(
+                            'top' => array('style' => PHPExcel_Style_Border::BORDER_THIN)
+                          ),
+                        );
+                        $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->applyFromArray($border_top_thin);
+
+                        $excel->getActiveSheet()->setCellValue('A'.$i,'DEPT TOTAL');
+                        $excel->getActiveSheet()->setCellValue('B'.$i,$reg_pay);
+                        $excel->getActiveSheet()->setCellValue('C'.$i,$reg_hol_pay);
+                        $excel->getActiveSheet()->setCellValue('D'.$i,$spe_hol_pay);
+                        $excel->getActiveSheet()->setCellValue('E'.$i,$ot_reg_hol_amt);
+                        $excel->getActiveSheet()->setCellValue('F'.$i,$days_with_pay_amt);
+                        $excel->getActiveSheet()->setCellValue('G'.$i,$days_wout_pay_amt);
+                        $excel->getActiveSheet()->setCellValue('H'.$i,$gross_pay);
+                        $excel->getActiveSheet()->setCellValue('I'.$i,$sss_deduction);
+                        $excel->getActiveSheet()->setCellValue('J'.$i,$sss_ee_mpf);
+                        $excel->getActiveSheet()->setCellValue('K'.$i,$sssloan_deduction);
+                        $excel->getActiveSheet()->setCellValue('L'.$i,$cooploan_deduction);
+                        $excel->getActiveSheet()->setCellValue('M'.$i,$coopcontribution_deduction);
+                        $excel->getActiveSheet()->setCellValue('N'.$i,$total_deductions);
+                        $excel->getActiveSheet()->setCellValue('O'.$i,$net_pay);
+
+                        $i++;
+
+                        $excel->getActiveSheet()->getStyle('B'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                        $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                        $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                        $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                        $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('B'.$i,$allowance);
+                        $excel->getActiveSheet()->setCellValue('C'.$i,$nsd_pay);
+                        $excel->getActiveSheet()->setCellValue('D'.$i,$day_off_pay);
+                        $excel->getActiveSheet()->setCellValue('E'.$i,$ot_spe_hol_amt);
+                        $excel->getActiveSheet()->setCellValue('F'.$i,$other_earnings);
+                        $excel->getActiveSheet()->setCellValue('G'.$i,$minutes_excess_break_amt);
+                        $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('I'.$i,$philhealth_deduction);
+                        $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('K'.$i,$pagibigloan_deduction);
+                        $excel->getActiveSheet()->setCellValue('L'.$i,$calamityloan_deduction);
+                        $excel->getActiveSheet()->setCellValue('M'.$i,$cashadvance_deduction);
+                        $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                        $i++;
+
+                        $excel->getActiveSheet()->getStyle('C'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                        $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                        $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                        $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                        $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('B'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('C'.$i,$sun_pay);
+                        $excel->getActiveSheet()->setCellValue('D'.$i,$ot_reg_amt);
+                        $excel->getActiveSheet()->setCellValue('E'.$i,$adjustment);
+                        $excel->getActiveSheet()->setCellValue('F'.$i,$minutes_late_amt);
+                        $excel->getActiveSheet()->setCellValue('G'.$i,$minutes_undertime_amt);
+                        $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('I'.$i,$pagibig_deduction);
+                        $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('K'.$i,$wtax_deduction);
+                        $excel->getActiveSheet()->setCellValue('L'.$i,$hdmfloan_deduction);
+                        $excel->getActiveSheet()->setCellValue('M'.$i,$other_deductions);
+                        $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                        $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                        $i++;
+
+
+                    }
+                }
+
+                $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+
+                $border_top_thick = array(
+                  'borders' => array(
+                    'top' => array('style' => PHPExcel_Style_Border::BORDER_THICK)
+                  ),
+                );
+                $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->applyFromArray($border_top_thick);
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+                $excel->getActiveSheet()->setCellValue('A'.$i,'TOTAL '.$transaction->transaction_type);
+                $excel->getActiveSheet()->setCellValue('B'.$i,$sub_reg_pay);
+                $excel->getActiveSheet()->setCellValue('C'.$i,$sub_reg_hol_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$sub_spe_hol_pay);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$sub_ot_reg_hol_amt);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$sub_days_with_pay_amt);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$sub_days_wout_pay_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,$sub_gross_pay);
+                $excel->getActiveSheet()->setCellValue('I'.$i,$sub_sss_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,$sub_sss_ee_mpf);
+                $excel->getActiveSheet()->setCellValue('K'.$i,$sub_sssloan_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$sub_cooploan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$sub_coopcontribution_deduction);
+                $excel->getActiveSheet()->setCellValue('N'.$i,$sub_total_deductions);
+                $excel->getActiveSheet()->setCellValue('O'.$i,$sub_net_pay);
+
+                $i++;
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+                $excel->getActiveSheet()->getStyle('B'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                $excel->getActiveSheet()->setCellValue('B'.$i,$sub_allowance);
+                $excel->getActiveSheet()->setCellValue('C'.$i,$sub_nsd_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$sub_day_off_pay);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$sub_ot_spe_hol_amt);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$sub_other_earnings);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$sub_minutes_excess_break_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                $excel->getActiveSheet()->setCellValue('I'.$i,$sub_philhealth_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                $excel->getActiveSheet()->setCellValue('K'.$i,$sub_pagibigloan_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$sub_calamityloan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$sub_cashadvance_deduction);
+                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                $i++;
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+                $excel->getActiveSheet()->getStyle('C'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                $excel->getActiveSheet()->setCellValue('B'.$i,'');
+                $excel->getActiveSheet()->setCellValue('C'.$i,$sub_sun_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$sub_ot_reg_amt);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$sub_adjustment);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$sub_minutes_late_amt);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$sub_minutes_undertime_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                $excel->getActiveSheet()->setCellValue('I'.$i,$sub_pagibig_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                $excel->getActiveSheet()->setCellValue('K'.$i,$sub_wtax_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$sub_hdmfloan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$sub_other_deductions);
+                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                $i++;
+                $i++;
+
+            }
+
+            $grand_reg_pay += $sub_reg_pay;
+            $grand_reg_hol_pay += $sub_reg_hol_pay;
+            $grand_spe_hol_pay += $sub_spe_hol_pay;
+            $grand_ot_reg_hol_amt += $sub_ot_reg_hol_amt;
+            $grand_days_with_pay_amt += $sub_days_with_pay_amt;
+            $grand_days_wout_pay_amt += $sub_days_wout_pay_amt;
+            $grand_gross_pay += $sub_gross_pay;
+            $grand_sss_deduction += $sub_sss_deduction;
+            $grand_sss_ee_mpf += $sub_sss_ee_mpf;
+            $grand_sssloan_deduction += $sub_sssloan_deduction;
+            $grand_cooploan_deduction += $sub_cooploan_deduction;
+            $grand_coopcontribution_deduction += $sub_coopcontribution_deduction;
+            $grand_total_deductions += $sub_total_deductions;
+            $grand_net_pay += $sub_net_pay;
+            $grand_allowance += $sub_allowance;
+            $grand_nsd_pay += $sub_nsd_pay;
+            $grand_day_off_pay += $sub_day_off_pay;
+            $grand_ot_spe_hol_amt += $sub_ot_spe_hol_amt;
+            $grand_other_earnings += $sub_other_earnings;
+            $grand_minutes_excess_break_amt += $sub_minutes_excess_break_amt;
+            $grand_philhealth_deduction += $sub_philhealth_deduction;
+            $grand_pagibigloan_deduction += $sub_pagibigloan_deduction;
+            $grand_calamityloan_deduction += $sub_calamityloan_deduction;
+            $grand_cashadvance_deduction += $sub_cashadvance_deduction;
+            $grand_sun_pay += $sub_sun_pay;
+            $grand_ot_reg_amt += $sub_ot_reg_amt;
+            $grand_adjustment += $sub_adjustment;
+            $grand_minutes_late_amt += $sub_minutes_late_amt;
+            $grand_minutes_undertime_amt += $sub_minutes_undertime_amt;
+            $grand_pagibig_deduction += $sub_pagibig_deduction;
+            $grand_wtax_deduction += $sub_wtax_deduction;
+            $grand_hdmfloan_deduction += $sub_hdmfloan_deduction;
+            $grand_other_deductions += $sub_other_deductions;
+
+        }
+
+        if(count($payroll)>0){
+
+                $excel->getActiveSheet()->mergeCells('A'.$i.':O'.$i);
+                $excel->getActiveSheet()
+                        ->getStyle('A'.$i)
+                        ->getAlignment()
+                        ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $excel->getActiveSheet()->getStyle('A'.$i)->getFont()->setBold(TRUE);
+
+                $excel->getActiveSheet()->getStyle('A'.$i)->applyFromArray(
+                    array(
+                        'fill' => array(
+                            'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                            'color' => array('rgb' => 'd3d3d3')
+                        )
+                    )
+                );
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'GRAND TOTAL');
+
+                $i++;
+
+                $excel->getActiveSheet()->getStyle('B'.$i.':O'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)'); 
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                $excel->getActiveSheet()->setCellValue('B'.$i,$grand_reg_pay);
+                $excel->getActiveSheet()->setCellValue('C'.$i,$grand_reg_hol_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$grand_spe_hol_pay);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$grand_ot_reg_hol_amt);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$grand_days_with_pay_amt);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$grand_days_wout_pay_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,$grand_gross_pay);
+                $excel->getActiveSheet()->setCellValue('I'.$i,$grand_sss_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,$grand_sss_ee_mpf);
+                $excel->getActiveSheet()->setCellValue('K'.$i,$grand_sssloan_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$grand_cooploan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$grand_coopcontribution_deduction);
+                $excel->getActiveSheet()->setCellValue('N'.$i,$grand_total_deductions);
+                $excel->getActiveSheet()->setCellValue('O'.$i,$grand_net_pay);
+
+                $i++;
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+
+                $excel->getActiveSheet()->getStyle('B'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                $excel->getActiveSheet()->setCellValue('B'.$i,$grand_allowance);
+                $excel->getActiveSheet()->setCellValue('C'.$i,$grand_nsd_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$grand_day_off_pay);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$grand_ot_spe_hol_amt);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$grand_other_earnings);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$grand_minutes_excess_break_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                $excel->getActiveSheet()->setCellValue('I'.$i,$grand_philhealth_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                $excel->getActiveSheet()->setCellValue('K'.$i,$grand_pagibigloan_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$grand_calamityloan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$grand_cashadvance_deduction);
+                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                $i++;
+
+                $excel->getActiveSheet()->getStyle('A'.$i.':O'.$i)->getFont()->setBold(TRUE);
+
+                $excel->getActiveSheet()->getStyle('C'.$i.':G'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+                $excel->getActiveSheet()->getStyle('H'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('I'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');  
+                $excel->getActiveSheet()->getStyle('K'.$i.':M'.$i)->getNumberFormat()->setFormatCode('###,##0.00;(###,##0.00)');
+
+                $excel->getActiveSheet()->setCellValue('A'.$i,'');
+                $excel->getActiveSheet()->setCellValue('B'.$i,'');
+                $excel->getActiveSheet()->setCellValue('C'.$i,$grand_sun_pay);
+                $excel->getActiveSheet()->setCellValue('D'.$i,$grand_ot_reg_amt);
+                $excel->getActiveSheet()->setCellValue('E'.$i,$grand_adjustment);
+                $excel->getActiveSheet()->setCellValue('F'.$i,$grand_minutes_late_amt);
+                $excel->getActiveSheet()->setCellValue('G'.$i,$grand_minutes_undertime_amt);
+                $excel->getActiveSheet()->setCellValue('H'.$i,'');
+                $excel->getActiveSheet()->setCellValue('I'.$i,$grand_pagibig_deduction);
+                $excel->getActiveSheet()->setCellValue('J'.$i,'');
+                $excel->getActiveSheet()->setCellValue('K'.$i,$grand_wtax_deduction);
+                $excel->getActiveSheet()->setCellValue('L'.$i,$grand_hdmfloan_deduction);
+                $excel->getActiveSheet()->setCellValue('M'.$i,$grand_other_deductions);
+                $excel->getActiveSheet()->setCellValue('N'.$i,'');
+                $excel->getActiveSheet()->setCellValue('O'.$i,'');
+
+                $i++;
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        $filename="PAYROLL SUMMARY - (".$get_period.")";
+
+        header('Content-Disposition: attachment;filename='."".$filename.".xlsx".'');
+        header('Cache-Control: max-age=0');
+        // If you're serving to IE 9, then the following may be needed
+        header('Cache-Control: max-age=1');
+
+        // If you're serving to IE over SSL, then the following may be needed
+        header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+        header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header ('Pragma: public'); // HTTP/1.0
+
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $objWriter->save('php://output');
+
+
+    break;
+
             case 'export_employee_payroll_summary':
                     $excel = $this->excel;
                     if($filter_value!=='all' AND $filter_value2!==0){

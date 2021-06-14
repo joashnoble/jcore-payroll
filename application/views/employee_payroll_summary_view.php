@@ -123,9 +123,9 @@
                                                     <i class="fa fa"></i> PRINT
                                                 </button>
                                           </div>
-<!--                                           <div class="col-md-2">
+                                          <div class="col-md-2">
                                                 <button type="button" class="btn col-sm-12 btn-primary form-control" id="export_emp_payroll_summary" style="background-color:#27ae60; color:white;margin-top: 25px;"><i class="fa fa-file-excel-o"></i> EXPORT EXCEL</button> 
-                                           </div> -->
+                                           </div>
                                         </div>
                                     </div>
                                     <hr>
@@ -234,7 +234,7 @@ $(document).ready(function(){
     $('#export_emp_payroll_summary').on('click', function() {
         filter_pay_period = $('#payperiod_filter').val();
         filter_department = $('#department_filter').val();
-        window.open("PayrollHistory/layout/export_employee_payroll_summary/"+filter_department+"/"+filter_pay_period+"","_self");
+        window.open("PayrollHistory/layout/export_employee_payroll_summary_detailed/"+filter_department+"/"+filter_pay_period+"","_self");
     });
 
     $('#print_emp_payroll_summary').click(function(event){
